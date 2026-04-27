@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # --- La Base de Données pour PrintNow ---
+  mysql-db:
+    image: mysql:8.0
+    container_name: printnow_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: printnow_db
+      MYSQL_USER: printnow_user
+      MYSQL_PASSWORD: printnow_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # --- L'interface pour voir tes tables ---
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: printnow_phpmyadmin
+    environment:
+      PMA_HOST: mysql-db
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    ports:
+      - "8081:80" # J'ai mis 8081 au cas où tu aurais déjà quelque chose sur le 8080
+    depends_on:
+      - mysql-db
+
+volumes:
+  mysql_data:
