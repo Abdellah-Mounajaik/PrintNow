@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "../ui/button"; 
 import { 
@@ -8,7 +8,9 @@ import {
   X, 
   User, 
   LogIn,
-  Globe
+  LogOut,
+  Globe,
+  LayoutDashboard
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -17,11 +19,18 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
+// 👇 IMPORT DE NOTRE CONTEXTE D'AUTHENTIFICATION
+import { useAuth } from "../../modules/auth/context/AuthContext";
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("FR");
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // 👇 RÉCUPÉRATION DE L'ÉTAT DE CONNEXION
+  const { isAuthenticated, logoutGlobal } = useAuth();
 
   const languages = [
     { code: "FR", label: "Français" },
@@ -38,6 +47,12 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    logoutGlobal();
+    setIsMenuOpen(false);
+    navigate("/"); // Redirige vers l'accueil après déconnexion
+  };
 
   const showSolidBg = !isHome || isScrolled;
   const useLight = isHome && !isScrolled;
@@ -106,7 +121,7 @@ const Header = () => {
                   className={useLight ? "text-primary-foreground hover:bg-primary-foreground/10" : ""}
                 >
                   <Globe className="h-4 w-4" />
-                  <span className="hidden sm:inline">{currentLang}</span>
+                  <span className="hidden sm:inline ml-2">{currentLang}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -124,26 +139,38 @@ const Header = () => {
 
             {/* Auth Buttons - Desktop */}
             <div className="hidden md:flex items-center gap-2">
-              <Button 
-                variant="outline"
-                size="sm"
-                asChild
-              >
-                <Link to="/connexion">
-                  <LogIn className="h-4 w-4" />
-                  Connexion
-                </Link>
-              </Button>
-              <Button 
-                variant={useLight ? "secondary" : "default"}
-                size="sm"
-                asChild
-              >
-                <Link to="/inscription">
-                  <User className="h-4 w-4" />
-                  Inscription
-                </Link>
-              </Button>
+              {/* 👇 AFFICHAGE CONDITIONNEL SELON LA CONNEXION */}
+              {isAuthenticated ? (
+                <>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/dashboard">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Mon espace
+                    </Link>
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Déconnexion
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm" asChild>
+                    {/* 👇 Redirige vers /login avec paramètre */}
+                    <Link to="/login?tab=connexion">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Connexion
+                    </Link>
+                  </Button>
+                  <Button variant={useLight ? "secondary" : "default"} size="sm" asChild>
+                    {/* 👇 Redirige vers /login avec paramètre inscription */}
+                    <Link to="/login?tab=inscription">
+                      <User className="h-4 w-4 mr-2" />
+                      Inscription
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -162,39 +189,38 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-card border-b border-border shadow-lg animate-fade-in">
             <nav className="container mx-auto px-4 py-4 flex flex-col gap-3">
-              <Link 
-                to="/imprimeries" 
-                className="py-2 text-foreground font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
+              <Link to="/imprimeries" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
                 Imprimeries
               </Link>
-              <Link 
-                to="/services" 
-                className="py-2 text-foreground font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
+              <Link to="/services" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
                 Services
               </Link>
-              <Link 
-                to="/devenir-partenaire" 
-                className="py-2 text-foreground font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
+              <Link to="/devenir-partenaire" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
                 Devenir partenaire
               </Link>
               <hr className="border-border" />
+              
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" asChild>
-                  <Link to="/connexion" onClick={() => setIsMenuOpen(false)}>
-                    Connexion
-                  </Link>
-                </Button>
-                <Button className="flex-1" asChild>
-                  <Link to="/inscription" onClick={() => setIsMenuOpen(false)}>
-                    Inscription
-                  </Link>
-                </Button>
+                {/* 👇 AFFICHAGE CONDITIONNEL MOBILE */}
+                {isAuthenticated ? (
+                  <>
+                    <Button variant="outline" className="flex-1" asChild>
+                      <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>Mon espace</Link>
+                    </Button>
+                    <Button variant="destructive" className="flex-1" onClick={handleLogout}>
+                      Déconnexion
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" className="flex-1" asChild>
+                      <Link to="/login?tab=connexion" onClick={() => setIsMenuOpen(false)}>Connexion</Link>
+                    </Button>
+                    <Button className="flex-1" asChild>
+                      <Link to="/login?tab=inscription" onClick={() => setIsMenuOpen(false)}>Inscription</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>

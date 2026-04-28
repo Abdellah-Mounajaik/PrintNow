@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -17,19 +17,28 @@ import type { LoginRequest, SignupRequest } from "../models/auth.model";
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { loginGlobal } = useAuth(); // Pour mettre à jour le contexte React
+  const { loginGlobal } = useAuth(); 
 
   const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") === "inscription" ? "inscription" : "connexion");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 👇 ÉTATS POUR STOCKER CE QUE L'UTILISATEUR TAPE
   const [loginData, setLoginData] = useState<LoginRequest>({ email: "", motDePasse: "" });
   const [signupData, setSignupData] = useState<SignupRequest>({ prenom: "", nom: "", email: "", motDePasse: "", telephone: "" });
+  
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // 👇 ÉTATS POUR AFFICHER LES MESSAGES D'ERREUR/SUCCÈS
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "inscription" || tab === "connexion") {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,10 +46,9 @@ const Auth = () => {
     setErrorMsg("");
 
     try {
-      // VRAI APPEL BACKEND
       const data = await authService.login(loginData);
       loginGlobal(data.token, { id: data.id, email: data.email, role: data.role });
-      navigate("/dashboard"); // Redirection après succès
+      navigate("/dashboard"); 
     } catch (err: any) {
       setErrorMsg(err.message || "Erreur de connexion");
     } finally {
@@ -54,11 +62,21 @@ const Auth = () => {
     setErrorMsg("");
     setSuccessMsg("");
 
+    // 👇 VÉRIFICATION : Est-ce que les mots de passe correspondent ?
+    if (signupData.motDePasse !== confirmPassword) {
+      setErrorMsg("Les mots de passe ne correspondent pas.");
+      setIsLoading(false);
+      return; // On arrête la fonction ici, on n'appelle pas le backend
+    }
+
     try {
-      // VRAI APPEL BACKEND
       await authService.register(signupData);
       setSuccessMsg("Compte créé avec succès ! Connectez-vous.");
-      setActiveTab("connexion"); // Bascule sur l'onglet connexion
+      setActiveTab("connexion"); 
+      
+      // On vide les champs de mot de passe par sécurité
+      setSignupData({...signupData, motDePasse: ""});
+      setConfirmPassword("");
     } catch (err: any) {
       setErrorMsg(err.message || "Erreur lors de l'inscription");
     } finally {
@@ -198,6 +216,38 @@ const Auth = () => {
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
+                        <p className="text-xs text-muted-foreground">
+                          Minimum 8 caractères avec lettres et chiffres
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-confirm-password">Confirmer le mot de passe</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                            id="signup-confirm-password" type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10" required
+                            value={confirmPassword} 
+                            onChange={(e) => setConfirmPassword(e.target.value)} 
+                          />
+                          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2 pt-2">
+                        <Checkbox id="terms" required className="mt-1" />
+                        <Label htmlFor="terms" className="text-sm font-normal leading-relaxed">
+                          J'accepte les{" "}
+                          <Link to="/conditions" className="text-primary hover:underline">
+                            conditions d'utilisation
+                          </Link>{" "}
+                          et la{" "}
+                          <Link to="/confidentialite" className="text-primary hover:underline">
+                            politique de confidentialité
+                          </Link>
+                        </Label>
                       </div>
 
                       <Button type="submit" className="w-full" disabled={isLoading}>
@@ -210,6 +260,15 @@ const Auth = () => {
               </CardContent>
             </Tabs>
           </Card>
+          
+          <div className="mt-8 text-center">
+            <p className="text-muted-foreground text-sm">
+              Vous êtes une imprimerie ?{" "}
+              <Link to="/devenir-partenaire" className="text-primary font-medium hover:underline">
+                Devenez partenaire
+              </Link>
+            </p>
+          </div>
         </div>
       </main>
     </div>
