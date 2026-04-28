@@ -1,122 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { type JSX } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Import de notre contexte d'authentification
+import { AuthProvider, useAuth } from './modules/auth/context/AuthContext';
 
+// Import de notre page d'authentification
+import Auth from './modules/auth/pages/Auth';
+import Header from './components/layout/Header';
+
+// --- COMPOSANT DE SÉCURITÉ ---
+// Ce petit composant vérifie si l'utilisateur est connecté.
+// Si oui, il affiche la page demandée. Sinon, il le renvoie vers /login.
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
+
+// --- COMPOSANT PLACEHOLDER POUR LE DASHBOARD ---
+const DashboardPlaceholder = () => {
+  const { user, logoutGlobal } = useAuth();
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ padding: '50px', textAlign: 'center', fontFamily: 'sans-serif' }}>
+      <h1>Bienvenue sur ton espace, {user?.email} !</h1>
+      <p>Ton rôle : {user?.role}</p>
+      <button 
+        onClick={logoutGlobal}
+        style={{ padding: '10px 20px', marginTop: '20px', background: 'red', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+      >
+        Se déconnecter
+      </button>
+    </div>
+  );
+};
 
-      <div className="ticks"></div>
+// --- APPLICATION PRINCIPALE ---
+function App() {
+  return (
+    // 1. On englobe TOUTE l'application avec notre AuthProvider
+    <AuthProvider>
+      <Header />
+      {/* 2. On configure le routeur pour la navigation */}
+      
+        <Routes>
+          {/* Redirection par défaut vers la page de connexion */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          
+          {/* Notre fameuse page d'authentification (gère ?tab=connexion ou ?tab=inscription) */}
+          <Route path="/login" element={<Auth />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          {/* Une route protégée : on ne peut y accéder que si on est connecté */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <DashboardPlaceholder />
+              </ProtectedRoute>
+            } 
+          />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          {/* Route 404 : Si l'utilisateur tape une URL qui n'existe pas */}
+          <Route path="*" element={<h1 style={{textAlign: 'center', marginTop: '50px'}}>404 - Page introuvable</h1>} />
+        </Routes>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

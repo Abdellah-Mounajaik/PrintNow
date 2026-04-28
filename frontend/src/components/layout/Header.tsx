@@ -1,0 +1,207 @@
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+
+import { Button } from "../ui/button"; 
+import { 
+  Printer, 
+  Menu, 
+  X, 
+  User, 
+  LogIn,
+  Globe
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+
+const Header = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState("FR");
+  const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
+
+  const languages = [
+    { code: "FR", label: "Français" },
+    { code: "EN", label: "English" },
+    { code: "NL", label: "Nederlands" },
+  ];
+
+  const isHome = location.pathname === "/";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const showSolidBg = !isHome || isScrolled;
+  const useLight = isHome && !isScrolled;
+
+  return (
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      showSolidBg ? "bg-card/95 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"
+    }`}>
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          {/* Logo */}
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 group"
+          >
+            <div className={`p-2 rounded-xl transition-colors ${
+              useLight ? "bg-primary-foreground/10" : "bg-primary/10"
+            }`}>
+              <Printer className={`h-6 w-6 ${
+                useLight ? "text-primary-foreground" : "text-primary"
+              }`} />
+            </div>
+            <span className={`font-display font-bold text-xl ${
+              useLight ? "text-primary-foreground" : "text-foreground"
+            }`}>
+              PrintHub
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link 
+              to="/imprimeries" 
+              className={`font-medium transition-colors hover:opacity-80 ${
+                useLight ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Imprimeries
+            </Link>
+            <Link 
+              to="/services" 
+              className={`font-medium transition-colors hover:opacity-80 ${
+                useLight ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Services
+            </Link>
+            <Link 
+              to="/devenir-partenaire" 
+              className={`font-medium transition-colors hover:opacity-80 ${
+                useLight ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Devenir partenaire
+            </Link>
+          </nav>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-3">
+            {/* Language Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className={useLight ? "text-primary-foreground hover:bg-primary-foreground/10" : ""}
+                >
+                  <Globe className="h-4 w-4" />
+                  <span className="hidden sm:inline">{currentLang}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {languages.map((lang) => (
+                  <DropdownMenuItem 
+                    key={lang.code}
+                    onClick={() => setCurrentLang(lang.code)}
+                    className={currentLang === lang.code ? "bg-accent" : ""}
+                  >
+                    {lang.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Auth Buttons - Desktop */}
+            <div className="hidden md:flex items-center gap-2">
+              <Button 
+                variant="outline"
+                size="sm"
+                asChild
+              >
+                <Link to="/connexion">
+                  <LogIn className="h-4 w-4" />
+                  Connexion
+                </Link>
+              </Button>
+              <Button 
+                variant={useLight ? "secondary" : "default"}
+                size="sm"
+                asChild
+              >
+                <Link to="/inscription">
+                  <User className="h-4 w-4" />
+                  Inscription
+                </Link>
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`md:hidden ${useLight ? "text-primary-foreground hover:bg-primary-foreground/10" : ""}`}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-card border-b border-border shadow-lg animate-fade-in">
+            <nav className="container mx-auto px-4 py-4 flex flex-col gap-3">
+              <Link 
+                to="/imprimeries" 
+                className="py-2 text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Imprimeries
+              </Link>
+              <Link 
+                to="/services" 
+                className="py-2 text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Services
+              </Link>
+              <Link 
+                to="/devenir-partenaire" 
+                className="py-2 text-foreground font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Devenir partenaire
+              </Link>
+              <hr className="border-border" />
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" asChild>
+                  <Link to="/connexion" onClick={() => setIsMenuOpen(false)}>
+                    Connexion
+                  </Link>
+                </Button>
+                <Button className="flex-1" asChild>
+                  <Link to="/inscription" onClick={() => setIsMenuOpen(false)}>
+                    Inscription
+                  </Link>
+                </Button>
+              </div>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};
+
+export default Header;
