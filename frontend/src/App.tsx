@@ -4,13 +4,15 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Import de notre contexte d'authentification
 import { AuthProvider, useAuth } from './modules/auth/context/AuthContext';
 
-// Import de notre page d'authentification
+// Import de nos composants
 import Auth from './modules/auth/pages/Auth';
 import Header from './components/layout/Header';
 
+// 🚨 LE SECRET EST ICI : On IMPORTE ton vrai fichier Home qui contient le HeroSection
+// (Vérifie juste que le chemin correspond bien au dossier où tu as mis ton fichier Home.tsx)
+import Home from './pages/Home'; 
+
 // --- COMPOSANT DE SÉCURITÉ ---
-// Ce petit composant vérifie si l'utilisateur est connecté.
-// Si oui, il affiche la page demandée. Sinon, il le renvoie vers /login.
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
   
@@ -25,12 +27,12 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 const DashboardPlaceholder = () => {
   const { user, logoutGlobal } = useAuth();
   return (
-    <div style={{ padding: '50px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-      <h1>Bienvenue sur ton espace, {user?.email} !</h1>
-      <p>Ton rôle : {user?.role}</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
+      <h1 className="text-3xl font-bold">Bienvenue sur ton espace, {user?.email} !</h1>
+      <p className="mt-2 text-muted-foreground">Ton rôle : {user?.role}</p>
       <button 
         onClick={logoutGlobal}
-        style={{ padding: '10px 20px', marginTop: '20px', background: 'red', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+        className="px-5 py-2 mt-5 bg-destructive text-destructive-foreground rounded cursor-pointer hover:opacity-90 transition-opacity"
       >
         Se déconnecter
       </button>
@@ -41,19 +43,16 @@ const DashboardPlaceholder = () => {
 // --- APPLICATION PRINCIPALE ---
 function App() {
   return (
-    // 1. On englobe TOUTE l'application avec notre AuthProvider
-    <AuthProvider>
-      <Header />
-      {/* 2. On configure le routeur pour la navigation */}
-      
+    <div className=" min-h-screen bg-background text-foreground">
+      <AuthProvider>
+        {/* Ton Header global */}
+        <Header />
+        
         <Routes>
-          {/* Redirection par défaut vers la page de connexion */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Home />} />
           
-          {/* Notre fameuse page d'authentification (gère ?tab=connexion ou ?tab=inscription) */}
           <Route path="/login" element={<Auth />} />
 
-          {/* Une route protégée : on ne peut y accéder que si on est connecté */}
           <Route 
             path="/dashboard" 
             element={
@@ -63,10 +62,10 @@ function App() {
             } 
           />
 
-          {/* Route 404 : Si l'utilisateur tape une URL qui n'existe pas */}
-          <Route path="*" element={<h1 style={{textAlign: 'center', marginTop: '50px'}}>404 - Page introuvable</h1>} />
+          <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404 - Page introuvable</h1>} />
         </Routes>
-    </AuthProvider>
+      </AuthProvider>
+    </div>
   );
 }
 
