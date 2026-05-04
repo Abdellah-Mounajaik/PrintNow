@@ -11,6 +11,7 @@ import Header from './components/layout/Header';
 // 🚨 LE SECRET EST ICI : On IMPORTE ton vrai fichier Home qui contient le HeroSection
 // (Vérifie juste que le chemin correspond bien au dossier où tu as mis ton fichier Home.tsx)
 import Home from './pages/Home'; 
+import DevenirPartenaire from './modules/shop/pages/DevenirPartenaire';
 
 // --- COMPOSANT DE SÉCURITÉ ---
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -52,7 +53,7 @@ function App() {
           <Route path="/" element={<Home />} />
           
           <Route path="/login" element={<Auth />} />
-
+<Route path="/devenir-partenaire" element={<DevenirPartenaire />} />
           <Route 
             path="/dashboard" 
             element={

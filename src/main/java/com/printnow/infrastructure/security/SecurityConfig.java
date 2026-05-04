@@ -67,7 +67,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // L'authentification est publique
                 .requestMatchers("/api/imprimeries/**").permitAll() // Le catalogue est public
-                .requestMatchers("/api/produits/**").permitAll() // Les produits sont publics
+                .requestMatchers("/api/produits/**").permitAll()
+                .requestMatchers("/api/partners/register").permitAll() // L'inscription des partenaires est publique
                 .anyRequest().authenticated() // TOUT le reste nécessite un token JWT valide
             );
 
