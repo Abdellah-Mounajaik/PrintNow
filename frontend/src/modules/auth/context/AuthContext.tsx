@@ -1,14 +1,11 @@
-// src/core/context/AuthContext.tsx
 import React, { createContext, useState, useEffect, type ReactNode, useContext } from 'react';
 
-// Les données que l'on veut garder en mémoire globale
 export interface UserData {
     id: number;
     email: string;
     role: string;
 }
 
-// L'interface de ce que notre contexte va fournir
 interface AuthContextType {
     user: UserData | null;
     token: string | null;
@@ -17,32 +14,31 @@ interface AuthContextType {
     logoutGlobal: () => void;
 }
 
-// Création du Context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Le Provider (qui va englober toute notre application)
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<UserData | null>(null);
-    const [token, setToken] = useState<string | null>(null);
+    // 💡 STRATÉGIE : On lit le localStorage DIRECTEMENT dans l'état initial
+    // Cela évite le flash "non connecté" au rafraîchissement de la page
+    const [token, setToken] = useState<string | null>(() => {
+        return localStorage.getItem("token");
+    });
 
-    // Au premier chargement de l'application, on vérifie le localStorage
-    useEffect(() => {
-        const storedToken = localStorage.getItem("token");
+    const [user, setUser] = useState<UserData | null>(() => {
         const storedUser = localStorage.getItem("user");
-        
-        if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
-        }
-    }, []);
+        return storedUser ? JSON.parse(storedUser) : null;
+    });
 
-    // Fonction appelée par la LoginPage une fois la requête API réussie
+    // Fonction pour sauvegarder la session (appelée après le login)
     const loginGlobal = (newToken: string, loggedUser: UserData) => {
+        // On sauve dans le localStorage pour la persistance
+        localStorage.setItem("token", newToken);
+        localStorage.setItem("user", JSON.stringify(loggedUser));
+        
+        // On met à jour l'état React pour l'UI
         setToken(newToken);
         setUser(loggedUser);
     };
 
-    // Fonction appelée quand on clique sur "Se déconnecter" n'importe où dans l'app
     const logoutGlobal = () => {
         setToken(null);
         setUser(null);
@@ -50,7 +46,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.removeItem("user");
     };
 
-    // Un simple booléen pour savoir si l'utilisateur est connecté
+    // isAuthenticated est maintenant calculé instantanément au chargement
     const isAuthenticated = !!token;
 
     return (
@@ -60,7 +56,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
 };
 
-// Hook personnalisé très pratique pour ne pas avoir à importer useContext partout
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (!context) {
