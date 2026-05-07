@@ -1,8 +1,12 @@
 package com.printnow.module.shop.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ImprimerieRequestDTO {
     private Long idGerant;
     private String nom;
@@ -18,4 +22,8 @@ public class ImprimerieRequestDTO {
     private Boolean proposeExpress2h;
     private Double prixExpress2h;
     private Boolean livraisonActive;
+    private Boolean proposeTarifEtudiant;
+    private String numeroTva;
+
+
 }

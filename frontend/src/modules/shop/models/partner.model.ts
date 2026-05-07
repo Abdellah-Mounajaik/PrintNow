@@ -43,9 +43,12 @@ export interface ImprimerieRequestDTO {
   emailContact: string;
   telephoneContact: string;
   adresse: string;
+  numeroTva: string;
   ville?: string;
   pays?: string;
   livraisonActive: boolean;
+  proposeTarifEtudiant: boolean;
+  proposeExpress2h: boolean;
 }
 
 export interface PartnerRegistrationRequest {
@@ -55,4 +58,5 @@ export interface PartnerRegistrationRequest {
   imprimerie: ImprimerieRequestDTO;
   produits: ProduitRequestDTO[];
   horaires: HoraireOuvertureRequestDTO[];
+  
 }

@@ -1,5 +1,6 @@
 package com.printnow.module.shop.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,7 +11,15 @@ import com.printnow.module.shop.dto.PartnerRegistrationRequest;
 import com.printnow.module.shop.dto.ProduitRequestDTO;
 import com.printnow.module.shop.mapper.ShopMapper;
 import com.printnow.module.shop.model.HoraireOuverture;
+import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.repository.HoraireOuvertureRepository;
+import com.printnow.module.shop.repository.ImprimerieRepository;
+
+import com.printnow.module.user.mapper.UserMapper;
+import com.printnow.module.user.model.Role;
+import com.printnow.module.user.model.User;
+import com.printnow.module.user.repository.RoleRepository;
+import com.printnow.module.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,42 +27,85 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PartnerRegistrationService {
 
-    // On injecte TES services existants !
     private final ImprimerieService imprimerieService;
     private final ProduitService produitService;
+    private final ImprimerieRepository imprimerieRepository;
     private final HoraireOuvertureRepository horaireRepository; 
     private final ShopMapper shopMapper;
-    // private final UserService userService; // (À rajouter plus tard pour créer l'utilisateur)
+    
+    private final UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Transactional // Si un truc plante, tout s'annule (Rollback)
-    public void registerNewPartner(PartnerRegistrationRequest request) {
+    /**
+     * Crée un nouveau partenaire (User + Imprimerie + Produits + Horaires)
+     * en mode inactif en attendant le paiement Stripe.
+     */
+    @Transactional
+    public Long registerNewPartner(PartnerRegistrationRequest request) {
+        // Validation de base
+        if (request.getSiret() == null || request.getSiret().isBlank()) {
+            throw new IllegalArgumentException("Le numéro de TVA est obligatoire.");
+        }
         
-        // ÉTAPE 1 : Créer le compte utilisateur (Gérant)
-        // User newGerant = userService.createPartnerAccount(request.getEmail(), request.getPassword());
-        Long idGerantSimule = 1L; // On simule l'ID du gérant pour l'instant
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Cette adresse email est déjà utilisée.");
+        }
 
-        // ÉTAPE 2 : Créer l'imprimerie en utilisant TON ImprimerieService
+        // 1. RÉCUPÉRER LE RÔLE
+        Role roleImprimerie = roleRepository.findByNom("IMPRIMERIE")
+                .orElseThrow(() -> new RuntimeException("Erreur : Rôle IMPRIMERIE non trouvé."));
+
+        // 2. CRÉER L'UTILISATEUR (Gérant)
+        User newGerant = userMapper.toEntityFromPartnerRequest(request);
+        newGerant.setMotDePasse(passwordEncoder.encode(request.getPassword()));
+        newGerant.setRole(roleImprimerie);
+        newGerant.setActif(false); // Inactif par défaut
+        
+        newGerant = userRepository.save(newGerant);
+
+        // 3. CRÉER L'IMPRIMERIE
         ImprimerieRequestDTO shopDto = request.getImprimerie();
-        shopDto.setIdGerant(idGerantSimule);
-        
-        // On récupère la réponse qui contient l'ID généré de l'imprimerie !
+        shopDto.setIdGerant(newGerant.getId());
+        shopDto.setNumeroTva(request.getSiret());
+
         ImprimerieResponseDTO savedShop = imprimerieService.createImprimerie(shopDto);
 
-        // ÉTAPE 3 : Créer les produits en utilisant TON ProduitService
+        // 4. CRÉER LES PRODUITS
         if (request.getProduits() != null) {
             for (ProduitRequestDTO prodDto : request.getProduits()) {
-                prodDto.setImprimerieId(savedShop.getId()); // On lie le produit à la nouvelle imprimerie
+                prodDto.setImprimerieId(savedShop.getId());
                 produitService.createProduit(prodDto);
             }
         }
 
-        // ÉTAPE 4 : Créer les horaires
+        // 5. CRÉER LES HORAIRES
         if (request.getHoraires() != null) {
             for (HoraireOuvertureRequestDTO horaireDto : request.getHoraires()) {
-                horaireDto.setImprimerieId(savedShop.getId()); // On lie l'horaire à la nouvelle imprimerie
+                horaireDto.setImprimerieId(savedShop.getId()); 
                 HoraireOuverture horaire = shopMapper.toEntity(horaireDto);
                 horaireRepository.save(horaire);
             }
         }
+
+        // Retourne l'ID pour le contrôleur et Stripe
+        return savedShop.getId();
+    }
+
+    /**
+     * Active le compte suite à la confirmation du Webhook Stripe.
+     */
+    @Transactional
+    public void activatePartnerAccount(Long imprimerieId) {
+        Imprimerie imprimerie = imprimerieRepository.findById(imprimerieId)
+            .orElseThrow(() -> new RuntimeException("Imprimerie non trouvée"));
+        
+        imprimerie.setActif(true);
+        if (imprimerie.getGerant() != null) {
+            imprimerie.getGerant().setActif(true);
+        }
+        
+        imprimerieRepository.save(imprimerie);
     }
 }

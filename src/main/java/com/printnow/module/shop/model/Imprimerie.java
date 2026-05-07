@@ -1,5 +1,9 @@
 package com.printnow.module.shop.model;
 
+import java.util.List;
+
+import com.printnow.module.user.model.User;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,8 +20,9 @@ public class Imprimerie {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "id_gerant")
-    private Long idGerant; // Lien avec l'utilisateur (gérant)
+    @OneToOne
+    @JoinColumn(name = "id_gerant", nullable = false)
+    private User gerant;
 
     @Column(nullable = false, length = 150)
     private String nom;
@@ -55,5 +60,15 @@ public class Imprimerie {
     @Column(name = "livraison_active")
     private Boolean livraisonActive;
 
-    private Boolean actif;
+    private Boolean proposeTarifEtudiant;
+
+    @Column(columnDefinition = "boolean default false")
+    private Boolean actif = false;;
+    @OneToMany(mappedBy = "imprimerie", fetch = FetchType.LAZY)
+    private List<HoraireOuverture> horaires;
+    @OneToMany(mappedBy = "imprimerie", fetch = FetchType.LAZY)
+    private List<Produit> produits;
+
+    @Column(name = "numero_tva", unique = true, length = 50)
+    private String numeroTva;
 }

@@ -1,5 +1,7 @@
 package com.printnow.module.shop.dto;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -13,4 +15,8 @@ public class ImprimerieResponseDTO {
     private Boolean proposeExpress2h;
     private Boolean livraisonActive;
     private Boolean actif;
+    private List<HoraireOuvertureResponseDTO> horaires;
+    private List<ProduitResponseDTO> produits;
+    private Boolean proposeTarifEtudiant;
+    private String numeroTva;
 }

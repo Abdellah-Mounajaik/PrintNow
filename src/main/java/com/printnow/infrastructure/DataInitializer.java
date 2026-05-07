@@ -26,6 +26,12 @@ public class DataInitializer {
                 roleRepository.save(adminRole);
                 System.out.println("✅ Rôle ADMIN créé avec succès en base de données.");
             }
+            if (roleRepository.findByNom("IMPRIMERIE").isEmpty()) {
+                Role imprimerieRole = new Role();
+                imprimerieRole.setNom("IMPRIMERIE"); 
+                roleRepository.save(imprimerieRole);
+                System.out.println("✅ Rôle IMPRIMERIE créé avec succès.");
+            }
         };
     }
 }

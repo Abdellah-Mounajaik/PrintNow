@@ -17,5 +17,5 @@ public class Role {
     private Long id; // Identifiant unique du rôle 
 
     @Column(nullable = false, length = 50)
-    private String nom; // Nom du rôle (ex: ADMIN, CLIENT) 
+    private String nom; 
 }

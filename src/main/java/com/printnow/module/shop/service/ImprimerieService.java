@@ -5,6 +5,9 @@ import com.printnow.module.shop.dto.ImprimerieResponseDTO;
 import com.printnow.module.shop.mapper.ShopMapper;
 import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.repository.ImprimerieRepository;
+import com.printnow.module.user.model.User;
+import com.printnow.module.user.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +22,13 @@ public class ImprimerieService {
 
     private final ImprimerieRepository imprimerieRepository;
     private final ShopMapper shopMapper;
+    private final UserRepository userRepository;
 
     public ImprimerieResponseDTO createImprimerie(ImprimerieRequestDTO dto) {
         Imprimerie imprimerie = shopMapper.toEntity(dto);
+        User gerant = userRepository.findById(dto.getIdGerant())
+            .orElseThrow(() -> new RuntimeException("Gérant non trouvé"));
+        imprimerie.setGerant(gerant);
         return shopMapper.toResponse(imprimerieRepository.save(imprimerie));
     }
 

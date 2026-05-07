@@ -11,45 +11,105 @@ import { Badge } from "../../../components/ui/badge";
 import Header from "../../../components/layout/Header";
 import { toast } from "../../../hooks/use-toast";
 
-// 👇 Imports API et Modèles
 import { partnerService } from "../services/partner.service";
-import { 
-  type PartnerRegistrationRequest, 
-  TypeProduit, 
-  FormatImpression 
-} from "../models/partner.model";
+import { type PartnerRegistrationRequest } from "../models/partner.model";
+import { DAYS, SERVICES, type Hours, type ServiceState } from "../models/partner.constants";
 
 import {
   Printer, Building2, Mail, Phone, MapPin, Upload,
   CheckCircle2, CreditCard, Clock, ArrowRight, ArrowLeft,
-  Lock, Sparkles, Users, TrendingUp, Truck, GraduationCap,
+  Lock, Sparkles, Users, TrendingUp, Truck, GraduationCap, Zap,
+  Eye, EyeOff
 } from "lucide-react";
 
-const DAYS = [
-  { key: "mon", label: "Lundi" }, { key: "tue", label: "Mardi" },
-  { key: "wed", label: "Mercredi" }, { key: "thu", label: "Jeudi" },
-  { key: "fri", label: "Vendredi" }, { key: "sat", label: "Samedi" },
-  { key: "sun", label: "Dimanche" },
-];
+// 👇 Imports Stripe
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
-// 👇 Adaptation aux Enums de ton backend Java
-const SERVICES = [
-  { id: "bw-a4", name: "Impression N&B A4", typeProduit: TypeProduit.DOCUMENT, formatImpression: FormatImpression.A4, defaultPrice: "0.10" },
-  { id: "color-a4", name: "Impression couleur A4", typeProduit: TypeProduit.DOCUMENT, formatImpression: FormatImpression.A4, defaultPrice: "0.30" },
-  { id: "bw-a3", name: "Impression N&B A3", typeProduit: TypeProduit.DOCUMENT, formatImpression: FormatImpression.A3, defaultPrice: "0.50" },
-  { id: "color-a3", name: "Impression couleur A3", typeProduit: TypeProduit.DOCUMENT, formatImpression: FormatImpression.A3, defaultPrice: "0.80" },
-  { id: "business-cards", name: "Cartes de visite", typeProduit: TypeProduit.CARTE_VISITE, formatImpression: FormatImpression.CARTE_VISITE_85x55, defaultPrice: "25.00" },
-  { id: "flyers", name: "Flyers / Dépliants", typeProduit: TypeProduit.FLYER, formatImpression: FormatImpression.A5, defaultPrice: "0.15" },
-  { id: "posters", name: "Affiches grand format", typeProduit: TypeProduit.POSTER, formatImpression: FormatImpression.A2, defaultPrice: "8.00" },
-];
+// 👇 Initialisation de Stripe 
+const stripePromise = loadStripe("pk_test_51TTGFb2cg3RhdI8F1DZMf8XiWANwLYoDPQGDEfqARAwnDN4gvIBxQyioyQFUuxMvoVtJJHwdT6tJP2IdBIlOMdES00ZAsXr92a");
 
-type Hours = { open: string; close: string; closed: boolean };
-type ServiceState = { enabled: boolean; price: string };
+// =========================================================================
+// NOUVEAU SOUS-COMPOSANT : Formulaire Stripe sécurisé
+// =========================================================================
+const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setIsProcessing(true);
+    setErrorMessage("");
+
+    try {
+      // 1. Sauvegarder le partenaire en base (en attente d'activation)
+      const savedPartnerResponse = await partnerService.register(payload) as any;
+      
+      // Assure-toi que ton backend renvoie l'ID de l'imprimerie créée 
+      // (ajuste savedPartnerResponse.id si la structure de ta réponse est différente)
+      const imprimerieId = savedPartnerResponse?.id || savedPartnerResponse;
+console.log("ID à envoyer à Stripe :", imprimerieId);
+      // 2. Demander l'intention de paiement au backend Spring Boot
+      const intentResponse = await fetch("http://localhost:8080/api/payments/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imprimerieId: imprimerieId })
+      });
+      
+      if (!intentResponse.ok) throw new Error("Erreur lors de l'initialisation du paiement");
+      const intentData = await intentResponse.json();
+
+      // 3. Confirmer le paiement avec la carte saisie
+      const result = await stripe.confirmCardPayment(intentData.clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement)!,
+        }
+      });
+
+      if (result.error) {
+        setErrorMessage(result.error.message || "Le paiement a échoué.");
+      } else if (result.paymentIntent?.status === "succeeded") {
+        // Succès ! On passe à l'écran de confirmation
+        onPaymentSuccess();
+      }
+    } catch (error: any) {
+      setErrorMessage(error.message || "Une erreur de communication est survenue.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="p-4 border border-border rounded-lg bg-background">
+        <CardElement options={{ hidePostalCode: true, style: { base: { fontSize: '16px', color: '#333' } } }} />
+      </div>
+      
+      {errorMessage && <p className="text-sm text-destructive font-medium">{errorMessage}</p>}
+
+      <div className="flex justify-between mt-8">
+        <Button variant="outline" type="button" size="lg" onClick={onBack} disabled={isProcessing}>
+          <ArrowLeft className="h-4 w-4 mr-2" /> Retour
+        </Button>
+        <Button variant="default" type="submit" size="lg" disabled={!stripe || isProcessing}>
+          {isProcessing ? "Traitement sécurisé..." : `Payer ${amount.toFixed(2)}€ et activer`}
+          {!isProcessing && <ArrowRight className="h-4 w-4 ml-2" />}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+// =========================================================================
+// COMPOSANT PRINCIPAL
+// =========================================================================
 const DevenirPartenaire = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   // Step 1
@@ -60,6 +120,8 @@ const DevenirPartenaire = () => {
   const [siret, setSiret] = useState("");
   const [description, setDescription] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Step 2 - services
   const [services, setServices] = useState<Record<string, ServiceState>>(
@@ -72,16 +134,11 @@ const DevenirPartenaire = () => {
   );
 
   // Step 2 - extra options
+  const [offersExpress, setOffersExpress] = useState(false);
   const [offersDelivery, setOffersDelivery] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState("5.00");
   const [offersStudentDiscount, setOffersStudentDiscount] = useState(false);
   const [studentDiscountPct, setStudentDiscountPct] = useState("15");
-
-  // Step 3 - payment mock
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCVC, setCardCVC] = useState("");
-  const [cardName, setCardName] = useState("");
 
   const enabledServicesCount = Object.values(services).filter((s) => s.enabled).length;
 
@@ -91,12 +148,13 @@ const DevenirPartenaire = () => {
     if (!email.trim()) missing.push("email");
     if (!phone.trim()) missing.push("téléphone");
     if (!address.trim()) missing.push("adresse");
+    if (!siret.trim()) missing.push("N° TVA");
     if (password.length < 6) missing.push("mot de passe (min. 6 caractères)");
+    if (password !== confirmPassword) missing.push("les mots de passe ne correspondent pas");
     return missing;
   };
   
   const canGoStep3 = enabledServicesCount >= 1;
-  const canPay = cardNumber.length >= 16 && cardExpiry && cardCVC.length >= 3 && cardName;
 
   const toggleService = (id: string) => {
     setServices((prev) => ({ ...prev, [id]: { ...prev[id], enabled: !prev[id].enabled } }));
@@ -110,73 +168,61 @@ const DevenirPartenaire = () => {
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
   };
 
-  const handlePayment = async () => {
-    setIsProcessing(true);
+  // 👇 Fonction pour regrouper les données avant de les envoyer à Stripe/Backend
+  const buildPayload = (): PartnerRegistrationRequest => {
+    const activeServices = Object.entries(services)
+      .filter(([_, state]) => state.enabled)
+      .map(([id, state]) => {
+        const serviceInfo = SERVICES.find(s => s.id === id);
+        return {
+          typeProduit: serviceInfo!.typeProduit,
+          formatImpression: serviceInfo!.formatImpression,
+          prixBase: parseFloat(state.price),
+          prixParPage: 0
+        };
+      });
+
+    const daysMap: Record<string, string> = {
+      mon: "LUNDI", tue: "MARDI", wed: "MERCREDI", 
+      thu: "JEUDI", fri: "VENDREDI", sat: "SAMEDI", sun: "DIMANCHE"
+    };
     
-    try {
-      // 1. Préparation des Produits
-      const activeServices = Object.entries(services)
-        .filter(([_, state]) => state.enabled)
-        .map(([id, state]) => {
-          const serviceInfo = SERVICES.find(s => s.id === id);
-          return {
-            typeProduit: serviceInfo!.typeProduit,
-            formatImpression: serviceInfo!.formatImpression,
-            prixBase: parseFloat(state.price),
-            prixParPage: 0 // Ajustable si tu as un champ pour ça plus tard
-          };
-        });
+    const activeHours = Object.entries(hours).map(([key, h]) => ({
+      jourSemaine: daysMap[key],
+      heureOuverture: h.open + ":00",
+      heureFermeture: h.close + ":00",
+      ferme: h.closed
+    }));
 
-      // 2. Préparation des Horaires
-      const daysMap: Record<string, string> = {
-        mon: "LUNDI", tue: "MARDI", wed: "MERCREDI", 
-        thu: "JEUDI", fri: "VENDREDI", sat: "SAMEDI", sun: "DIMANCHE"
-      };
-      
-      const activeHours = Object.entries(hours).map(([key, h]) => ({
-        jourSemaine: daysMap[key],
-        heureOuverture: h.open + ":00", // On ajoute les secondes pour Java LocalTime
-        heureFermeture: h.close + ":00",
-        ferme: h.closed
-      }));
+    return {
+      email: email,
+      password: password,
+      siret: siret,
+      imprimerie: {
+        nom: shopName,
+        telephoneContact: phone,
+        emailContact: email,
+        adresse: address,
+        numeroTva: siret,
+        description: description,
+        proposeExpress2h: offersExpress,
+        livraisonActive: offersDelivery,
+        proposeTarifEtudiant: offersStudentDiscount,
+        ville: "Non spécifiée", 
+        pays: "Belgique"
+      },
+      produits: activeServices,
+      horaires: activeHours
+    };
+  };
 
-      // 3. Construction de l'objet DTO Final
-      const payload: PartnerRegistrationRequest = {
-        email: email,
-        password: password,
-        siret: siret,
-        imprimerie: {
-          nom: shopName,
-          telephoneContact: phone,
-          emailContact: email,
-          adresse: address,
-          description: description,
-          livraisonActive: offersDelivery,
-          ville: "Non spécifiée", // Tu pourras rajouter un champ Ville dans ton UI plus tard
-          pays: "Belgique"
-        },
-        produits: activeServices,
-        horaires: activeHours
-      };
-
-      // 4. Appel au backend
-      await partnerService.register(payload);
-
-      setIsSuccess(true);
-      toast({
-        title: "Paiement validé ✅",
-        description: "Votre imprimerie est désormais active dans le catalogue !",
-      });
-
-    } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de l'inscription.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  // 👇 Appelé par le composant StripePaymentForm une fois le paiement validé
+  const handlePaymentSuccess = () => {
+    setIsSuccess(true);
+    toast({
+      title: "Paiement validé ✅",
+      description: "Votre imprimerie est désormais activée avec succès !",
+    });
   };
 
   // --- Success screen ---
@@ -238,10 +284,6 @@ const DevenirPartenaire = () => {
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Hero */}
           <div className="text-center mb-10">
-            <Badge className="mb-4 bg-secondary/10 text-secondary border-secondary/20">
-              <Sparkles className="h-3 w-3 mr-1 inline" />
-              Inscription 100% automatique
-            </Badge>
             <h1 className="font-display text-3xl md:text-5xl font-bold mb-4">
               Devenez imprimerie partenaire
             </h1>
@@ -360,7 +402,7 @@ const DevenirPartenaire = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="siret">N° TVA / SIRET</Label>
+                  <Label htmlFor="siret">N° TVA *</Label>
                   <Input
                     id="siret"
                     placeholder="BE0123456789"
@@ -369,15 +411,48 @@ const DevenirPartenaire = () => {
                   />
                 </div>
 
+                {/* --- MOT DE PASSE AVEC ŒIL --- */}
                 <div className="space-y-2">
-                  <Label htmlFor="password">Mot de passe (compte imprimeur) *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Min. 6 caractères"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <Label htmlFor="password">Mot de passe *</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"} 
+                      placeholder="Min. 6 caractères"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* --- CONFIRMATION MOT DE PASSE --- */}
+                <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirmer le mot de passe *</Label>
+                    <div className="relative">
+                        <Input
+                        id="confirmPassword"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Répétez le mot de passe"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className={confirmPassword && password !== confirmPassword ? "border-destructive pr-10" : "pr-10"}
+                        />
+                        <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
@@ -406,7 +481,7 @@ const DevenirPartenaire = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-8">
                     {missing.length > 0 ? (
                       <p className="text-sm text-destructive">
-                        Champs requis manquants : {missing.join(", ")}.
+                        {missing[0]}
                       </p>
                     ) : (
                       <span />
@@ -417,8 +492,8 @@ const DevenirPartenaire = () => {
                       onClick={() => {
                         if (missing.length > 0) {
                           toast({
-                            title: "Formulaire incomplet",
-                            description: `Merci de compléter : ${missing.join(", ")}`,
+                            title: "Formulaire invalide",
+                            description: `Merci de corriger : ${missing[0]}`,
                             variant: "destructive",
                           });
                           return;
@@ -495,6 +570,31 @@ const DevenirPartenaire = () => {
                 </p>
 
                 <div className="space-y-4">
+                  {/* EXPRESS 2H 👇 */}
+                  <div
+                    className={`p-4 border rounded-lg transition-all ${
+                      offersExpress ? "border-primary bg-primary/5" : "border-border"
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <Checkbox
+                        id="opt-express"
+                        checked={offersExpress}
+                        onCheckedChange={(v) => setOffersExpress(Boolean(v))}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor="opt-express" className="flex items-center gap-2 cursor-pointer font-medium">
+                          <Zap className="h-4 w-4 text-primary" />
+                          Express 2h
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Besoin urgent ? Indiquez que votre imprimerie propose l'impression express en 2 heures.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Livraison */}
                   <div
                     className={`p-4 border rounded-lg transition-all ${
@@ -636,9 +736,10 @@ const DevenirPartenaire = () => {
             </div>
           )}
 
-          {/* === STEP 3: Paiement mock === */}
+          {/* === STEP 3: Paiement REEL STRIPE === */}
           {step === 3 && (
             <div className="grid md:grid-cols-3 gap-6">
+              
               {/* Payment form */}
               <Card className="p-6 md:p-8 md:col-span-2">
                 <div className="flex items-center gap-3 mb-6">
@@ -646,85 +747,28 @@ const DevenirPartenaire = () => {
                   <h2 className="font-display text-2xl font-semibold">Paiement sécurisé</h2>
                   <Badge variant="outline" className="ml-auto gap-1">
                     <Lock className="h-3 w-3" />
-                    SSL
+                    Stripe
                   </Badge>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cardName">Nom sur la carte</Label>
-                    <Input
-                      id="cardName"
-                      placeholder="Jean Dupont"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Numéro de carte</Label>
-                    <div className="relative">
-                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="cardNumber"
-                        className="pl-10 font-mono"
-                        placeholder="4242 4242 4242 4242"
-                        maxLength={19}
-                        value={cardNumber}
-                        onChange={(e) =>
-                          setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 16))
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="cardExpiry">Expiration (MM/AA)</Label>
-                      <Input
-                        id="cardExpiry"
-                        placeholder="12/27"
-                        maxLength={5}
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cardCVC">CVC</Label>
-                      <Input
-                        id="cardCVC"
-                        placeholder="123"
-                        maxLength={4}
-                        value={cardCVC}
-                        onChange={(e) => setCardCVC(e.target.value.replace(/\D/g, ""))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                    <Lock className="h-4 w-4 mt-0.5 shrink-0" />
-                    <span>
-                      Ceci est un paiement de démonstration. Aucune transaction réelle n'est effectuée.
-                      Utilisez 4242 4242 4242 4242 pour simuler un paiement réussi.
-                    </span>
-                  </div>
+                <div className="flex items-start gap-2 p-3 mb-6 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+                  <Lock className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>
+                    Vos données bancaires sont chiffrées et traitées de manière sécurisée par Stripe. 
+                    Aucune donnée n'est stockée sur nos serveurs.
+                  </span>
                 </div>
 
-                <div className="flex justify-between mt-8">
-                  <Button variant="outline" size="lg" onClick={() => setStep(2)} disabled={isProcessing}>
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Retour
-                  </Button>
-                  <Button
-                    variant="default"
-                    size="lg"
-                    disabled={!canPay || isProcessing}
-                    onClick={handlePayment}
-                  >
-                    {isProcessing ? "Traitement..." : "Payer 100€ et activer"}
-                    {!isProcessing && <ArrowRight className="h-4 w-4 ml-2" />}
-                  </Button>
-                </div>
+                {/* 👇 LE COMPOSANT STRIPE EST APPELÉ ICI 👇 */}
+                <Elements stripe={stripePromise}>
+                  <StripePaymentForm 
+                    payload={buildPayload()}
+                    amount={100} 
+                    onBack={() => setStep(2)} 
+                    onPaymentSuccess={handlePaymentSuccess} 
+                  />
+                </Elements>
+
               </Card>
 
               {/* Summary */}

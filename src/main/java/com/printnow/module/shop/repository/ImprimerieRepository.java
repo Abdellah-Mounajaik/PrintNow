@@ -14,5 +14,6 @@ public interface ImprimerieRepository extends JpaRepository<Imprimerie, Long> {
     List<Imprimerie> findAllByActifTrue();
     
     // Récupérer les imprimeries gérées par un utilisateur spécifique
-    List<Imprimerie> findByIdGerant(Long idGerant);
+    List<Imprimerie> findByGerantId(Long idGerant);
+    
 }

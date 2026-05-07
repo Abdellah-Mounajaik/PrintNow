@@ -2,8 +2,12 @@ package com.printnow.module.shop.dto;
 
 import lombok.Data;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PartnerRegistrationRequest {
     
     // ==========================================
