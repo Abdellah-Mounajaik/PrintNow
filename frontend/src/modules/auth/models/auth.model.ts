@@ -9,7 +9,7 @@ export interface SignupRequest {
 
 export interface LoginRequest {
     email: string;
-    motDePasse: string;
+    password: string;
 }
 
 export interface AuthResponse {

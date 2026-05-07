@@ -23,7 +23,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [loginData, setLoginData] = useState<LoginRequest>({ email: "", motDePasse: "" });
+  const [loginData, setLoginData] = useState<LoginRequest>({ email: "", password: "" });
   const [signupData, setSignupData] = useState<SignupRequest>({ prenom: "", nom: "", email: "", motDePasse: "", telephone: "" });
   
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -40,21 +40,34 @@ const Auth = () => {
     }
   }, [searchParams]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrorMsg("");
+ const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setErrorMsg("");
 
-    try {
-      const data = await authService.login(loginData);
-      loginGlobal(data.token, { id: data.id, email: data.email, role: data.role });
-      navigate("/dashboard"); 
-    } catch (err: any) {
-      setErrorMsg(err.message || "Erreur de connexion");
-    } finally {
-      setIsLoading(false);
+  try {
+    const data = await authService.login(loginData);
+    
+    // 1. On met à jour l'état global
+    loginGlobal(data.token, { 
+      id: data.id, 
+      email: data.email, 
+      role: data.role 
+    });
+
+    // 2. Utilise le chemin EXACT déclaré dans App.tsx
+    if (data.role === "ROLE_IMPRIMERIE") {
+      navigate("/dashboard-imprimeur"); // 👈 Changé ici
+    } else {
+      navigate("/dashboard");
     }
-  };
+
+  } catch (err: any) {
+    setErrorMsg(err.message || "Erreur de connexion");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,8 +159,8 @@ const Auth = () => {
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input 
                             id="login-password" type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10" required
-                            value={loginData.motDePasse} 
-                            onChange={(e) => setLoginData({...loginData, motDePasse: e.target.value})} 
+                            value={loginData.password} 
+                            onChange={(e) => setLoginData({...loginData, password: e.target.value})} 
                           />
                           <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

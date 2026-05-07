@@ -101,11 +101,16 @@ public class PartnerRegistrationService {
         Imprimerie imprimerie = imprimerieRepository.findById(imprimerieId)
             .orElseThrow(() -> new RuntimeException("Imprimerie non trouvée"));
         
+        // 1. Activer l'imprimerie
         imprimerie.setActif(true);
-        if (imprimerie.getGerant() != null) {
-            imprimerie.getGerant().setActif(true);
-        }
+        imprimerieRepository.save(imprimerie); // Sauvegarde l'imprimerie
         
-        imprimerieRepository.save(imprimerie);
+        // 2. Activer le gérant explicitement
+        if (imprimerie.getGerant() != null) {
+            User gerant = imprimerie.getGerant();
+            gerant.setActif(true);
+            userRepository.save(gerant); // 💡 TRÈS IMPORTANT : Sauvegarde l'utilisateur explicitement
+            System.out.println("DEBUG: L'utilisateur " + gerant.getEmail() + " a été activé.");
+        }
     }
 }

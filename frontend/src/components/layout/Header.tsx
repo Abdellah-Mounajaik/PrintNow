@@ -143,7 +143,7 @@ const Header = () => {
               {isAuthenticated ? (
                 <>
                   <Button variant="outline" size="sm" asChild>
-                    <Link to="/dashboard">
+                    <Link to="/dashboard-imprimeur">
                       <LayoutDashboard className="h-4 w-4 mr-2" />
                       Mon espace
                     </Link>
