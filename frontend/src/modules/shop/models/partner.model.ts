@@ -7,8 +7,6 @@ export const TypeProduit = {
   CARTE_VISITE: "CARTE_VISITE",
   POSTER: "POSTER"
 } as const;
-
-// On crée le type TypeScript à partir de l'objet ci-dessus
 export type TypeProduit = typeof TypeProduit[keyof typeof TypeProduit];
 
 export const FormatImpression = {
@@ -16,9 +14,28 @@ export const FormatImpression = {
   DL_10x21: "DL_10x21",
   CARTE_VISITE_85x55: "CARTE_VISITE_85x55"
 } as const;
-
-// On crée le type TypeScript à partir de l'objet ci-dessus
 export type FormatImpression = typeof FormatImpression[keyof typeof FormatImpression];
+
+// NOUVEAU : Types pour la plastification
+export const TypePlastification = {
+  AUCUNE: "AUCUNE",
+  MAT: "MAT",
+  BRILLANT: "BRILLANT",
+  SOFT_TOUCH: "SOFT_TOUCH"
+} as const;
+export type TypePlastification = typeof TypePlastification[keyof typeof TypePlastification];
+
+// NOUVEAU : Types pour la reliure
+export const TypeReliure = {
+  AUCUNE: "AUCUNE",
+  SPIRALE_PLASTIQUE: "SPIRALE_PLASTIQUE",
+  SPIRALE_METALLIQUE: "SPIRALE_METALLIQUE",
+  DOS_CARRE_COLLE: "DOS_CARRE_COLLE",
+  AGRAFE_DEUX_POINTS: "AGRAFE_DEUX_POINTS",
+  THERMIQUE: "THERMIQUE"
+} as const;
+export type TypeReliure = typeof TypeReliure[keyof typeof TypeReliure];
+
 
 // ==========================================
 // DTOs
@@ -28,6 +45,15 @@ export interface ProduitRequestDTO {
   formatImpression: FormatImpression;
   prixBase: number;
   prixParPage: number;
+  
+  // NOUVEAUX CHAMPS POUR LES OPTIONS DE FINITION
+  proposePlastification?: boolean;
+  prixPlastification?: number | null;
+  typesPlastification?: TypePlastification[];
+  
+  proposeReliure?: boolean;
+  prixReliure?: number | null;
+  typesReliure?: TypeReliure[];
 }
 
 export interface HoraireOuvertureRequestDTO {
@@ -58,5 +84,4 @@ export interface PartnerRegistrationRequest {
   imprimerie: ImprimerieRequestDTO;
   produits: ProduitRequestDTO[];
   horaires: HoraireOuvertureRequestDTO[];
-  
 }

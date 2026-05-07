@@ -13,13 +13,13 @@ import { toast } from "../../../hooks/use-toast";
 
 import { partnerService } from "../services/partner.service";
 import { type PartnerRegistrationRequest } from "../models/partner.model";
-import { DAYS, SERVICES, type Hours, type ServiceState } from "../models/partner.constants";
+import { DAYS, SERVICES, type Hours } from "../models/partner.constants";
 
 import {
   Printer, Building2, Mail, Phone, MapPin, Upload,
   CheckCircle2, CreditCard, Clock, ArrowRight, ArrowLeft,
   Lock, Sparkles, Users, TrendingUp, Truck, GraduationCap, Zap,
-  Eye, EyeOff
+  Eye, EyeOff, Book, Layers
 } from "lucide-react";
 
 // 👇 Imports Stripe
@@ -30,7 +30,7 @@ import { Elements, CardElement, useStripe, useElements } from "@stripe/react-str
 const stripePromise = loadStripe("pk_test_51TTGFb2cg3RhdI8F1DZMf8XiWANwLYoDPQGDEfqARAwnDN4gvIBxQyioyQFUuxMvoVtJJHwdT6tJP2IdBIlOMdES00ZAsXr92a");
 
 // =========================================================================
-// NOUVEAU SOUS-COMPOSANT : Formulaire Stripe sécurisé
+// SOUS-COMPOSANT : Formulaire Stripe sécurisé
 // =========================================================================
 const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) => {
   const stripe = useStripe();
@@ -46,14 +46,9 @@ const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) =
     setErrorMessage("");
 
     try {
-      // 1. Sauvegarder le partenaire en base (en attente d'activation)
       const savedPartnerResponse = await partnerService.register(payload) as any;
-      
-      // Assure-toi que ton backend renvoie l'ID de l'imprimerie créée 
-      // (ajuste savedPartnerResponse.id si la structure de ta réponse est différente)
       const imprimerieId = savedPartnerResponse?.id || savedPartnerResponse;
-console.log("ID à envoyer à Stripe :", imprimerieId);
-      // 2. Demander l'intention de paiement au backend Spring Boot
+      
       const intentResponse = await fetch("http://localhost:8080/api/payments/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,7 +58,6 @@ console.log("ID à envoyer à Stripe :", imprimerieId);
       if (!intentResponse.ok) throw new Error("Erreur lors de l'initialisation du paiement");
       const intentData = await intentResponse.json();
 
-      // 3. Confirmer le paiement avec la carte saisie
       const result = await stripe.confirmCardPayment(intentData.clientSecret, {
         payment_method: {
           card: elements.getElement(CardElement)!,
@@ -73,7 +67,6 @@ console.log("ID à envoyer à Stripe :", imprimerieId);
       if (result.error) {
         setErrorMessage(result.error.message || "Le paiement a échoué.");
       } else if (result.paymentIntent?.status === "succeeded") {
-        // Succès ! On passe à l'écran de confirmation
         onPaymentSuccess();
       }
     } catch (error: any) {
@@ -124,8 +117,15 @@ const DevenirPartenaire = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   // Step 2 - services
-  const [services, setServices] = useState<Record<string, ServiceState>>(
-    Object.fromEntries(SERVICES.map((s) => [s.id, { enabled: false, price: s.defaultPrice }]))
+  const [services, setServices] = useState<Record<string, any>>(
+    Object.fromEntries(SERVICES.map((s) => [s.id, { 
+      enabled: false, 
+      price: s.defaultPrice,
+      proposePlastification: false,
+      prixPlastification: "0.50",
+      proposeReliure: false,
+      prixReliure: "2.00"
+    }]))
   );
 
   // Step 2 - hours
@@ -160,25 +160,38 @@ const DevenirPartenaire = () => {
     setServices((prev) => ({ ...prev, [id]: { ...prev[id], enabled: !prev[id].enabled } }));
   };
 
-  const updatePrice = (id: string, price: string) => {
-    setServices((prev) => ({ ...prev, [id]: { ...prev[id], price } }));
+  const updateServiceField = (id: string, field: string, value: any) => {
+    setServices((prev) => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
   };
 
   const updateHours = (day: string, field: keyof Hours, value: string | boolean) => {
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
   };
 
-  // 👇 Fonction pour regrouper les données avant de les envoyer à Stripe/Backend
+  // 👇 Payload mis à jour
   const buildPayload = (): PartnerRegistrationRequest => {
     const activeServices = Object.entries(services)
       .filter(([_, state]) => state.enabled)
       .map(([id, state]) => {
         const serviceInfo = SERVICES.find(s => s.id === id);
+        
+        // Logique de validation métier avant l'envoi
+        const isDocument = serviceInfo!.typeProduit === "DOCUMENT";
+        const canBePlastified = serviceInfo!.typeProduit !== "POSTER";
+
         return {
           typeProduit: serviceInfo!.typeProduit,
           formatImpression: serviceInfo!.formatImpression,
           prixBase: parseFloat(state.price),
-          prixParPage: 0
+          prixParPage: 0,
+          
+          proposePlastification: canBePlastified && state.proposePlastification,
+          prixPlastification: (canBePlastified && state.proposePlastification) ? parseFloat(state.prixPlastification) : null,
+          typesPlastification: (canBePlastified && state.proposePlastification) ? ["MAT", "BRILLANT", "SOFT_TOUCH"] : [],
+          
+          proposeReliure: isDocument && state.proposeReliure,
+          prixReliure: (isDocument && state.proposeReliure) ? parseFloat(state.prixReliure) : null,
+          typesReliure: (isDocument && state.proposeReliure) ? ["SPIRALE_PLASTIQUE", "SPIRALE_METALLIQUE", "DOS_CARRE_COLLE"] : []
         };
       });
 
@@ -211,12 +224,11 @@ const DevenirPartenaire = () => {
         ville: "Non spécifiée", 
         pays: "Belgique"
       },
-      produits: activeServices,
+      produits: activeServices as any,
       horaires: activeHours
     };
   };
 
-  // 👇 Appelé par le composant StripePaymentForm une fois le paiement validé
   const handlePaymentSuccess = () => {
     setIsSuccess(true);
     toast({
@@ -293,23 +305,6 @@ const DevenirPartenaire = () => {
             </p>
           </div>
 
-          {/* Benefits strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-            {[
-              { icon: Users, label: "Nouveaux clients" },
-              { icon: TrendingUp, label: "+CA garanti" },
-              { icon: Clock, label: "Activation instantanée" },
-              { icon: Lock, label: "Paiement sécurisé" },
-            ].map((b, i) => (
-              <div key={i} className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <b.icon className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-sm font-medium">{b.label}</span>
-              </div>
-            ))}
-          </div>
-
           {/* Stepper */}
           <div className="flex items-center justify-center gap-2 md:gap-4 mb-8">
             {[
@@ -350,106 +345,49 @@ const DevenirPartenaire = () => {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="shopName">Nom de l'imprimerie *</Label>
-                  <Input
-                    id="shopName"
-                    placeholder="Ex: Imprimerie du Centre"
-                    value={shopName}
-                    onChange={(e) => setShopName(e.target.value)}
-                  />
+                  <Input id="shopName" placeholder="Ex: Imprimerie du Centre" value={shopName} onChange={(e) => setShopName(e.target.value)} />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="email">Email professionnel *</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      type="email"
-                      className="pl-10"
-                      placeholder="contact@monimprimerie.be"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
+                    <Input id="email" type="email" className="pl-10" placeholder="contact@monimprimerie.be" value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="phone">Téléphone *</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="phone"
-                      className="pl-10"
-                      placeholder="+32 2 123 45 67"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
+                    <Input id="phone" className="pl-10" placeholder="+32 2 123 45 67" value={phone} onChange={(e) => setPhone(e.target.value)} />
                   </div>
                 </div>
-
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="address">Adresse complète *</Label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="address"
-                      className="pl-10"
-                      placeholder="Rue, numéro, code postal, ville"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                    />
+                    <Input id="address" className="pl-10" placeholder="Rue, numéro, code postal, ville" value={address} onChange={(e) => setAddress(e.target.value)} />
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="siret">N° TVA *</Label>
-                  <Input
-                    id="siret"
-                    placeholder="BE0123456789"
-                    value={siret}
-                    onChange={(e) => setSiret(e.target.value)}
-                  />
+                  <Input id="siret" placeholder="BE0123456789" value={siret} onChange={(e) => setSiret(e.target.value)} />
                 </div>
 
-                {/* --- MOT DE PASSE AVEC ŒIL --- */}
                 <div className="space-y-2">
                   <Label htmlFor="password">Mot de passe *</Label>
                   <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"} 
-                      placeholder="Min. 6 caractères"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
+                    <Input id="password" type={showPassword ? "text" : "password"} placeholder="Min. 6 caractères" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
 
-                {/* --- CONFIRMATION MOT DE PASSE --- */}
                 <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirmer le mot de passe *</Label>
                     <div className="relative">
-                        <Input
-                        id="confirmPassword"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Répétez le mot de passe"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className={confirmPassword && password !== confirmPassword ? "border-destructive pr-10" : "pr-10"}
-                        />
-                        <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
+                        <Input id="confirmPassword" type={showPassword ? "text" : "password"} placeholder="Répétez le mot de passe" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={confirmPassword && password !== confirmPassword ? "border-destructive pr-10" : "pr-10"} />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                     </div>
@@ -457,15 +395,10 @@ const DevenirPartenaire = () => {
 
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="description">Description de votre imprimerie</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Présentez votre boutique, spécialités, équipements..."
-                    rows={3}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
+                  <Textarea id="description" placeholder="Présentez votre boutique, spécialités, équipements..." rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
 
+                {/* 👇 LE BLOC LOGO EST BIEN LÀ 👇 */}
                 <div className="space-y-2 md:col-span-2">
                   <Label>Logo de l'imprimerie</Label>
                   <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
@@ -473,40 +406,25 @@ const DevenirPartenaire = () => {
                     <p className="text-sm text-muted-foreground">Cliquez pour téléverser (PNG, JPG)</p>
                   </div>
                 </div>
+                {/* 👆 FIN DU BLOC LOGO 👆 */}
               </div>
 
-              {(() => {
-                const missing = getStep1Errors();
-                return (
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-8">
-                    {missing.length > 0 ? (
-                      <p className="text-sm text-destructive">
-                        {missing[0]}
-                      </p>
-                    ) : (
-                      <span />
-                    )}
-                    <Button
-                      variant="default"
-                      size="lg"
-                      onClick={() => {
-                        if (missing.length > 0) {
-                          toast({
-                            title: "Formulaire invalide",
-                            description: `Merci de corriger : ${missing[0]}`,
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-                        setStep(2);
-                      }}
-                    >
-                      Continuer
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </div>
-                );
-              })()}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-8">
+                {getStep1Errors().length > 0 ? (
+                  <p className="text-sm text-destructive">{getStep1Errors()[0]}</p>
+                ) : <span />}
+                <Button variant="default" size="lg" onClick={() => {
+                  const missing = getStep1Errors();
+                  if (missing.length > 0) {
+                    toast({ title: "Formulaire invalide", description: `Merci de corriger : ${missing[0]}`, variant: "destructive" });
+                    return;
+                  }
+                  setStep(2);
+                }}>
+                  Continuer
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
             </Card>
           )}
 
@@ -522,150 +440,132 @@ const DevenirPartenaire = () => {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Cochez les services que vous proposez et fixez vos tarifs.
+                  Cochez les services que vous proposez et configurez vos options de finition.
                 </p>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {SERVICES.map((s) => {
                     const state = services[s.id];
+                    
+                    // Logique d'affichage métier
+                    const canPlastify = s.typeProduit !== "POSTER"; // Flyers, Cartes, Docs
+                    const canBind = s.typeProduit === "DOCUMENT"; // Uniquement les Docs
+                    
+                    const showOptionsPanel = state.enabled && (canPlastify || canBind);
+
                     return (
-                      <div
-                        key={s.id}
-                        className={`flex items-center gap-4 p-4 border rounded-lg transition-all ${
-                          state.enabled ? "border-primary bg-primary/5" : "border-border"
-                        }`}
-                      >
-                        <Checkbox
-                          checked={state.enabled}
-                          onCheckedChange={() => toggleService(s.id)}
-                        />
-                        <div className="flex-1">
-                          <div className="font-medium">{s.name}</div>
+                      <div key={s.id} className={`border rounded-lg transition-all ${state.enabled ? "border-primary shadow-sm" : "border-border"}`}>
+                        {/* Ligne principale du service */}
+                        <div className={`flex items-center gap-4 p-4 ${state.enabled && showOptionsPanel ? "bg-primary/5 border-b border-primary/20" : state.enabled ? "bg-primary/5" : ""}`}>
+                          <Checkbox checked={state.enabled} onCheckedChange={() => toggleService(s.id)} />
+                          <div className="flex-1">
+                            <div className="font-medium">{s.name}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs text-muted-foreground hidden sm:block">Prix base</Label>
+                            <Input type="number" step="0.01" value={state.price} onChange={(e) => updateServiceField(s.id, "price", e.target.value)} className="w-24 h-9" disabled={!state.enabled} />
+                            <span className="text-sm text-muted-foreground">€</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={state.price}
-                            onChange={(e) => updatePrice(s.id, e.target.value)}
-                            className="w-24 h-9"
-                            disabled={!state.enabled}
-                          />
-                          <span className="text-sm text-muted-foreground">€</span>
-                        </div>
+
+                        {/* Options de finition (Affichées selon le type de produit) */}
+                        {showOptionsPanel && (
+                          <div className="p-4 bg-muted/20 space-y-4">
+                            
+                            {/* Option Plastification */}
+                            {canPlastify && (
+                              <div className="flex items-center gap-4">
+                                <Checkbox id={`plast-${s.id}`} checked={state.proposePlastification} onCheckedChange={(v) => updateServiceField(s.id, "proposePlastification", Boolean(v))} />
+                                <div className="flex-1 flex items-center gap-2">
+                                  <Layers className="h-4 w-4 text-muted-foreground" />
+                                  <Label htmlFor={`plast-${s.id}`} className="cursor-pointer">Proposer Plastification</Label>
+                                </div>
+                                {state.proposePlastification && (
+                                  <div className="flex items-center gap-2">
+                                    <Label className="text-xs text-muted-foreground hidden sm:block">+ / unité</Label>
+                                    <Input type="number" step="0.01" value={state.prixPlastification} onChange={(e) => updateServiceField(s.id, "prixPlastification", e.target.value)} className="w-24 h-8 text-sm" />
+                                    <span className="text-sm text-muted-foreground">€</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Option Reliure */}
+                            {canBind && (
+                              <div className="flex items-center gap-4">
+                                <Checkbox id={`rel-${s.id}`} checked={state.proposeReliure} onCheckedChange={(v) => updateServiceField(s.id, "proposeReliure", Boolean(v))} />
+                                <div className="flex-1 flex items-center gap-2">
+                                  <Book className="h-4 w-4 text-muted-foreground" />
+                                  <Label htmlFor={`rel-${s.id}`} className="cursor-pointer">Proposer Reliure</Label>
+                                </div>
+                                {state.proposeReliure && (
+                                  <div className="flex items-center gap-2">
+                                    <Label className="text-xs text-muted-foreground hidden sm:block">+ / doc</Label>
+                                    <Input type="number" step="0.01" value={state.prixReliure} onChange={(e) => updateServiceField(s.id, "prixReliure", e.target.value)} className="w-24 h-8 text-sm" />
+                                    <span className="text-sm text-muted-foreground">€</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
               </Card>
 
-              {/* Options supplémentaires */}
+              {/* Reste du code pour Options supplémentaires & Horaires... */}
               <Card className="p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <Sparkles className="h-6 w-6 text-primary" />
                   <h2 className="font-display text-2xl font-semibold">Options supplémentaires</h2>
                 </div>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Choisissez si vous souhaitez proposer ces services additionnels à vos clients.
-                </p>
-
                 <div className="space-y-4">
-                  {/* EXPRESS 2H 👇 */}
-                  <div
-                    className={`p-4 border rounded-lg transition-all ${
-                      offersExpress ? "border-primary bg-primary/5" : "border-border"
-                    }`}
-                  >
+                  {/* EXPRESS */}
+                  <div className={`p-4 border rounded-lg transition-all ${offersExpress ? "border-primary bg-primary/5" : "border-border"}`}>
                     <div className="flex items-start gap-4">
-                      <Checkbox
-                        id="opt-express"
-                        checked={offersExpress}
-                        onCheckedChange={(v) => setOffersExpress(Boolean(v))}
-                        className="mt-1"
-                      />
+                      <Checkbox id="opt-express" checked={offersExpress} onCheckedChange={(v) => setOffersExpress(Boolean(v))} className="mt-1" />
                       <div className="flex-1">
                         <Label htmlFor="opt-express" className="flex items-center gap-2 cursor-pointer font-medium">
-                          <Zap className="h-4 w-4 text-primary" />
-                          Express 2h
+                          <Zap className="h-4 w-4 text-primary" /> Express 2h
                         </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Besoin urgent ? Indiquez que votre imprimerie propose l'impression express en 2 heures.
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">Besoin urgent ? Proposez l'impression en 2 heures.</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Livraison */}
-                  <div
-                    className={`p-4 border rounded-lg transition-all ${
-                      offersDelivery ? "border-primary bg-primary/5" : "border-border"
-                    }`}
-                  >
+                  {/* LIVRAISON */}
+                  <div className={`p-4 border rounded-lg transition-all ${offersDelivery ? "border-primary bg-primary/5" : "border-border"}`}>
                     <div className="flex items-start gap-4">
-                      <Checkbox
-                        id="opt-delivery"
-                        checked={offersDelivery}
-                        onCheckedChange={(v) => setOffersDelivery(Boolean(v))}
-                        className="mt-1"
-                      />
+                      <Checkbox id="opt-delivery" checked={offersDelivery} onCheckedChange={(v) => setOffersDelivery(Boolean(v))} className="mt-1" />
                       <div className="flex-1">
                         <Label htmlFor="opt-delivery" className="flex items-center gap-2 cursor-pointer font-medium">
-                          <Truck className="h-4 w-4 text-primary" />
-                          Proposer la livraison
+                          <Truck className="h-4 w-4 text-primary" /> Livraison
                         </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Livrez les commandes directement chez vos clients.
-                        </p>
                       </div>
                       {offersDelivery && (
                         <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={deliveryFee}
-                            onChange={(e) => setDeliveryFee(e.target.value)}
-                            className="w-24 h-9"
-                            placeholder="Frais"
-                          />
+                          <Input type="number" step="0.01" value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value)} className="w-24 h-9" placeholder="Frais" />
                           <span className="text-sm text-muted-foreground">€</span>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Tarif étudiant */}
-                  <div
-                    className={`p-4 border rounded-lg transition-all ${
-                      offersStudentDiscount ? "border-primary bg-primary/5" : "border-border"
-                    }`}
-                  >
+                  {/* ETUDIANT */}
+                  <div className={`p-4 border rounded-lg transition-all ${offersStudentDiscount ? "border-primary bg-primary/5" : "border-border"}`}>
                     <div className="flex items-start gap-4">
-                      <Checkbox
-                        id="opt-student"
-                        checked={offersStudentDiscount}
-                        onCheckedChange={(v) => setOffersStudentDiscount(Boolean(v))}
-                        className="mt-1"
-                      />
+                      <Checkbox id="opt-student" checked={offersStudentDiscount} onCheckedChange={(v) => setOffersStudentDiscount(Boolean(v))} className="mt-1" />
                       <div className="flex-1">
                         <Label htmlFor="opt-student" className="flex items-center gap-2 cursor-pointer font-medium">
-                          <GraduationCap className="h-4 w-4 text-primary" />
-                          Proposer le tarif étudiant
+                          <GraduationCap className="h-4 w-4 text-primary" /> Tarif étudiant
                         </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Réduction automatique pour les étudiants (désactivée fin juin).
-                        </p>
                       </div>
                       {offersStudentDiscount && (
                         <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            step="1"
-                            min="1"
-                            max="50"
-                            value={studentDiscountPct}
-                            onChange={(e) => setStudentDiscountPct(e.target.value)}
-                            className="w-20 h-9"
-                          />
+                          <Input type="number" step="1" value={studentDiscountPct} onChange={(e) => setStudentDiscountPct(e.target.value)} className="w-20 h-9" />
                           <span className="text-sm text-muted-foreground">%</span>
                         </div>
                       )}
@@ -674,43 +574,27 @@ const DevenirPartenaire = () => {
                 </div>
               </Card>
 
+              {/* HORAIRES */}
               <Card className="p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <Clock className="h-6 w-6 text-primary" />
                   <h2 className="font-display text-2xl font-semibold">Horaires d'ouverture</h2>
                 </div>
-
                 <div className="space-y-3">
                   {DAYS.map((d) => {
                     const h = hours[d.key];
                     return (
-                      <div
-                        key={d.key}
-                        className="grid grid-cols-12 gap-3 items-center p-3 border border-border rounded-lg"
-                      >
+                      <div key={d.key} className="grid grid-cols-12 gap-3 items-center p-3 border border-border rounded-lg">
                         <div className="col-span-12 sm:col-span-3 font-medium">{d.label}</div>
                         <div className="col-span-12 sm:col-span-3 flex items-center gap-2">
-                          <Checkbox
-                            checked={h.closed}
-                            onCheckedChange={(v) => updateHours(d.key, "closed", Boolean(v))}
-                          />
+                          <Checkbox checked={h.closed} onCheckedChange={(v) => updateHours(d.key, "closed", Boolean(v))} />
                           <span className="text-sm text-muted-foreground">Fermé</span>
                         </div>
                         <div className="col-span-6 sm:col-span-3">
-                          <Input
-                            type="time"
-                            value={h.open}
-                            disabled={h.closed}
-                            onChange={(e) => updateHours(d.key, "open", e.target.value)}
-                          />
+                          <Input type="time" value={h.open} disabled={h.closed} onChange={(e) => updateHours(d.key, "open", e.target.value)} />
                         </div>
                         <div className="col-span-6 sm:col-span-3">
-                          <Input
-                            type="time"
-                            value={h.close}
-                            disabled={h.closed}
-                            onChange={(e) => updateHours(d.key, "close", e.target.value)}
-                          />
+                          <Input type="time" value={h.close} disabled={h.closed} onChange={(e) => updateHours(d.key, "close", e.target.value)} />
                         </div>
                       </div>
                     );
@@ -720,15 +604,9 @@ const DevenirPartenaire = () => {
 
               <div className="flex justify-between">
                 <Button variant="outline" size="lg" onClick={() => setStep(1)}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Retour
+                  <ArrowLeft className="h-4 w-4 mr-2" /> Retour
                 </Button>
-                <Button
-                  variant="default"
-                  size="lg"
-                  disabled={!canGoStep3}
-                  onClick={() => setStep(3)}
-                >
+                <Button variant="default" size="lg" disabled={!canGoStep3} onClick={() => setStep(3)}>
                   Continuer vers le paiement
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -736,30 +614,18 @@ const DevenirPartenaire = () => {
             </div>
           )}
 
-          {/* === STEP 3: Paiement REEL STRIPE === */}
+          {/* === STEP 3: Paiement === */}
           {step === 3 && (
             <div className="grid md:grid-cols-3 gap-6">
-              
-              {/* Payment form */}
               <Card className="p-6 md:p-8 md:col-span-2">
                 <div className="flex items-center gap-3 mb-6">
                   <CreditCard className="h-6 w-6 text-primary" />
                   <h2 className="font-display text-2xl font-semibold">Paiement sécurisé</h2>
                   <Badge variant="outline" className="ml-auto gap-1">
-                    <Lock className="h-3 w-3" />
-                    Stripe
+                    <Lock className="h-3 w-3" /> Stripe
                   </Badge>
                 </div>
 
-                <div className="flex items-start gap-2 p-3 mb-6 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Lock className="h-4 w-4 mt-0.5 shrink-0" />
-                  <span>
-                    Vos données bancaires sont chiffrées et traitées de manière sécurisée par Stripe. 
-                    Aucune donnée n'est stockée sur nos serveurs.
-                  </span>
-                </div>
-
-                {/* 👇 LE COMPOSANT STRIPE EST APPELÉ ICI 👇 */}
                 <Elements stripe={stripePromise}>
                   <StripePaymentForm 
                     payload={buildPayload()}
@@ -768,13 +634,10 @@ const DevenirPartenaire = () => {
                     onPaymentSuccess={handlePaymentSuccess} 
                   />
                 </Elements>
-
               </Card>
 
-              {/* Summary */}
               <Card className="p-6 h-fit sticky top-24">
                 <h3 className="font-display font-semibold text-lg mb-4">Récapitulatif</h3>
-
                 <div className="space-y-3 text-sm mb-4">
                   <div>
                     <div className="text-muted-foreground">Imprimerie</div>
@@ -784,37 +647,11 @@ const DevenirPartenaire = () => {
                     <div className="text-muted-foreground">Services activés</div>
                     <div className="font-medium">{enabledServicesCount}</div>
                   </div>
-                  <div>
-                    <div className="text-muted-foreground">Jours d'ouverture</div>
-                    <div className="font-medium">
-                      {Object.values(hours).filter((h) => !h.closed).length}/7
-                    </div>
-                  </div>
                 </div>
-
                 <Separator className="my-4" />
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Inscription plateforme</span>
-                    <span>100.00€</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Paiement unique</span>
-                    <span>—</span>
-                  </div>
-                </div>
-
-                <Separator className="my-4" />
-
                 <div className="flex justify-between items-baseline mb-4">
                   <span className="font-display font-semibold">Total</span>
                   <span className="font-display text-2xl font-bold">100.00€</span>
-                </div>
-
-                <div className="p-3 rounded-lg bg-success/10 text-success text-xs">
-                  <CheckCircle2 className="h-4 w-4 inline mr-1" />
-                  Activation automatique après paiement
                 </div>
               </Card>
             </div>

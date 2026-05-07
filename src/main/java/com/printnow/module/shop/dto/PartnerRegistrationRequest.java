@@ -1,9 +1,10 @@
 package com.printnow.module.shop.dto;
 
 import lombok.Data;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -16,8 +17,7 @@ public class PartnerRegistrationRequest {
     private String email;
     private String password;
     
-    // (Optionnel) Tu peux mettre le SIRET ici si tu ne veux pas modifier 
-    // ton entité Imprimerie existante, ou le mettre directement dans ImprimerieRequestDTO.
+    // (Optionnel) SIRET directement rattaché au compte ou à l'inscription initiale
     private String siret; 
 
     // ==========================================
