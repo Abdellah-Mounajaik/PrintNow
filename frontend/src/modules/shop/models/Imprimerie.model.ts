@@ -18,6 +18,7 @@ export interface Produit {
 }
 
 export interface ImprimerieDetail {
+  proposeTarifEtudiant: import("react/jsx-runtime").JSX.Element;
   id: number;
   nom: string;
   description: string;
@@ -28,6 +29,7 @@ export interface ImprimerieDetail {
   emailContact: string;
   proposeExpress2h: boolean;
   accepteEtudiants: boolean;
+  pourcentageRemiseEtudiant?: number;  
   livraisonActive: boolean;
   actif: boolean;
   horaires: Horaire[];

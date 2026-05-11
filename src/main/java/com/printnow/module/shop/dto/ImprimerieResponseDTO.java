@@ -18,6 +18,7 @@ public class ImprimerieResponseDTO {
     private List<HoraireOuvertureResponseDTO> horaires;
     private List<ProduitResponseDTO> produits;
     private Boolean proposeTarifEtudiant;
+    private Integer pourcentageRemiseEtudiant;
     private String numeroTva;
     private String emailContact;
     private String telephoneContact;

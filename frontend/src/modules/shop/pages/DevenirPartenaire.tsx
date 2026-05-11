@@ -18,7 +18,7 @@ import { DAYS, SERVICES, type Hours } from "../models/partner.constants";
 import {
   Printer, Building2, Mail, Phone, MapPin, Upload,
   CheckCircle2, CreditCard, Clock, ArrowRight, ArrowLeft,
-  Lock, Sparkles, Users, TrendingUp, Truck, GraduationCap, Zap,
+  Lock, Sparkles, Truck, GraduationCap, Zap,
   Eye, EyeOff, Book, Layers
 } from "lucide-react";
 
@@ -116,15 +116,25 @@ const DevenirPartenaire = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  // Nouveaux dictionnaires par défaut pour les options de finition
+  const defaultPlastificationPrices = { MAT: "0.50", BRILLANT: "0.60", SOFT_TOUCH: "0.80" };
+  const defaultReliurePrices = { 
+    SPIRALE_PLASTIQUE: "1.50", 
+    SPIRALE_METALLIQUE: "2.50", 
+    DOS_CARRE_COLLE: "3.50", 
+    AGRAFE_DEUX_POINTS: "0.50", 
+    THERMIQUE: "3.00" 
+  };
+
   // Step 2 - services
   const [services, setServices] = useState<Record<string, any>>(
     Object.fromEntries(SERVICES.map((s) => [s.id, { 
       enabled: false, 
       price: s.defaultPrice,
       proposePlastification: false,
-      prixPlastification: "0.50",
+      prixParTypePlastification: { ...defaultPlastificationPrices },
       proposeReliure: false,
-      prixReliure: "2.00"
+      prixParTypeReliure: { ...defaultReliurePrices }
     }]))
   );
 
@@ -164,20 +174,47 @@ const DevenirPartenaire = () => {
     setServices((prev) => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
   };
 
+  // Nouvelle fonction pour mettre à jour un prix de finition spécifique
+  const updateOptionPrice = (serviceId: string, category: "prixParTypePlastification" | "prixParTypeReliure", type: string, value: string) => {
+    setServices((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        [category]: {
+          ...prev[serviceId][category],
+          [type]: value
+        }
+      }
+    }));
+  };
+
   const updateHours = (day: string, field: keyof Hours, value: string | boolean) => {
     setHours((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
   };
 
-  // 👇 Payload mis à jour
+  const formatEnumName = (text: string) => {
+    if (!text) return "";
+    const formatted = text.replace(/_/g, ' ').toLowerCase();
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  };
+
+  // 👇 Payload mis à jour avec le nouveau format MAP du backend
   const buildPayload = (): PartnerRegistrationRequest => {
     const activeServices = Object.entries(services)
       .filter(([_, state]) => state.enabled)
       .map(([id, state]) => {
         const serviceInfo = SERVICES.find(s => s.id === id);
         
-        // Logique de validation métier avant l'envoi
         const isDocument = serviceInfo!.typeProduit === "DOCUMENT";
         const canBePlastified = serviceInfo!.typeProduit !== "POSTER";
+
+        // Conversion des prix (String -> Float) pour les Maps
+        const parsedPlastif = Object.fromEntries(
+          Object.entries(state.prixParTypePlastification).map(([k, v]) => [k, parseFloat(v as string) || 0])
+        );
+        const parsedReliure = Object.fromEntries(
+          Object.entries(state.prixParTypeReliure).map(([k, v]) => [k, parseFloat(v as string) || 0])
+        );
 
         return {
           typeProduit: serviceInfo!.typeProduit,
@@ -186,12 +223,10 @@ const DevenirPartenaire = () => {
           prixParPage: 0,
           
           proposePlastification: canBePlastified && state.proposePlastification,
-          prixPlastification: (canBePlastified && state.proposePlastification) ? parseFloat(state.prixPlastification) : null,
-          typesPlastification: (canBePlastified && state.proposePlastification) ? ["MAT", "BRILLANT", "SOFT_TOUCH"] : [],
+          prixParTypePlastification: (canBePlastified && state.proposePlastification) ? parsedPlastif : null,
           
           proposeReliure: isDocument && state.proposeReliure,
-          prixReliure: (isDocument && state.proposeReliure) ? parseFloat(state.prixReliure) : null,
-          typesReliure: (isDocument && state.proposeReliure) ? ["SPIRALE_PLASTIQUE", "SPIRALE_METALLIQUE", "DOS_CARRE_COLLE"] : []
+          prixParTypeReliure: (isDocument && state.proposeReliure) ? parsedReliure : null
         };
       });
 
@@ -221,7 +256,7 @@ const DevenirPartenaire = () => {
         proposeExpress2h: offersExpress,
         livraisonActive: offersDelivery,
         proposeTarifEtudiant: offersStudentDiscount,
-        ville: "Non spécifiée", 
+pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) : undefined,        ville: "Non spécifiée", 
         pays: "Belgique"
       },
       produits: activeServices as any,
@@ -398,7 +433,6 @@ const DevenirPartenaire = () => {
                   <Textarea id="description" placeholder="Présentez votre boutique, spécialités, équipements..." rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
 
-                {/* 👇 LE BLOC LOGO EST BIEN LÀ 👇 */}
                 <div className="space-y-2 md:col-span-2">
                   <Label>Logo de l'imprimerie</Label>
                   <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
@@ -406,7 +440,6 @@ const DevenirPartenaire = () => {
                     <p className="text-sm text-muted-foreground">Cliquez pour téléverser (PNG, JPG)</p>
                   </div>
                 </div>
-                {/* 👆 FIN DU BLOC LOGO 👆 */}
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-8">
@@ -447,7 +480,6 @@ const DevenirPartenaire = () => {
                   {SERVICES.map((s) => {
                     const state = services[s.id];
                     
-                    // Logique d'affichage métier
                     const canPlastify = s.typeProduit !== "POSTER"; // Flyers, Cartes, Docs
                     const canBind = s.typeProduit === "DOCUMENT"; // Uniquement les Docs
                     
@@ -468,41 +500,61 @@ const DevenirPartenaire = () => {
                           </div>
                         </div>
 
-                        {/* Options de finition (Affichées selon le type de produit) */}
+                        {/* Options de finition */}
                         {showOptionsPanel && (
-                          <div className="p-4 bg-muted/20 space-y-4">
+                          <div className="p-4 bg-muted/20 space-y-6">
                             
-                            {/* Option Plastification */}
+                            {/* === Option Plastification === */}
                             {canPlastify && (
-                              <div className="flex items-center gap-4">
-                                <Checkbox id={`plast-${s.id}`} checked={state.proposePlastification} onCheckedChange={(v) => updateServiceField(s.id, "proposePlastification", Boolean(v))} />
-                                <div className="flex-1 flex items-center gap-2">
-                                  <Layers className="h-4 w-4 text-muted-foreground" />
-                                  <Label htmlFor={`plast-${s.id}`} className="cursor-pointer">Proposer Plastification</Label>
+                              <div>
+                                <div className="flex items-center gap-4 mb-3">
+                                  <Checkbox id={`plast-${s.id}`} checked={state.proposePlastification} onCheckedChange={(v) => updateServiceField(s.id, "proposePlastification", Boolean(v))} />
+                                  <div className="flex-1 flex items-center gap-2">
+                                    <Layers className="h-4 w-4 text-muted-foreground" />
+                                    <Label htmlFor={`plast-${s.id}`} className="cursor-pointer font-medium">Proposer Plastification</Label>
+                                  </div>
                                 </div>
+                                
+                                {/* Grille des prix par TYPE de plastification */}
                                 {state.proposePlastification && (
-                                  <div className="flex items-center gap-2">
-                                    <Label className="text-xs text-muted-foreground hidden sm:block">+ / unité</Label>
-                                    <Input type="number" step="0.01" value={state.prixPlastification} onChange={(e) => updateServiceField(s.id, "prixPlastification", e.target.value)} className="w-24 h-8 text-sm" />
-                                    <span className="text-sm text-muted-foreground">€</span>
+                                  <div className="ml-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {Object.entries(state.prixParTypePlastification).map(([type, price]) => (
+                                      <div key={type} className="flex items-center justify-between p-2 bg-background border rounded-md">
+                                        <span className="text-xs font-medium">{formatEnumName(type)}</span>
+                                        <div className="flex items-center gap-1">
+                                          <Input type="number" step="0.01" value={price as string} onChange={(e) => updateOptionPrice(s.id, "prixParTypePlastification", type, e.target.value)} className="w-16 h-7 text-xs px-2" />
+                                          <span className="text-xs text-muted-foreground">€</span>
+                                        </div>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>
                             )}
 
-                            {/* Option Reliure */}
+                            {/* === Option Reliure === */}
                             {canBind && (
-                              <div className="flex items-center gap-4">
-                                <Checkbox id={`rel-${s.id}`} checked={state.proposeReliure} onCheckedChange={(v) => updateServiceField(s.id, "proposeReliure", Boolean(v))} />
-                                <div className="flex-1 flex items-center gap-2">
-                                  <Book className="h-4 w-4 text-muted-foreground" />
-                                  <Label htmlFor={`rel-${s.id}`} className="cursor-pointer">Proposer Reliure</Label>
+                              <div>
+                                <div className="flex items-center gap-4 mb-3">
+                                  <Checkbox id={`rel-${s.id}`} checked={state.proposeReliure} onCheckedChange={(v) => updateServiceField(s.id, "proposeReliure", Boolean(v))} />
+                                  <div className="flex-1 flex items-center gap-2">
+                                    <Book className="h-4 w-4 text-muted-foreground" />
+                                    <Label htmlFor={`rel-${s.id}`} className="cursor-pointer font-medium">Proposer Reliure</Label>
+                                  </div>
                                 </div>
+
+                                {/* Grille des prix par TYPE de reliure */}
                                 {state.proposeReliure && (
-                                  <div className="flex items-center gap-2">
-                                    <Label className="text-xs text-muted-foreground hidden sm:block">+ / doc</Label>
-                                    <Input type="number" step="0.01" value={state.prixReliure} onChange={(e) => updateServiceField(s.id, "prixReliure", e.target.value)} className="w-24 h-8 text-sm" />
-                                    <span className="text-sm text-muted-foreground">€</span>
+                                  <div className="ml-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {Object.entries(state.prixParTypeReliure).map(([type, price]) => (
+                                      <div key={type} className="flex items-center justify-between p-2 bg-background border rounded-md">
+                                        <span className="text-xs font-medium truncate pr-2">{formatEnumName(type)}</span>
+                                        <div className="flex items-center gap-1 shrink-0">
+                                          <Input type="number" step="0.01" value={price as string} onChange={(e) => updateOptionPrice(s.id, "prixParTypeReliure", type, e.target.value)} className="w-16 h-7 text-xs px-2" />
+                                          <span className="text-xs text-muted-foreground">€</span>
+                                        </div>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>

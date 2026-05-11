@@ -62,6 +62,9 @@ public class Imprimerie {
 
     private Boolean proposeTarifEtudiant;
 
+    @Column(name = "pourcentage_remise_etudiant")
+    private Integer pourcentageRemiseEtudiant;
+
     @Column(columnDefinition = "boolean default false")
     private Boolean actif = false;;
     @OneToMany(mappedBy = "imprimerie", fetch = FetchType.LAZY)

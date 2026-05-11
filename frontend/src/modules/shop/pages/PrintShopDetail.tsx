@@ -45,6 +45,7 @@ const PrintShopDetail = () => {
   const todayStr = new Date().toLocaleDateString("fr-FR", { weekday: "long" }).toUpperCase();
 
   const formatEnumName = (text: string) => {
+    if (!text) return "";
     const formatted = text.replace(/_/g, ' ').toLowerCase();
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   };
@@ -52,10 +53,6 @@ const PrintShopDetail = () => {
   if (isLoading) return <div className="p-20 text-center">Chargement...</div>;
   if (error || !shop) return <div className="p-20 text-center text-red-500">Erreur : {error}</div>;
 
-  // =========================================================================
-  // LOGIQUE DE MAPPING DES ONGLETS (TABS)
-  // =========================================================================
-  
   // 1. DOCUMENTS
   const documentsItems: TabItem[] = [];
   const nbA4 = shop.produits?.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A4" && p.prixBase <= 0.20);
@@ -80,35 +77,26 @@ const PrintShopDetail = () => {
   const carte = shop.produits?.find(p => p.typeProduit === "CARTE_VISITE");
   if (carte) cartesItems.push({ label: "Cartes de visite", format: "Standard", prixBase: carte.prixBase, prixParPage: carte.prixParPage });
 
-  // 4. RELIURE ET PLASTIFICATION (MAPPING DYNAMIQUE DEPUIS LE DICTIONNAIRE DE PRIX)
+  // 4. RELIURE ET PLASTIFICATION (ANTI-DOUBLONS)
   const reliureItems: TabItem[] = [];
-  
   shop.produits?.forEach(p => {
-    // Si le produit contient des prix de reliure
     if (p.proposeReliure && p.prixParTypeReliure) {
       Object.entries(p.prixParTypeReliure).forEach(([type, prix]) => {
-        // On ignore si c'est "AUCUNE"
-        if (type !== "AUCUNE") {
-          reliureItems.push({
-            label: "Reliure " + formatEnumName(type),
-            format: "Par document",
-            prixBase: prix,
-            prixParPage: 0
-          });
+        if (type !== "AUCUNE" && prix != null) {
+          const labelStr = "Reliure " + formatEnumName(type);
+          if (!reliureItems.some(item => item.label === labelStr)) {
+            reliureItems.push({ label: labelStr, format: "Par document", prixBase: Number(prix), prixParPage: 0 });
+          }
         }
       });
     }
-
-    // Si le produit contient des prix de plastification
     if (p.proposePlastification && p.prixParTypePlastification) {
       Object.entries(p.prixParTypePlastification).forEach(([type, prix]) => {
-        if (type !== "AUCUNE") {
-          reliureItems.push({
-            label: "Plastification " + formatEnumName(type),
-            format: "Par page",
-            prixBase: prix,
-            prixParPage: 0
-          });
+        if (type !== "AUCUNE" && prix != null) {
+          const labelStr = "Plastification " + formatEnumName(type);
+          if (!reliureItems.some(item => item.label === labelStr)) {
+            reliureItems.push({ label: labelStr, format: "Par page", prixBase: Number(prix), prixParPage: 0 });
+          }
         }
       });
     }
@@ -127,8 +115,6 @@ const PrintShopDetail = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 pt-20">
-        
-        {/* Banner Section */}
         <div className="relative h-64 md:h-80 overflow-hidden bg-slate-200">
           <img
             src={shop.logoUrl || "https://images.unsplash.com/photo-1562240020-ce31ccb0fa7d?w=800&fit=crop"}
@@ -145,9 +131,7 @@ const PrintShopDetail = () => {
 
         <div className="container mx-auto px-4 -mt-20 relative z-10 pb-16">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
             <div className="lg:col-span-2 space-y-6">
-              {/* Card Infos */}
               <Card>
                 <CardContent className="p-6">
                   <h1 className="text-3xl font-bold mb-2">{shop.nom}</h1>
@@ -157,15 +141,29 @@ const PrintShopDetail = () => {
                   </div>
                   <p className="mb-6">{shop.description}</p>
                   
-                  <div className="flex flex-wrap gap-2">
-                    {shop.proposeExpress2h && <Badge variant="outline" className="text-secondary border-secondary/30"><Zap className="w-3 h-3 mr-1" /> Express 2h</Badge>}
-                    {shop.accepteEtudiants && <Badge variant="outline" className="text-info border-info/30"><GraduationCap className="w-3 h-3 mr-1" /> Étudiants</Badge>}
-                    {shop.livraisonActive && <Badge variant="outline" className="text-success border-success/30"><Truck className="w-3 h-3 mr-1" /> Livraison</Badge>}
+                  <div className="flex flex-wrap gap-3">
+                    {shop.proposeExpress2h && (
+                      <Badge variant="outline" className="rounded-full px-3 py-1.5 font-normal text-slate-700 border-slate-200 shadow-sm">
+                        <Zap className="w-4 h-4 mr-2 text-amber-500 fill-amber-500/20" /> 
+                        Express 2h disponible
+                      </Badge>
+                    )}
+                    {shop.proposeTarifEtudiant && shop.pourcentageRemiseEtudiant && shop.pourcentageRemiseEtudiant > 0 && (
+                      <Badge variant="outline" className="rounded-full px-3 py-1.5 font-normal text-slate-700 border-slate-200 shadow-sm">
+                        <GraduationCap className="w-4 h-4 mr-2 text-blue-500" /> 
+                        -{shop.pourcentageRemiseEtudiant}% étudiants
+                      </Badge>
+                    )}
+                    {shop.livraisonActive && (
+                      <Badge variant="outline" className="rounded-full px-3 py-1.5 font-normal text-slate-700 border-slate-200 shadow-sm">
+                        <Truck className="w-4 h-4 mr-2 text-green-500" /> 
+                        Livraison disponible
+                      </Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Card Services & Tarifs */}
               <Card className="shadow-card">
                 <CardHeader>
                   <CardTitle className="font-display text-xl">Services & Tarifs</CardTitle>
@@ -175,17 +173,12 @@ const PrintShopDetail = () => {
                     <Tabs defaultValue={activeServices[0].id} className="w-full">
                       <TabsList className="w-full justify-start flex-wrap h-auto gap-2 bg-transparent p-0 mb-6">
                         {activeServices.map((service) => (
-                          <TabsTrigger 
-                            key={service.id} 
-                            value={service.id}
-                            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2"
-                          >
+                          <TabsTrigger key={service.id} value={service.id} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2">
                             <service.icon className="h-4 w-4 mr-2" />
                             {service.name}
                           </TabsTrigger>
                         ))}
                       </TabsList>
-                      
                       {activeServices.map((service) => (
                         <TabsContent key={service.id} value={service.id}>
                           <p className="text-muted-foreground mb-4">{service.description}</p>
@@ -221,12 +214,10 @@ const PrintShopDetail = () => {
               </Card>
             </div>
 
-            {/* Sidebar */}
             <div className="space-y-6">
               <Button size="lg" className="w-full text-lg h-14" asChild>
                 <Link to={`/commander/${shop.id}`}>Commander maintenant</Link>
               </Button>
-
               <Card>
                 <CardHeader><CardTitle className="text-lg">Contact</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
@@ -240,18 +231,10 @@ const PrintShopDetail = () => {
                       <Mail className="w-4 h-4" /> {shop.emailContact}
                     </div>
                   )}
-                  {!shop.telephoneContact && !shop.emailContact && (
-                    <p className="text-sm text-muted-foreground italic">Aucun contact renseigné.</p>
-                  )}
                 </CardContent>
               </Card>
-
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Clock className="w-4 h-4" /> Horaires
-                  </CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Clock className="w-4 h-4" /> Horaires</CardTitle></CardHeader>
                 <CardContent>
                   {shop.horaires && shop.horaires.length > 0 ? (
                     <ul className="text-sm space-y-2">
@@ -268,7 +251,6 @@ const PrintShopDetail = () => {
                 </CardContent>
               </Card>
             </div>
-            
           </div>
         </div>
       </main>

@@ -74,6 +74,7 @@ export interface ImprimerieRequestDTO {
   pays?: string;
   livraisonActive: boolean;
   proposeTarifEtudiant: boolean;
+  pourcentageRemiseEtudiant?: number;
   proposeExpress2h: boolean;
 }
 

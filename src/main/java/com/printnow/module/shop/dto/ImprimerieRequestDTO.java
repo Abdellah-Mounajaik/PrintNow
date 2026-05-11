@@ -20,6 +20,7 @@ public class ImprimerieRequestDTO {
     private Double latitude;
     private Double longitude;
     private Boolean proposeExpress2h;
+    private Integer pourcentageRemiseEtudiant;
     private Double prixExpress2h;
     private Boolean livraisonActive;
     private Boolean proposeTarifEtudiant;
