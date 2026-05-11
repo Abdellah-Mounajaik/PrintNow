@@ -19,4 +19,6 @@ public class ImprimerieResponseDTO {
     private List<ProduitResponseDTO> produits;
     private Boolean proposeTarifEtudiant;
     private String numeroTva;
+    private String emailContact;
+    private String telephoneContact;
 }

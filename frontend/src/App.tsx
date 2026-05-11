@@ -7,6 +7,7 @@ import Header from './components/layout/Header';
 import Home from './pages/Home'; 
 import DevenirPartenaire from './modules/shop/pages/DevenirPartenaire';
 import DashboardImprimeur from './modules/imprimeur/DashboardImprimeur';
+import PrintShopDetail from './modules/shop/pages/PrintShopDetail';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
@@ -23,7 +24,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/devenir-partenaire" element={<DevenirPartenaire />} />
-          
+          <Route path='/imprimerie/:id' element={<PrintShopDetail />} />
           <Route 
             path="/dashboard-imprimeur" 
             element={

@@ -27,29 +27,28 @@ public class ProduitService {
         }
 
         // ==========================================
-        // SÉCURITÉ MÉTÉTIER : NETTOYAGE DES OPTIONS
+        // SÉCURITÉ MÉTIER : NETTOYAGE DES OPTIONS
         // ==========================================
         
         // Règle 1 : La reliure n'est possible QUE pour les DOCUMENTS
         if (dto.getTypeProduit() != TypeProduit.DOCUMENT) {
             dto.setProposeReliure(false);
-            dto.setPrixReliure(null);
-            dto.setTypesReliure(null);
+            // On vide la Map des prix spécifiques
+            dto.setPrixParTypeReliure(null); 
         }
 
-        // Règle 2 : La plastification n'est pas possible pour les POSTERS
+        // Règle 2 : La plastification n'est pas possible pour les POSTERS (Affiches grand format)
         if (dto.getTypeProduit() == TypeProduit.POSTER) {
             dto.setProposePlastification(false);
-            dto.setPrixPlastification(null);
-            dto.setTypesPlastification(null);
+            // On vide la Map des prix spécifiques
+            dto.setPrixParTypePlastification(null);
         }
         
         // ==========================================
 
         Produit produit = shopMapper.toEntity(dto);
-        produit.setActif(true); // Optionnel: activer le produit par défaut à sa création
+        produit.setActif(true); 
         
-        // Le Mapper se charge déjà de récupérer et d'associer l'entité Imprimerie
         return shopMapper.toResponse(produitRepository.save(produit));
     }
 

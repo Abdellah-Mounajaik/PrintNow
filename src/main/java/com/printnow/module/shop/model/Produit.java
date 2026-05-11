@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Map; // <-- N'oublie pas cet import !
 
 @Entity
 @Table(name = "produits")
@@ -38,34 +38,30 @@ public class Produit {
     private Double prixParPage;
 
     // ==========================================
-    // OPTIONS DE PLASTIFICATION
+    // OPTIONS DE PLASTIFICATION (Map : Type -> Prix)
     // ==========================================
     @Column(name = "propose_plastification")
     private Boolean proposePlastification = false;
 
-    @Column(name = "prix_plastification")
-    private Double prixPlastification;
-
-    @ElementCollection(targetClass = TypePlastification.class, fetch = FetchType.LAZY)
-    @CollectionTable(name = "produit_plastifications", joinColumns = @JoinColumn(name = "produit_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type_plastification")
-    private List<TypePlastification> typesPlastification;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "produit_prix_plastification", joinColumns = @JoinColumn(name = "produit_id"))
+    @MapKeyEnumerated(EnumType.STRING)
+    @MapKeyColumn(name = "type_plastification")
+    @Column(name = "prix")
+    private Map<TypePlastification, Double> prixParTypePlastification;
 
     // ==========================================
-    // OPTIONS DE RELIURE
+    // OPTIONS DE RELIURE (Map : Type -> Prix)
     // ==========================================
     @Column(name = "propose_reliure")
     private Boolean proposeReliure = false;
 
-    @Column(name = "prix_reliure")
-    private Double prixReliure;
-
-    @ElementCollection(targetClass = TypeReliure.class, fetch = FetchType.LAZY)
-    @CollectionTable(name = "produit_reliures", joinColumns = @JoinColumn(name = "produit_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type_reliure")
-    private List<TypeReliure> typesReliure;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "produit_prix_reliure", joinColumns = @JoinColumn(name = "produit_id"))
+    @MapKeyEnumerated(EnumType.STRING)
+    @MapKeyColumn(name = "type_reliure")
+    @Column(name = "prix")
+    private Map<TypeReliure, Double> prixParTypeReliure;
 
     // ==========================================
     // STATUT ET RELATIONS

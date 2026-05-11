@@ -7,6 +7,7 @@ import com.printnow.module.shop.enums.TypeReliure;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ProduitResponseDTO {
@@ -22,12 +23,12 @@ public class ProduitResponseDTO {
     // ==========================================
     private Boolean proposePlastification;
     private Double prixPlastification;
-    private List<TypePlastification> typesPlastification;
+    private Map<TypePlastification, Double> prixParTypePlastification;
 
     // ==========================================
     // NOUVEAUX CHAMPS RELIURE
     // ==========================================
     private Boolean proposeReliure;
     private Double prixReliure;
-    private List<TypeReliure> typesReliure;
+    private Map<TypeReliure, Double> prixParTypeReliure;
 }
