@@ -19,7 +19,6 @@ function App() {
   return (
     <AuthProvider>
       <div className="min-h-screen bg-background text-foreground">
-        <Header />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Auth />} />

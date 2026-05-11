@@ -116,8 +116,10 @@ const DevenirPartenaire = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Nouveaux dictionnaires par défaut pour les options de finition
+  // Valeurs et états par défaut pour les options de finition
   const defaultPlastificationPrices = { MAT: "0.50", BRILLANT: "0.60", SOFT_TOUCH: "0.80" };
+  const defaultPlastificationActive = { MAT: true, BRILLANT: true, SOFT_TOUCH: false };
+
   const defaultReliurePrices = { 
     SPIRALE_PLASTIQUE: "1.50", 
     SPIRALE_METALLIQUE: "2.50", 
@@ -125,15 +127,26 @@ const DevenirPartenaire = () => {
     AGRAFE_DEUX_POINTS: "0.50", 
     THERMIQUE: "3.00" 
   };
+  const defaultReliureActive = { 
+    SPIRALE_PLASTIQUE: true, 
+    SPIRALE_METALLIQUE: true, 
+    DOS_CARRE_COLLE: false, 
+    AGRAFE_DEUX_POINTS: false, 
+    THERMIQUE: false 
+  };
 
   // Step 2 - services
   const [services, setServices] = useState<Record<string, any>>(
     Object.fromEntries(SERVICES.map((s) => [s.id, { 
       enabled: false, 
       price: s.defaultPrice,
+      
       proposePlastification: false,
+      activePlastification: { ...defaultPlastificationActive },
       prixParTypePlastification: { ...defaultPlastificationPrices },
+      
       proposeReliure: false,
+      activeReliure: { ...defaultReliureActive },
       prixParTypeReliure: { ...defaultReliurePrices }
     }]))
   );
@@ -148,7 +161,7 @@ const DevenirPartenaire = () => {
   const [offersDelivery, setOffersDelivery] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState("5.00");
   const [offersStudentDiscount, setOffersStudentDiscount] = useState(false);
-  const [studentDiscountPct, setStudentDiscountPct] = useState("15");
+  const [studentDiscountPct, setStudentDiscountPct] = useState("10");
 
   const enabledServicesCount = Object.values(services).filter((s) => s.enabled).length;
 
@@ -174,17 +187,18 @@ const DevenirPartenaire = () => {
     setServices((prev) => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
   };
 
-  // Nouvelle fonction pour mettre à jour un prix de finition spécifique
   const updateOptionPrice = (serviceId: string, category: "prixParTypePlastification" | "prixParTypeReliure", type: string, value: string) => {
     setServices((prev) => ({
       ...prev,
-      [serviceId]: {
-        ...prev[serviceId],
-        [category]: {
-          ...prev[serviceId][category],
-          [type]: value
-        }
-      }
+      [serviceId]: { ...prev[serviceId], [category]: { ...prev[serviceId][category], [type]: value } }
+    }));
+  };
+
+  // 👇 NOUVELLE FONCTION pour cocher/décocher un type précis
+  const toggleOptionActive = (serviceId: string, category: "activePlastification" | "activeReliure", type: string, value: boolean) => {
+    setServices((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], [category]: { ...prev[serviceId][category], [type]: value } }
     }));
   };
 
@@ -198,7 +212,7 @@ const DevenirPartenaire = () => {
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   };
 
-  // 👇 Payload mis à jour avec le nouveau format MAP du backend
+  // 👇 Filtrage strict avant envoi au backend 👇
   const buildPayload = (): PartnerRegistrationRequest => {
     const activeServices = Object.entries(services)
       .filter(([_, state]) => state.enabled)
@@ -208,13 +222,21 @@ const DevenirPartenaire = () => {
         const isDocument = serviceInfo!.typeProduit === "DOCUMENT";
         const canBePlastified = serviceInfo!.typeProduit !== "POSTER";
 
-        // Conversion des prix (String -> Float) pour les Maps
+        // On ne garde QUE les types qui ont été cochés par l'imprimeur
         const parsedPlastif = Object.fromEntries(
-          Object.entries(state.prixParTypePlastification).map(([k, v]) => [k, parseFloat(v as string) || 0])
+          Object.entries(state.prixParTypePlastification)
+            .filter(([k]) => state.activePlastification[k])
+            .map(([k, v]) => [k, parseFloat(v as string) || 0])
         );
+
         const parsedReliure = Object.fromEntries(
-          Object.entries(state.prixParTypeReliure).map(([k, v]) => [k, parseFloat(v as string) || 0])
+          Object.entries(state.prixParTypeReliure)
+            .filter(([k]) => state.activeReliure[k])
+            .map(([k, v]) => [k, parseFloat(v as string) || 0])
         );
+
+        const hasAnyPlastif = Object.keys(parsedPlastif).length > 0;
+        const hasAnyReliure = Object.keys(parsedReliure).length > 0;
 
         return {
           typeProduit: serviceInfo!.typeProduit,
@@ -222,11 +244,11 @@ const DevenirPartenaire = () => {
           prixBase: parseFloat(state.price),
           prixParPage: 0,
           
-          proposePlastification: canBePlastified && state.proposePlastification,
-          prixParTypePlastification: (canBePlastified && state.proposePlastification) ? parsedPlastif : null,
+          proposePlastification: canBePlastified && state.proposePlastification && hasAnyPlastif,
+          prixParTypePlastification: (canBePlastified && state.proposePlastification && hasAnyPlastif) ? parsedPlastif : null,
           
-          proposeReliure: isDocument && state.proposeReliure,
-          prixParTypeReliure: (isDocument && state.proposeReliure) ? parsedReliure : null
+          proposeReliure: isDocument && state.proposeReliure && hasAnyReliure,
+          prixParTypeReliure: (isDocument && state.proposeReliure && hasAnyReliure) ? parsedReliure : null
         };
       });
 
@@ -256,7 +278,8 @@ const DevenirPartenaire = () => {
         proposeExpress2h: offersExpress,
         livraisonActive: offersDelivery,
         proposeTarifEtudiant: offersStudentDiscount,
-pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) : undefined,        ville: "Non spécifiée", 
+        pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) : undefined,
+        ville: "Non spécifiée", 
         pays: "Belgique"
       },
       produits: activeServices as any,
@@ -480,14 +503,12 @@ pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) 
                   {SERVICES.map((s) => {
                     const state = services[s.id];
                     
-                    const canPlastify = s.typeProduit !== "POSTER"; // Flyers, Cartes, Docs
-                    const canBind = s.typeProduit === "DOCUMENT"; // Uniquement les Docs
-                    
+                    const canPlastify = s.typeProduit !== "POSTER";
+                    const canBind = s.typeProduit === "DOCUMENT";
                     const showOptionsPanel = state.enabled && (canPlastify || canBind);
 
                     return (
                       <div key={s.id} className={`border rounded-lg transition-all ${state.enabled ? "border-primary shadow-sm" : "border-border"}`}>
-                        {/* Ligne principale du service */}
                         <div className={`flex items-center gap-4 p-4 ${state.enabled && showOptionsPanel ? "bg-primary/5 border-b border-primary/20" : state.enabled ? "bg-primary/5" : ""}`}>
                           <Checkbox checked={state.enabled} onCheckedChange={() => toggleService(s.id)} />
                           <div className="flex-1">
@@ -500,7 +521,6 @@ pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) 
                           </div>
                         </div>
 
-                        {/* Options de finition */}
                         {showOptionsPanel && (
                           <div className="p-4 bg-muted/20 space-y-6">
                             
@@ -515,18 +535,23 @@ pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) 
                                   </div>
                                 </div>
                                 
-                                {/* Grille des prix par TYPE de plastification */}
                                 {state.proposePlastification && (
                                   <div className="ml-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    {Object.entries(state.prixParTypePlastification).map(([type, price]) => (
-                                      <div key={type} className="flex items-center justify-between p-2 bg-background border rounded-md">
-                                        <span className="text-xs font-medium">{formatEnumName(type)}</span>
-                                        <div className="flex items-center gap-1">
-                                          <Input type="number" step="0.01" value={price as string} onChange={(e) => updateOptionPrice(s.id, "prixParTypePlastification", type, e.target.value)} className="w-16 h-7 text-xs px-2" />
-                                          <span className="text-xs text-muted-foreground">€</span>
+                                    {Object.entries(state.prixParTypePlastification).map(([type, price]) => {
+                                      const isActive = state.activePlastification[type];
+                                      return (
+                                        <div key={type} className={`flex items-center justify-between p-2 border rounded-md transition-colors ${isActive ? 'bg-background border-primary/40' : 'bg-muted/50 border-border opacity-70'}`}>
+                                          <div className="flex items-center gap-2">
+                                            <Checkbox checked={isActive} onCheckedChange={(v) => toggleOptionActive(s.id, "activePlastification", type, Boolean(v))} />
+                                            <span className="text-xs font-medium">{formatEnumName(type)}</span>
+                                          </div>
+                                          <div className="flex items-center gap-1">
+                                            <Input type="number" step="0.01" value={price as string} disabled={!isActive} onChange={(e) => updateOptionPrice(s.id, "prixParTypePlastification", type, e.target.value)} className="w-16 h-7 text-xs px-2" />
+                                            <span className="text-xs text-muted-foreground">€</span>
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
@@ -543,18 +568,23 @@ pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) 
                                   </div>
                                 </div>
 
-                                {/* Grille des prix par TYPE de reliure */}
                                 {state.proposeReliure && (
                                   <div className="ml-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    {Object.entries(state.prixParTypeReliure).map(([type, price]) => (
-                                      <div key={type} className="flex items-center justify-between p-2 bg-background border rounded-md">
-                                        <span className="text-xs font-medium truncate pr-2">{formatEnumName(type)}</span>
-                                        <div className="flex items-center gap-1 shrink-0">
-                                          <Input type="number" step="0.01" value={price as string} onChange={(e) => updateOptionPrice(s.id, "prixParTypeReliure", type, e.target.value)} className="w-16 h-7 text-xs px-2" />
-                                          <span className="text-xs text-muted-foreground">€</span>
+                                    {Object.entries(state.prixParTypeReliure).map(([type, price]) => {
+                                      const isActive = state.activeReliure[type];
+                                      return (
+                                        <div key={type} className={`flex items-center justify-between p-2 border rounded-md transition-colors ${isActive ? 'bg-background border-primary/40' : 'bg-muted/50 border-border opacity-70'}`}>
+                                          <div className="flex items-center gap-2 overflow-hidden">
+                                            <Checkbox checked={isActive} onCheckedChange={(v) => toggleOptionActive(s.id, "activeReliure", type, Boolean(v))} />
+                                            <span className="text-xs font-medium truncate">{formatEnumName(type)}</span>
+                                          </div>
+                                          <div className="flex items-center gap-1 shrink-0">
+                                            <Input type="number" step="0.01" value={price as string} disabled={!isActive} onChange={(e) => updateOptionPrice(s.id, "prixParTypeReliure", type, e.target.value)} className="w-16 h-7 text-xs px-2" />
+                                            <span className="text-xs text-muted-foreground">€</span>
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
@@ -568,14 +598,13 @@ pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) 
                 </div>
               </Card>
 
-              {/* Reste du code pour Options supplémentaires & Horaires... */}
+              {/* Options supplémentaires */}
               <Card className="p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <Sparkles className="h-6 w-6 text-primary" />
                   <h2 className="font-display text-2xl font-semibold">Options supplémentaires</h2>
                 </div>
                 <div className="space-y-4">
-                  {/* EXPRESS */}
                   <div className={`p-4 border rounded-lg transition-all ${offersExpress ? "border-primary bg-primary/5" : "border-border"}`}>
                     <div className="flex items-start gap-4">
                       <Checkbox id="opt-express" checked={offersExpress} onCheckedChange={(v) => setOffersExpress(Boolean(v))} className="mt-1" />
@@ -588,7 +617,6 @@ pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) 
                     </div>
                   </div>
 
-                  {/* LIVRAISON */}
                   <div className={`p-4 border rounded-lg transition-all ${offersDelivery ? "border-primary bg-primary/5" : "border-border"}`}>
                     <div className="flex items-start gap-4">
                       <Checkbox id="opt-delivery" checked={offersDelivery} onCheckedChange={(v) => setOffersDelivery(Boolean(v))} className="mt-1" />
@@ -606,7 +634,6 @@ pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) 
                     </div>
                   </div>
 
-                  {/* ETUDIANT */}
                   <div className={`p-4 border rounded-lg transition-all ${offersStudentDiscount ? "border-primary bg-primary/5" : "border-border"}`}>
                     <div className="flex items-start gap-4">
                       <Checkbox id="opt-student" checked={offersStudentDiscount} onCheckedChange={(v) => setOffersStudentDiscount(Boolean(v))} className="mt-1" />

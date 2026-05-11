@@ -61,7 +61,7 @@ public class PartnerRegistrationService {
         User newGerant = userMapper.toEntityFromPartnerRequest(request);
         newGerant.setMotDePasse(passwordEncoder.encode(request.getPassword()));
         newGerant.setRole(roleImprimerie);
-        newGerant.setActif(false); // Inactif par défaut
+        newGerant.setActif(true); 
         
         newGerant = userRepository.save(newGerant);
 

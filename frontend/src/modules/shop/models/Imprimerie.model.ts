@@ -11,10 +11,12 @@ export interface Produit {
   formatImpression: string;
   prixBase: number;
   prixParPage: number;
+  actif?: boolean;
   proposePlastification?: boolean;
   prixParTypePlastification?: Record<string, number>;
   proposeReliure?: boolean;
   prixParTypeReliure?: Record<string, number>;
+  
 }
 
 export interface ImprimerieDetail {
@@ -24,14 +26,15 @@ export interface ImprimerieDetail {
   description: string;
   adresse: string;
   ville: string;
+  numeroTva?: string;
   logoUrl: string | null;
-  telephoneContact: string;
+  telephoneContact? : string;
   emailContact: string;
   proposeExpress2h: boolean;
   accepteEtudiants: boolean;
   pourcentageRemiseEtudiant?: number;  
   livraisonActive: boolean;
   actif: boolean;
-  horaires: Horaire[];
+  horaires?: Horaire[];
   produits: Produit[];
 }
