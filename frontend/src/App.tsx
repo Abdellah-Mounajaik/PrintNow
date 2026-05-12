@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import DevenirPartenaire from './modules/shop/pages/DevenirPartenaire';
 import DashboardImprimeur from './modules/imprimeur/DashboardImprimeur';
 import PrintShopDetail from './modules/shop/pages/PrintShopDetail';
+import Order from './modules/shop/pages/Order';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
@@ -18,12 +19,14 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 function App() {
   return (
     <AuthProvider>
+      <Header />
       <div className="min-h-screen bg-background text-foreground">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/devenir-partenaire" element={<DevenirPartenaire />} />
           <Route path='/imprimerie/:id' element={<PrintShopDetail />} />
+          <Route path='/commander/:id' element={<Order />} />
           <Route 
             path="/dashboard-imprimeur" 
             element={
