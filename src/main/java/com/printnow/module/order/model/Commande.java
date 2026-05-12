@@ -75,21 +75,22 @@ public class Commande {
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LigneCommande> lignes = new ArrayList<>();
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "adresse_livraison_id")
+    private AdresseLivraison adresseLivraison;
+
+    @OneToOne(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Livraison livraison;
     // --- Autres Relations (à décommenter/adapter quand tu auras créé ces classes) ---
     /*
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "code_promo_id")
     private CodePromo codePromo;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "adresse_livraison_id")
-    private AdresseLivraison adresseLivraison;
+
 
     @OneToOne(mappedBy = "commande")
     private Paiement paiement;
-
-    @OneToOne(mappedBy = "commande")
-    private Livraison livraison;
 
     @OneToMany(mappedBy = "commande")
     private List<Facture> factures = new ArrayList<>();

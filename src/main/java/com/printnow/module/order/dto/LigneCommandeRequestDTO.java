@@ -9,4 +9,6 @@ public class LigneCommandeRequestDTO {
     private Integer nbPages;
     private Boolean couleur;
     private Boolean rectoVerso;
+    private String reliure;
+    private String finition;
 }

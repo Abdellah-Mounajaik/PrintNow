@@ -77,6 +77,8 @@ public class CommandeMapper {
         dto.setNbPages(ligne.getNbPages());
         dto.setCouleur(ligne.getCouleur());
         dto.setRectoVerso(ligne.getRectoVerso());
+        dto.setReliure(ligne.getReliure());
+        dto.setFinition(ligne.getFinition());
         dto.setPrixUnitaire(ligne.getPrixUnitaire());
         dto.setPrixTotal(ligne.getPrixTotal());
 

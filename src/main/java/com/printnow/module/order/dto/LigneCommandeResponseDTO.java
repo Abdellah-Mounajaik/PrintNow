@@ -13,6 +13,8 @@ private Long id;
     private Integer nbPages;
     private Boolean couleur;
     private Boolean rectoVerso;
+    private String reliure;
+    private String finition;
     private BigDecimal prixUnitaire;
     private BigDecimal prixTotal;
 }

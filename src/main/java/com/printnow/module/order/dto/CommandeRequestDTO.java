@@ -9,4 +9,5 @@ public class CommandeRequestDTO {
     private String modeRetrait;
     private Boolean express2h;
     private List<LigneCommandeRequestDTO> lignes;
+    private AdresseLivraisonRequestDTO adresseLivraison;
 }

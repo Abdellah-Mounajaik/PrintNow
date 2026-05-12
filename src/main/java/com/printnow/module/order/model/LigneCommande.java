@@ -42,6 +42,11 @@ public class LigneCommande {
     @JoinColumn(name = "produit_id", nullable = false)
     private Produit produit;
 
+    @Column(name = "reliure")
+    private String reliure;
+
+    @Column(name = "finition")
+    private String finition;
     /*
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "fichier_pdf_id")
