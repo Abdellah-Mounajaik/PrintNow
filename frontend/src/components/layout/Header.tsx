@@ -30,7 +30,8 @@ const Header = () => {
   const navigate = useNavigate();
 
   // 👇 RÉCUPÉRATION DE L'ÉTAT DE CONNEXION
-  const { isAuthenticated, logoutGlobal } = useAuth();
+  const { isAuthenticated, logoutGlobal, user } = useAuth();
+  const dashboardPath = user?.role === "IMPRIMEUR" ? "/dashboard-imprimeur" : "/dashboard";
 
   const languages = [
     { code: "FR", label: "Français" },
@@ -143,7 +144,7 @@ const Header = () => {
               {isAuthenticated ? (
                 <>
                   <Button variant="outline" size="sm" asChild>
-                    <Link to="/dashboard-imprimeur">
+                    <Link to={dashboardPath}>
                       <LayoutDashboard className="h-4 w-4 mr-2" />
                       Mon espace
                     </Link>
@@ -205,7 +206,7 @@ const Header = () => {
                 {isAuthenticated ? (
                   <>
                     <Button variant="outline" className="flex-1" asChild>
-                      <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>Mon espace</Link>
+                      <Link to={dashboardPath} onClick={() => setIsMenuOpen(false)}>Mon espace</Link>
                     </Button>
                     <Button variant="destructive" className="flex-1" onClick={handleLogout}>
                       Déconnexion

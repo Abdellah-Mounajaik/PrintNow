@@ -332,7 +332,7 @@ const DevenirPartenaire = () => {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="default" size="lg" onClick={() => navigate("/dashboard")}>
+                <Button variant="default" size="lg" onClick={() => navigate("/dashboard-imprimeur")}>
                   Accéder à mon espace
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>

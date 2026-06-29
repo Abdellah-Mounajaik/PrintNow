@@ -7,6 +7,7 @@ import Header from './components/layout/Header';
 import Home from './pages/Home'; 
 import DevenirPartenaire from './modules/shop/pages/DevenirPartenaire';
 import DashboardImprimeur from './modules/imprimeur/DashboardImprimeur';
+import DashboardClient from './modules/user/DashboardClient';
 import PrintShopDetail from './modules/shop/pages/PrintShopDetail';
 import Order from './modules/shop/pages/Order';
 
@@ -37,6 +38,14 @@ function App() {
           />
           
           {/* Redirection au cas où */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardClient />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/imprimeur" element={<Navigate to="/dashboard-imprimeur" replace />} />
           <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404 - Page introuvable</h1>} />
         </Routes>
