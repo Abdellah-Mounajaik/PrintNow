@@ -59,6 +59,23 @@ public class ProduitService {
                 .collect(Collectors.toList());
     }
 
+    public ProduitResponseDTO updateProduit(Long id, ProduitRequestDTO dto) {
+        Produit produit = produitRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produit non trouvé avec l'id : " + id));
+
+        if (dto.getTypeProduit() != null && dto.getTypeProduit() != TypeProduit.DOCUMENT) {
+            dto.setProposeReliure(false);
+            dto.setPrixParTypeReliure(null);
+        }
+        if (dto.getTypeProduit() != null && dto.getTypeProduit() == TypeProduit.POSTER) {
+            dto.setProposePlastification(false);
+            dto.setPrixParTypePlastification(null);
+        }
+
+        shopMapper.updateProduitFromDto(dto, produit);
+        return shopMapper.toResponse(produitRepository.save(produit));
+    }
+
     public void desactiverProduit(Long produitId) {
         Produit produit = produitRepository.findById(produitId)
                 .orElseThrow(() -> new RuntimeException("Produit non trouvé"));

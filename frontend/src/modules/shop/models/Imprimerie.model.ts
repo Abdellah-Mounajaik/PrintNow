@@ -1,4 +1,5 @@
 export interface Horaire {
+  id: number;
   jourSemaine: string;
   heureOuverture: string;
   heureFermeture: string;
@@ -20,7 +21,7 @@ export interface Produit {
 }
 
 export interface ImprimerieDetail {
-  proposeTarifEtudiant: import("react/jsx-runtime").JSX.Element;
+  proposeTarifEtudiant: boolean;
   id: number;
   nom: string;
   description: string;

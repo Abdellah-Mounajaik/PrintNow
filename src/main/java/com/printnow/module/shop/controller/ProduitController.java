@@ -28,6 +28,11 @@ public class ProduitController {
         return ResponseEntity.ok(produitService.getCatalogueByImprimerie(imprimerieId));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ProduitResponseDTO> updateProduit(@PathVariable Long id, @RequestBody ProduitRequestDTO dto) {
+        return ResponseEntity.ok(produitService.updateProduit(id, dto));
+    }
+
     // Désactiver un produit plutôt que de le supprimer physiquement
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> desactiverProduit(@PathVariable Long id) {

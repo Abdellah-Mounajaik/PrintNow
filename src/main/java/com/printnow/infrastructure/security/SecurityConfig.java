@@ -68,6 +68,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll() // L'authentification est publique
                 .requestMatchers("/api/imprimeries/**").permitAll() // Le catalogue est public
                 .requestMatchers("/api/produits/**").permitAll()
+                .requestMatchers("/api/horaires/**").permitAll()
                 .requestMatchers("/api/partners/register").permitAll() // L'inscription des partenaires est publique
                 .requestMatchers("/api/payments/**").permitAll()
                 .requestMatchers("/api/partners/**").permitAll()

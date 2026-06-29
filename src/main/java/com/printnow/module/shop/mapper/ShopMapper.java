@@ -4,9 +4,11 @@ import com.printnow.module.shop.dto.*;
 import com.printnow.module.shop.model.*;
 import com.printnow.module.shop.repository.ImprimerieRepository;
 
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = "spring")
@@ -37,9 +39,13 @@ public abstract class ShopMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "actif", constant = "true")
-    // Recherche de l'imprimerie en base de données grâce à l'ID fourni dans le DTO
     @Mapping(target = "imprimerie", expression = "java(dto.getImprimerieId() != null ? imprimerieRepository.findById(dto.getImprimerieId()).orElse(null) : null)")
     public abstract Produit toEntity(ProduitRequestDTO dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "imprimerie", ignore = true)
+    public abstract void updateProduitFromDto(ProduitRequestDTO dto, @MappingTarget Produit entity);
 
 
     // ==========================================
@@ -51,4 +57,9 @@ public abstract class ShopMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "imprimerie", expression = "java(dto.getImprimerieId() != null ? imprimerieRepository.findById(dto.getImprimerieId()).orElse(null) : null)")
     public abstract HoraireOuverture toEntity(HoraireOuvertureRequestDTO dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "imprimerie", ignore = true)
+    public abstract void updateHoraireFromDto(HoraireOuvertureRequestDTO dto, @MappingTarget HoraireOuverture entity);
 }
