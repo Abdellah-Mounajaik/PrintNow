@@ -28,4 +28,5 @@ public class ProduitRequestDTO {
     // ==========================================
     private Boolean proposeReliure;
     private Map<TypeReliure, Double> prixParTypeReliure;
+    private Boolean actif;
 }

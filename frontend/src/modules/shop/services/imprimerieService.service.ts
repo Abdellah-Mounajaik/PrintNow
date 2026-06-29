@@ -39,6 +39,21 @@ export const imprimerieService = {
     return response.json();
   },
 
+  createProduit: async (dto: Record<string, unknown>): Promise<unknown> => {
+    const response = await fetch(`${API_BASE_URL}/produits`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dto),
+    });
+    if (!response.ok) throw new Error("Erreur lors de la création du produit");
+    return response.json();
+  },
+
+  deleteProduit: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/produits/${id}`, { method: "DELETE" });
+    if (!response.ok) throw new Error("Erreur lors de la désactivation du produit");
+  },
+
   updateProduit: async (id: number, dto: Record<string, unknown>): Promise<unknown> => {
     const response = await fetch(`${API_BASE_URL}/produits/${id}`, {
       method: "PUT",
