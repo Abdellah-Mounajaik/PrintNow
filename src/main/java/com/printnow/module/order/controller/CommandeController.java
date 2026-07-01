@@ -45,9 +45,31 @@ public class CommandeController {
      */
     @GetMapping("/imprimerie/{id}")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesImprimeur(@PathVariable Long id) {
-        
         List<CommandeResponseDTO> commandes = commandeService.getCommandesForImprimerie(id);
-        
+        return ResponseEntity.ok(commandes);
+    }
+
+    /**
+     * PATCH /api/commandes/{id}/statut
+     * Permet à l'imprimeur de faire avancer le statut d'une commande.
+     */
+    @PatchMapping("/{id}/statut")
+    public ResponseEntity<CommandeResponseDTO> updateStatut(
+            @PathVariable Long id,
+            @RequestParam String statut) {
+        return ResponseEntity.ok(commandeService.updateStatut(id, statut));
+    }
+
+    /**
+     * GET /api/commandes/me
+     * Récupère les commandes du client connecté (Dashboard Client).
+     */
+    @GetMapping("/me")
+    public ResponseEntity<List<CommandeResponseDTO>> getMesCommandes() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User client = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email : " + email));
+        List<CommandeResponseDTO> commandes = commandeService.getCommandesForClient(client.getId());
         return ResponseEntity.ok(commandes);
     }
 }

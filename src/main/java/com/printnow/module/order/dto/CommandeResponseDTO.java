@@ -19,5 +19,6 @@ private Long id;
     private LocalDateTime dateCreation;
     private String nomClient;
     private String nomImprimerie;
+    private String numeroSuivi;
     private List<LigneCommandeResponseDTO> lignes;
 }

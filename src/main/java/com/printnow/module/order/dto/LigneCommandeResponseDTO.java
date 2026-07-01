@@ -1,6 +1,7 @@
 package com.printnow.module.order.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import lombok.Data;
 
@@ -17,4 +18,5 @@ private Long id;
     private String finition;
     private BigDecimal prixUnitaire;
     private BigDecimal prixTotal;
+    private List<FichierPDFResponseDTO> fichiers;
 }

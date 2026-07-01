@@ -12,7 +12,8 @@ import { Checkbox } from "../../components/ui/checkbox";
 import {
   Package, Euro, Clock, Star,
   Store, Truck, Layers, Book, Printer,
-  Zap, GraduationCap
+  Zap, GraduationCap, ChevronDown, ChevronUp,
+  FileText, CheckCircle, RotateCcw
 } from "lucide-react";
 import { toast } from "../../hooks/use-toast";
 
@@ -88,11 +89,13 @@ const initServicesFromProduits = (produits: any[]) => {
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 const DashboardImprimeur = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   const [shop, setShop] = useState<ImprimerieDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const orders: any[] = [];
+  const [orders, setOrders] = useState<any[]>([]);
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [updatingStatutId, setUpdatingStatutId] = useState<number | null>(null);
 
   // Services
   const [servicesState, setServicesState] = useState<Record<string, any>>({});
@@ -126,8 +129,12 @@ const DashboardImprimeur = () => {
           numeroTva: (data as any).numeroTva || "",
           description: data.description || "",
         });
-        setIsLoading(false);
+        return fetch(`http://localhost:8080/api/commandes/imprimerie/${data.id}`, {
+          headers: { "Authorization": `Bearer ${token}` },
+        });
       })
+      .then(res => res && res.ok ? res.json() : [])
+      .then(data => { setOrders(data); setIsLoading(false); })
       .catch(() => {
         toast({ title: "Erreur", description: "Impossible de charger les données", variant: "destructive" });
         setIsLoading(false);
@@ -313,6 +320,57 @@ const DashboardImprimeur = () => {
     return text.replace(/_/g, ' ').toLowerCase().replace(/^./, c => c.toUpperCase());
   };
 
+  const openPDF = async (fichierId: number, nomFichier: string) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/fichiers-pdf/${fichierId}/download`, {
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch {
+      toast({ title: "Erreur", description: `Impossible d'ouvrir ${nomFichier}.`, variant: "destructive" });
+    }
+  };
+
+  const handleUpdateStatut = async (orderId: number, newStatut: string) => {
+    setUpdatingStatutId(orderId);
+    try {
+      const res = await fetch(`http://localhost:8080/api/commandes/${orderId}/statut?statut=${newStatut}`, {
+        method: "PATCH",
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      const updated = await res.json();
+      setOrders(prev => prev.map(o => o.id === orderId ? updated : o));
+      toast({ title: "Statut mis à jour", description: `Commande passée à "${STATUT_LABELS[newStatut]?.label ?? newStatut}".` });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de mettre à jour le statut.", variant: "destructive" });
+    } finally {
+      setUpdatingStatutId(null);
+    }
+  };
+
+  const STATUT_LABELS: Record<string, { label: string; color: string }> = {
+    EN_ATTENTE_PAIEMENT: { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+    PAYEE:               { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+    PRETE:               { label: "Prêt à être retiré", color: "bg-green-100 text-green-800 border-green-200" },
+    LIVREE:              { label: "Récupérée", color: "bg-gray-100 text-gray-600 border-gray-200" },
+    ANNULEE:             { label: "Annulée", color: "bg-red-100 text-red-800 border-red-200" },
+  };
+
+  const NEXT_STATUT: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {
+    EN_ATTENTE_PAIEMENT: { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    PAYEE:               { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    PRETE:               { statut: "LIVREE", label: "Marquer comme récupéré", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+  };
+
   // ── Rendu ─────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
@@ -337,8 +395,8 @@ const DashboardImprimeur = () => {
     );
   }
 
-  const revenue = orders.reduce((s, o) => s + o.total, 0);
-  const pending = orders.filter((o) => o.status === "pending").length;
+  const revenue = orders.reduce((s, o) => s + Number(o.totalTTC ?? 0), 0);
+  const pending = orders.filter((o) => o.statut === "PAYEE" || o.statut === "EN_COURS_IMPRESSION").length;
   const activeServicesCount = Object.values(servicesState).filter((s: any) => s.enabled).length;
 
   return (
@@ -398,11 +456,120 @@ const DashboardImprimeur = () => {
             <TabsContent value="orders">
               <Card className="p-6">
                 <h3 className="font-display font-semibold text-lg mb-4">Commandes reçues</h3>
-                <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
-                  <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                  <h4 className="text-lg font-semibold mb-1">Aucune commande</h4>
-                  <p className="text-muted-foreground text-sm">La réception des commandes est en cours d'intégration.</p>
-                </div>
+                {orders.length === 0 ? (
+                  <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
+                    <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h4 className="text-lg font-semibold mb-1">Aucune commande</h4>
+                    <p className="text-muted-foreground text-sm">Vos commandes apparaîtront ici dès qu'un client passera commande.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {orders.map((order: any) => {
+                      const isExpanded = expandedOrderId === order.id;
+                      const statutInfo = STATUT_LABELS[order.statut];
+                      const nextAction = NEXT_STATUT[order.statut];
+                      const isUpdating = updatingStatutId === order.id;
+
+                      return (
+                        <div key={order.id} className="border rounded-xl overflow-hidden">
+                          {/* En-tête cliquable */}
+                          <button
+                            className="w-full flex items-center justify-between p-4 bg-muted/10 hover:bg-muted/20 transition-colors text-left"
+                            onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                          >
+                            <div className="min-w-0">
+                              <p className="font-mono font-semibold text-sm">{order.numeroCommande}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {order.nomClient} · {new Date(order.dateCreation).toLocaleDateString("fr-BE")}
+                                {order.modeRetrait === "LIVRAISON" && <span className="ml-2 inline-flex items-center gap-1"><Truck className="h-3 w-3" /> Livraison</span>}
+                                {order.express2h && <span className="ml-2 inline-flex items-center gap-1 text-secondary"><Zap className="h-3 w-3" /> Express</span>}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0 ml-4">
+                              <span className={`text-xs font-medium px-2 py-1 rounded-full border ${statutInfo?.color ?? "bg-gray-100 text-gray-600"}`}>
+                                {statutInfo?.label ?? order.statut}
+                              </span>
+                              <span className="font-bold text-primary">{Number(order.totalTTC).toFixed(2)}€</span>
+                              {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                            </div>
+                          </button>
+
+                          {/* Détails */}
+                          {isExpanded && (
+                            <div className="p-4 border-t bg-background space-y-4">
+                              {/* Lignes de commande */}
+                              <div>
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Fichiers à imprimer</p>
+                                <div className="space-y-2">
+                                  {(order.lignes ?? []).map((ligne: any, idx: number) => (
+                                    <div key={ligne.id ?? idx} className="p-3 rounded-lg bg-muted/30 space-y-2">
+                                      <div className="flex items-start gap-3">
+                                        <FileText className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-medium text-sm">{ligne.nomProduit}</p>
+                                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-muted-foreground">
+                                            <span>{ligne.nbPages} page{ligne.nbPages > 1 ? "s" : ""}</span>
+                                            <span>{ligne.quantite} copie{ligne.quantite > 1 ? "s" : ""}</span>
+                                            {ligne.rectoVerso && <span>Recto-Verso</span>}
+                                            {ligne.reliure && ligne.reliure !== "AUCUNE" && <span>Reliure : {formatEnumName(ligne.reliure)}</span>}
+                                            {ligne.finition && ligne.finition !== "AUCUNE" && <span>Plastification : {formatEnumName(ligne.finition)}</span>}
+                                          </div>
+                                        </div>
+                                        <span className="font-semibold text-sm shrink-0">{Number(ligne.prixTotal).toFixed(2)}€</span>
+                                      </div>
+                                      {/* Fichiers PDF */}
+                                      {(ligne.fichiers ?? []).length > 0 && (
+                                        <div className="flex flex-wrap gap-2 pl-8">
+                                          {(ligne.fichiers as any[]).map((fichier: any) => (
+                                            <button
+                                              key={fichier.id}
+                                              onClick={() => openPDF(fichier.id, fichier.nomFichier)}
+                                              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium"
+                                            >
+                                              <FileText className="h-3.5 w-3.5" />
+                                              {fichier.nomFichier}
+                                              <span className="text-muted-foreground">({fichier.nbPagesDetectees}p)</span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Récapitulatif financier */}
+                              <div className="flex justify-between text-sm pt-2 border-t">
+                                <span className="text-muted-foreground">Total TTC</span>
+                                <span className="font-bold text-primary">{Number(order.totalTTC).toFixed(2)}€</span>
+                              </div>
+
+                              {/* Bouton d'action statut */}
+                              {nextAction && (
+                                <Button
+                                  className="w-full mt-2"
+                                  onClick={() => handleUpdateStatut(order.id, nextAction.statut)}
+                                  disabled={isUpdating}
+                                >
+                                  {isUpdating ? (
+                                    <RotateCcw className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : nextAction.icon}
+                                  {nextAction.label}
+                                </Button>
+                              )}
+
+                              {(order.statut === "LIVREE" || order.statut === "ANNULEE") && (
+                                <p className="text-center text-xs text-muted-foreground pt-1">
+                                  {order.statut === "LIVREE" ? "Commande terminée." : "Commande annulée."}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </Card>
             </TabsContent>
 

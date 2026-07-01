@@ -27,15 +27,19 @@ import {
 import {
   ChevronLeft, Upload, FileText, Zap, GraduationCap, Truck,
   Store, CreditCard, AlertCircle, Tag, Check, MapPin,
-  Package, Lock, Loader2, Layers, Book
+  Lock, Loader2, Layers, Book
 } from "lucide-react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
-// 👇 Imports Backend
 import { imprimerieService } from "../services/imprimerieService.service";
 import type { ImprimerieDetail } from "../models/Imprimerie.model";
+import { useAuth } from "../../auth/context/AuthContext";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "");
 
 interface FileOptions {
-  productId: number | ""; 
+  productId: number | "";
   copies: number;
   recto: "recto" | "rectoverso";
   binding: string;
@@ -48,7 +52,6 @@ interface UploadedFile {
   options: FileOptions;
 }
 
-// Mock promo codes
 const PROMO_CODES: Record<string, number> = {
   WELCOME10: 10,
   PRINT20: 20,
@@ -65,13 +68,6 @@ interface DeliveryAddress {
   telephone: string;
 }
 
-interface PaymentInfo {
-  cardName: string;
-  cardNumber: string;
-  expiry: string;
-  cvc: string;
-}
-
 interface OrderConfirmation {
   numeroCommande: string;
   numeroSuivi?: string;
@@ -81,34 +77,143 @@ interface OrderConfirmation {
   total: number;
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Stripe checkout sub-component (must live inside <Elements>)
+// ──────────────────────────────────────────────────────────────────────────────
+interface CheckoutFormProps {
+  total: number;
+  canPay: boolean;
+  addressValid: boolean;
+  fulfillment: "pickup" | "delivery";
+  token: string | null;
+  onSuccess: (paymentIntentId: string) => Promise<void>;
+}
+
+const CheckoutForm: React.FC<CheckoutFormProps> = ({
+  total, canPay, addressValid, fulfillment, token, onSuccess,
+}) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
+  const [cardError, setCardError] = useState<string | null>(null);
+
+  const handlePay = async () => {
+    if (!stripe || !elements) {
+      toast({ title: "Erreur", description: "Stripe n'est pas chargé. Vérifiez votre clé publique.", variant: "destructive" });
+      return;
+    }
+    if (!canPay) {
+      toast({ title: "Aucun fichier", description: "Ajoutez au moins un PDF.", variant: "destructive" });
+      return;
+    }
+    if (fulfillment === "delivery" && !addressValid) {
+      toast({ title: "Adresse incomplète", description: "Veuillez renseigner votre adresse de livraison.", variant: "destructive" });
+      return;
+    }
+    if (!cardComplete) {
+      toast({ title: "Carte invalide", description: cardError ?? "Veuillez entrer un numéro de carte valide.", variant: "destructive" });
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      // 1. Create PaymentIntent on the backend
+      const piRes = await fetch("http://localhost:8080/api/payments/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ amount: Math.round(total * 100) }),
+      });
+      if (!piRes.ok) throw new Error("Erreur lors de la création du paiement.");
+      const { clientSecret } = await piRes.json();
+
+      // 2. Confirm with real card via Stripe.js
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) throw new Error("Élément de carte introuvable.");
+
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card: cardElement },
+      });
+      if (error) throw new Error(error.message ?? "Erreur de paiement.");
+      if (!paymentIntent) throw new Error("Paiement non confirmé.");
+
+      // 3. Create the order only after successful payment
+      await onSuccess(paymentIntent.id);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Une erreur est survenue.";
+      toast({ title: "Erreur de paiement", description: message, variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="p-3 border rounded-lg bg-background">
+        <CardElement
+          options={{
+            hidePostalCode: true,
+            style: {
+              base: {
+                fontSize: "16px",
+                color: "#1a1a1a",
+                "::placeholder": { color: "#a0a0a0" },
+              },
+              invalid: {
+                color: "#1a1a1a",
+                iconColor: "#a0a0a0",
+              },
+            },
+          }}
+          onChange={(e) => {
+            setCardComplete(e.complete);
+            setCardError(e.error?.message ?? null);
+          }}
+        />
+      </div>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Lock className="h-3.5 w-3.5" /> Paiement sécurisé Stripe (Chiffrement 256 bits).
+      </div>
+      <Button
+        variant="hero"
+        size="lg"
+        className="w-full"
+        disabled={!canPay || processing || !stripe}
+        onClick={handlePay}
+      >
+        {processing ? (
+          <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Traitement…</>
+        ) : (
+          <><CreditCard className="h-5 w-5 mr-2" /> Payer {total.toFixed(2)}€</>
+        )}
+      </Button>
+    </div>
+  );
+};
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Order page
+// ──────────────────────────────────────────────────────────────────────────────
 const Order = () => {
-  const { id } = useParams<{ id: string }>(); // 🛠️ Adapté à ton App.tsx
-  
-  // États Backend
+  const { id } = useParams<{ id: string }>();
+  const { token } = useAuth();
+
   const [shop, setShop] = useState<ImprimerieDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // États du formulaire
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [expressOption, setExpressOption] = useState(false);
   const [studentDiscount, setStudentDiscount] = useState(false);
   const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">("pickup");
   const [promoInput, setPromoInput] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; pct: number } | null>(null);
-  
-  // États Livraison & Paiement
+
   const [address, setAddress] = useState<DeliveryAddress>({
     nomDestinataire: "", rue: "", numero: "", codePostal: "", ville: "", pays: "Belgique", telephone: "",
   });
-  const [payment, setPayment] = useState<PaymentInfo>({
-    cardName: "", cardNumber: "", expiry: "", cvc: "",
-  });
-  
-  // États de Soumission
-  const [processing, setProcessing] = useState(false);
+
   const [confirmation, setConfirmation] = useState<OrderConfirmation | null>(null);
 
-  // Chargement de l'imprimerie
   useEffect(() => {
     if (id) {
       imprimerieService.getImprimerieById(id)
@@ -128,7 +233,7 @@ const Order = () => {
 
   const formatEnumName = (text: string) => {
     if (!text) return "";
-    const formatted = text.replace(/_/g, ' ').toLowerCase();
+    const formatted = text.replace(/_/g, " ").toLowerCase();
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   };
 
@@ -155,16 +260,15 @@ const Order = () => {
         if (file.type === "application/pdf") {
           const pageCount = await countPdfPages(file);
           const defaultProduct = shop?.produits?.find(p => p.actif) || null;
-          
           newFiles.push({
             file,
             pageCount,
-            options: { 
-              productId: defaultProduct ? defaultProduct.id : "", 
-              copies: 1, 
-              recto: "recto", 
-              binding: "AUCUNE", 
-              finish: "AUCUNE" 
+            options: {
+              productId: defaultProduct ? defaultProduct.id : "",
+              copies: 1,
+              recto: "recto",
+              binding: "AUCUNE",
+              finish: "AUCUNE",
             },
           });
         }
@@ -190,17 +294,12 @@ const Order = () => {
     );
   };
 
-  // CALCUL DYNAMIQUE DU PRIX
   const computeFilePrice = (f: UploadedFile) => {
     if (!f.options.productId || !shop || !shop.produits) return 0;
     const product = shop.produits.find(p => p.id === f.options.productId);
     if (!product) return 0;
 
-    let unitPrice = product.prixBase + (product.prixParPage * f.pageCount);
-    
-    // Recto-verso (mock 15% discount)
-    if (f.options.recto === "rectoverso") unitPrice *= 0.85;
-
+    let unitPrice = (product.prixBase + product.prixParPage) * f.pageCount;
     if (f.options.binding !== "AUCUNE" && product.prixParTypeReliure) {
       unitPrice += Number(product.prixParTypeReliure[f.options.binding] || 0);
     }
@@ -211,13 +310,14 @@ const Order = () => {
   };
 
   const subtotal = files.reduce((sum, f) => sum + computeFilePrice(f), 0);
-  const expressPrice = expressOption ? 5 : 0; 
-  const deliveryPrice = fulfillment === "delivery" ? 4.99 : 0; 
-  const studentDiscountAmount = (studentDiscount && shop?.pourcentageRemiseEtudiant) 
-                                ? subtotal * (shop.pourcentageRemiseEtudiant / 100) : 0;
+  const expressAmount = expressOption ? subtotal * 0.50 : 0;
+  const deliveryPrice = fulfillment === "delivery" ? 4.99 : 0;
+  const studentDiscountAmount = (studentDiscount && shop?.pourcentageRemiseEtudiant)
+    ? subtotal * (shop.pourcentageRemiseEtudiant / 100) : 0;
   const promoDiscountAmount = appliedPromo ? subtotal * (appliedPromo.pct / 100) : 0;
-  
-  const total = Math.max(0, subtotal + expressPrice + deliveryPrice - studentDiscountAmount - promoDiscountAmount);
+  const totalHT = Math.max(0, subtotal + expressAmount + deliveryPrice - studentDiscountAmount - promoDiscountAmount);
+  const tva = totalHT * 0.20;
+  const total = totalHT + tva;
 
   const applyPromo = () => {
     const code = promoInput.trim().toUpperCase();
@@ -237,59 +337,90 @@ const Order = () => {
 
   const totalPages = files.reduce((s, f) => s + f.pageCount * f.options.copies, 0);
 
-  // Validations
   const isAddressValid = () =>
     !!(address.nomDestinataire.trim() && address.rue.trim() && address.numero.trim() &&
-    address.codePostal.trim() && address.ville.trim() && address.telephone.trim());
+      address.codePostal.trim() && address.ville.trim() && address.telephone.trim());
 
-  const isPaymentValid = () => {
-    const num = payment.cardNumber.replace(/\s+/g, "");
-    return (
-      !!payment.cardName.trim() &&
-      /^\d{13,19}$/.test(num) &&
-      /^(0[1-9]|1[0-2])\/\d{2}$/.test(payment.expiry) &&
-      /^\d{3,4}$/.test(payment.cvc)
+  // Called after Stripe payment is confirmed — creates the commande and uploads PDFs
+  const handleCreateOrder = async (_paymentIntentId: string) => {
+    const payload = {
+      modeRetrait: fulfillment === "pickup" ? "RETRAIT_MAGASIN" : "LIVRAISON",
+      express2h: expressOption,
+      adresseLivraison: fulfillment === "delivery" ? {
+        nomDestinataire: address.nomDestinataire,
+        rue: address.rue,
+        numero: address.numero,
+        codePostal: address.codePostal,
+        ville: address.ville,
+        pays: address.pays,
+        telephone: address.telephone,
+      } : undefined,
+      lignes: files.map(f => ({
+        produitId: f.options.productId,
+        quantite: f.options.copies,
+        nbPages: f.pageCount,
+        couleur: false,
+        rectoVerso: f.options.recto === "rectoverso",
+        reliure: f.options.binding || "AUCUNE",
+        finition: f.options.finish || "AUCUNE",
+      })),
+    };
+
+    const response = await fetch("http://localhost:8080/api/commandes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Erreur lors de la création de la commande");
+    }
+
+    const data = await response.json();
+
+    const lignes: any[] = data.lignes ?? [];
+    const uploadResults = await Promise.allSettled(
+      files.map(async (uploadedFile, i) => {
+        const ligneId = lignes[i]?.id;
+        if (!ligneId) throw new Error(`Ligne ${i} introuvable`);
+        const formData = new FormData();
+        formData.append("file", uploadedFile.file);
+        formData.append("ligneCommandeId", ligneId.toString());
+        formData.append("nbPages", uploadedFile.pageCount.toString());
+        const res = await fetch("http://localhost:8080/api/fichiers-pdf", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` },
+          body: formData,
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`Upload échoué (${res.status}): ${txt}`);
+        }
+        return res.json();
+      })
     );
-  };
 
-  const formatCardNumber = (v: string) => v.replace(/\D/g, "").slice(0, 19).replace(/(.{4})/g, "$1 ").trim();
-  const formatExpiry = (v: string) => {
-    const d = v.replace(/\D/g, "").slice(0, 4);
-    return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
-  };
+    const failed = uploadResults.filter(r => r.status === "rejected");
+    if (failed.length > 0) {
+      console.error("Erreurs upload PDF:", failed);
+      toast({ title: "Attention", description: "Certains fichiers PDF n'ont pas pu être envoyés.", variant: "destructive" });
+    }
 
-  const handlePay = async () => {
-    if (files.length === 0) {
-      toast({ title: "Aucun fichier", description: "Ajoutez au moins un PDF.", variant: "destructive" });
-      return;
-    }
-    if (fulfillment === "delivery" && !isAddressValid()) {
-      toast({ title: "Adresse incomplète", description: "Veuillez renseigner votre adresse de livraison.", variant: "destructive" });
-      return;
-    }
-    if (!isPaymentValid()) {
-      toast({ title: "Paiement invalide", description: "Vérifiez vos informations de carte.", variant: "destructive" });
-      return;
-    }
-    
-    setProcessing(true);
-    await new Promise((r) => setTimeout(r, 1400));
-    
-    const numeroCommande = "CMD-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-    const numeroSuivi = fulfillment === "delivery" ? "DHL" + Math.floor(Math.random() * 1_000_000_000).toString().padStart(9, "0") : undefined;
-    
-    setProcessing(false);
     setConfirmation({
-      numeroCommande,
-      numeroSuivi,
+      numeroCommande: data.numeroCommande,
+      numeroSuivi: data.numeroSuivi ?? undefined,
       statutPaiement: "SUCCES",
       statutLivraison: fulfillment === "delivery" ? "EN_PREPARATION" : undefined,
       modeRetrait: fulfillment === "delivery" ? "LIVRAISON_DHL" : "RETRAIT_MAGASIN",
-      total,
+      total: Number(data.totalTTC),
     });
   };
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-muted/30"><Loader2 className="animate-spin h-8 w-8 text-primary"/></div>;
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-muted/30"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
   if (!shop) return <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 text-destructive"><p className="text-xl font-bold">Imprimerie introuvable.</p><Button className="mt-4" asChild><Link to="/">Retour à l'accueil</Link></Button></div>;
 
   const activeProducts = shop.produits?.filter(p => p.actif) || [];
@@ -348,7 +479,6 @@ const Order = () => {
               {/* Per-file options */}
               {files.map((uploadedFile, index) => {
                 const selectedProduct = activeProducts.find(p => p.id === uploadedFile.options.productId);
-
                 return (
                   <Card key={index} className="shadow-card overflow-visible">
                     <CardHeader>
@@ -370,7 +500,6 @@ const Order = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-5">
-                      
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold text-primary">Que souhaitez-vous imprimer ?</Label>
                         <Select value={uploadedFile.options.productId.toString()} onValueChange={(v) => updateFileOption(index, "productId", Number(v))}>
@@ -380,7 +509,8 @@ const Order = () => {
                           <SelectContent>
                             {activeProducts.map((p) => (
                               <SelectItem key={p.id} value={p.id.toString()}>
-                                {formatEnumName(p.typeProduit)} {p.formatImpression} <span className="text-muted-foreground ml-2">(Base: {p.prixBase.toFixed(2)}€ {p.prixParPage > 0 && `+ ${p.prixParPage.toFixed(2)}€/page`})</span>
+                                {formatEnumName(p.typeProduit)} {p.formatImpression}{" "}
+                                <span className="text-muted-foreground ml-2">({(p.prixBase + p.prixParPage).toFixed(2)}€/page)</span>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -401,12 +531,11 @@ const Order = () => {
                         </div>
                       </div>
 
-                      {/* Options de Reliure et Plastification */}
                       {selectedProduct && (selectedProduct.proposeReliure || selectedProduct.proposePlastification) && (
                         <div className="pt-4 border-t grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {selectedProduct.proposeReliure && selectedProduct.prixParTypeReliure && (
                             <div className="space-y-2">
-                              <Label className="text-sm flex items-center gap-2"><Book className="w-4 h-4 text-muted-foreground"/> Reliure</Label>
+                              <Label className="text-sm flex items-center gap-2"><Book className="w-4 h-4 text-muted-foreground" /> Reliure</Label>
                               <Select value={uploadedFile.options.binding} onValueChange={(v) => updateFileOption(index, "binding", v)}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
@@ -419,10 +548,9 @@ const Order = () => {
                               </Select>
                             </div>
                           )}
-
                           {selectedProduct.proposePlastification && selectedProduct.prixParTypePlastification && (
                             <div className="space-y-2">
-                              <Label className="text-sm flex items-center gap-2"><Layers className="w-4 h-4 text-muted-foreground"/> Plastification</Label>
+                              <Label className="text-sm flex items-center gap-2"><Layers className="w-4 h-4 text-muted-foreground" /> Plastification</Label>
                               <Select value={uploadedFile.options.finish} onValueChange={(v) => updateFileOption(index, "finish", v)}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
@@ -466,7 +594,6 @@ const Order = () => {
                         </div>
                       </div>
                     </Label>
-                    
                     {shop.livraisonActive && (
                       <Label htmlFor="delivery" className={`cursor-pointer p-4 border-2 rounded-lg transition-colors ${fulfillment === "delivery" ? "border-primary bg-primary/5" : "border-border"}`}>
                         <div className="flex items-start gap-3">
@@ -552,7 +679,7 @@ const Order = () => {
                         <Checkbox id="express" checked={expressOption} onCheckedChange={(checked) => setExpressOption(checked === true)} />
                         <div className="flex-1">
                           <Label htmlFor="express" className="flex items-center gap-2 cursor-pointer">
-                            <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">Express 2h</span> <Badge variant="secondary" className="ml-auto">+5€</Badge>
+                            <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">Express 2h</span> <Badge variant="secondary" className="ml-auto">+50%</Badge>
                           </Label>
                           <p className="text-sm text-muted-foreground mt-1">Prêt dans les 2 heures.</p>
                         </div>
@@ -607,7 +734,7 @@ const Order = () => {
                 </CardContent>
               </Card>
 
-              {/* Step 5: Payment */}
+              {/* Step 5: Payment — real Stripe CardElement */}
               <Card className="shadow-card">
                 <CardHeader>
                   <CardTitle className="font-display text-lg flex items-center gap-2">
@@ -617,37 +744,23 @@ const Order = () => {
                     Paiement
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="card-name" className="text-sm">Titulaire de la carte</Label>
-                    <Input id="card-name" placeholder="Jean Dupont" value={payment.cardName} onChange={(e) => setPayment({ ...payment, cardName: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="card-number" className="text-sm">Numéro de carte</Label>
-                    <div className="relative">
-                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="card-number" inputMode="numeric" placeholder="4242 4242 4242 4242" value={payment.cardNumber} onChange={(e) => setPayment({ ...payment, cardNumber: formatCardNumber(e.target.value) })} className="pl-9" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="card-exp" className="text-sm">Expiration (MM/AA)</Label>
-                      <Input id="card-exp" inputMode="numeric" placeholder="12/27" value={payment.expiry} onChange={(e) => setPayment({ ...payment, expiry: formatExpiry(e.target.value) })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="card-cvc" className="text-sm">CVC</Label>
-                      <Input id="card-cvc" inputMode="numeric" placeholder="123" maxLength={4} value={payment.cvc} onChange={(e) => setPayment({ ...payment, cvc: e.target.value.replace(/\D/g, "") })} />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
-                    <Lock className="h-3.5 w-3.5" /> Paiement sécurisé Stripe (Chiffrement 256 bits).
-                  </div>
+                <CardContent>
+                  <Elements stripe={stripePromise}>
+                    <CheckoutForm
+                      total={total}
+                      canPay={files.length > 0}
+                      addressValid={isAddressValid()}
+                      fulfillment={fulfillment}
+                      token={token}
+                      onSuccess={handleCreateOrder}
+                    />
+                  </Elements>
                 </CardContent>
               </Card>
 
             </div>
 
-            {/* Sidebar : Order Summary */}
+            {/* Sidebar: Order Summary */}
             <div className="lg:sticky lg:top-24 h-fit">
               <Card className="shadow-card border-primary/20">
                 <CardHeader className="bg-primary/5 rounded-t-lg">
@@ -686,26 +799,27 @@ const Order = () => {
                       </span>
                       <span>{fulfillment === "pickup" ? "Gratuit" : `+${deliveryPrice.toFixed(2)}€`}</span>
                     </div>
-                    {expressOption && <div className="flex justify-between"><span className="text-muted-foreground">Express 2h</span><span>+{expressPrice.toFixed(2)}€</span></div>}
+                    {expressOption && <div className="flex justify-between"><span className="text-muted-foreground">Express 2h (+50%)</span><span>+{expressAmount.toFixed(2)}€</span></div>}
                     {studentDiscount && <div className="flex justify-between text-success"><span>Réduction étudiant</span><span>-{studentDiscountAmount.toFixed(2)}€</span></div>}
                     {appliedPromo && <div className="flex justify-between text-success"><span>Code promo</span><span>-{promoDiscountAmount.toFixed(2)}€</span></div>}
                   </div>
 
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-lg">Total</span>
+                  <div className="border-t pt-4 space-y-1 text-sm">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Total HT</span><span>{totalHT.toFixed(2)}€</span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>TVA (20%)</span><span>+{tva.toFixed(2)}€</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t">
+                      <span className="font-semibold text-lg">Total TTC</span>
                       <span className="font-display font-bold text-2xl text-primary">{total.toFixed(2)}€</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 text-right">TVA incluse</p>
                   </div>
 
-                  <Button variant="hero" size="lg" className="w-full" disabled={files.length === 0 || processing} onClick={handlePay}>
-                    {processing ? (
-                      <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Traitement…</>
-                    ) : (
-                      <><CreditCard className="h-5 w-5 mr-2" /> Payer {total.toFixed(2)}€</>
-                    )}
-                  </Button>
+                  <p className="text-xs text-muted-foreground text-center pt-2 border-t">
+                    Remplissez vos informations de carte dans le formulaire de paiement ci-contre.
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -713,7 +827,7 @@ const Order = () => {
         </div>
       </main>
 
-      {/* Modale de Confirmation */}
+      {/* Confirmation modal */}
       <Dialog open={!!confirmation} onOpenChange={(o) => !o && setConfirmation(null)}>
         <DialogContent>
           <DialogHeader>

@@ -25,13 +25,14 @@ public class PaymentController {
     }
 
     @PostMapping("/create-payment-intent")
-    public Map<String, String> createPaymentIntent(@RequestBody Map<String, Long> requestData) throws Exception {
-        Long imprimerieId = requestData.get("imprimerieId"); // Reçu depuis React
+    public Map<String, String> createPaymentIntent(@RequestBody Map<String, Object> requestData) throws Exception {
+        // Montant en centimes envoyé par le frontend (ex: 2.28€ → 228)
+        Long amount = ((Number) requestData.get("amount")).longValue();
 
         PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
-            .setAmount(10000L) // 100€ (Stripe compte en centimes)
+            .setAmount(amount)
             .setCurrency("eur")
-            .putMetadata("imprimerie_id", String.valueOf(imprimerieId)) // 👈 Stripe garde ça en mémoire
+            .addPaymentMethodType("card")
             .build();
 
         PaymentIntent intent = PaymentIntent.create(params);

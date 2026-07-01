@@ -93,11 +93,9 @@ public class CommandeService {
             BigDecimal prixBase = BigDecimal.valueOf(produit.getPrixBase() != null ? produit.getPrixBase() : 0.0);
             BigDecimal prixPage = BigDecimal.valueOf(produit.getPrixParPage() != null ? produit.getPrixParPage() : 0.0);
             
-            // Calcul du prix unitaire : Prix de base + (Nombre de pages * Prix par page)
-            BigDecimal prixU = prixBase;
-            if (item.getNbPages() != null && item.getNbPages() > 0) {
-                prixU = prixU.add(prixPage.multiply(BigDecimal.valueOf(item.getNbPages())));
-            }
+            // Calcul du prix unitaire : (Prix de base + Prix par page) * Nombre de pages
+            BigDecimal nbPages = BigDecimal.valueOf(item.getNbPages() != null && item.getNbPages() > 0 ? item.getNbPages() : 1);
+            BigDecimal prixU = prixBase.add(prixPage).multiply(nbPages);
 
             // Ajout du prix de la Reliure
             if (item.getReliure() != null && !item.getReliure().equals("AUCUNE") && produit.getPrixParTypeReliure() != null) {
@@ -174,6 +172,27 @@ public class CommandeService {
      */
     public List<CommandeResponseDTO> getCommandesForImprimerie(Long imprimerieId) {
         return commandeRepository.findByImprimerie_IdOrderByDateCreationDesc(imprimerieId)
+                .stream()
+                .map(commandeMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Met à jour le statut d'une commande (ex: PAYEE → EN_COURS_IMPRESSION → PRETE)
+     */
+    @Transactional
+    public CommandeResponseDTO updateStatut(Long id, String nouveauStatut) {
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Commande non trouvée: " + id));
+        commande.setStatut(StatutCommande.valueOf(nouveauStatut));
+        return commandeMapper.toDto(commandeRepository.save(commande));
+    }
+
+    /**
+     * Récupère l'historique des commandes d'un client (Dashboard Client)
+     */
+    public List<CommandeResponseDTO> getCommandesForClient(Long clientId) {
+        return commandeRepository.findByClient_IdOrderByDateCreationDesc(clientId)
                 .stream()
                 .map(commandeMapper::toDto)
                 .collect(Collectors.toList());

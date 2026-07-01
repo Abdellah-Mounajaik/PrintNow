@@ -2,8 +2,10 @@ package com.printnow.module.order.mapper;
 
 import com.printnow.module.order.dto.CommandeRequestDTO;
 import com.printnow.module.order.dto.CommandeResponseDTO;
+import com.printnow.module.order.dto.FichierPDFResponseDTO;
 import com.printnow.module.order.dto.LigneCommandeResponseDTO;
 import com.printnow.module.order.model.Commande;
+import com.printnow.module.order.model.FichierPDF;
 import com.printnow.module.order.model.LigneCommande;
 
 import org.springframework.stereotype.Component;
@@ -50,6 +52,11 @@ public class CommandeMapper {
             dto.setNomImprimerie(commande.getImprimerie().getNom());
         }
 
+        // Mapping du numéro de suivi (si livraison)
+        if (commande.getLivraison() != null) {
+            dto.setNumeroSuivi(commande.getLivraison().getNumeroSuivi());
+        }
+
         // Transformation de la liste des lignes de commande
         if (commande.getLignes() != null) {
             dto.setLignes(commande.getLignes().stream()
@@ -85,17 +92,32 @@ public class CommandeMapper {
         // Mapping du Produit lié
         if (ligne.getProduit() != null) {
             dto.setProduitId(ligne.getProduit().getId());
-            
-            // Construction du libellé produit à partir des Enums (Type + Format)
-            // Exemple : "DOCUMENT A4" ou "FLYER A5"
-            String typeStr = ligne.getProduit().getTypeProduit() != null 
+
+            String typeStr = ligne.getProduit().getTypeProduit() != null
                     ? ligne.getProduit().getTypeProduit().name() : "PRODUIT";
-            String formatStr = ligne.getProduit().getFormatImpression() != null 
+            String formatStr = ligne.getProduit().getFormatImpression() != null
                     ? ligne.getProduit().getFormatImpression().name() : "";
-            
+
             dto.setNomProduit(typeStr + " " + formatStr);
         }
 
+        if (ligne.getFichiers() != null) {
+            dto.setFichiers(ligne.getFichiers().stream()
+                    .map(this::toDto)
+                    .collect(Collectors.toList()));
+        }
+
+        return dto;
+    }
+
+    public FichierPDFResponseDTO toDto(FichierPDF fichier) {
+        if (fichier == null) return null;
+        FichierPDFResponseDTO dto = new FichierPDFResponseDTO();
+        dto.setId(fichier.getId());
+        dto.setNomFichier(fichier.getNomFichier());
+        dto.setTailleOctets(fichier.getTailleOctets());
+        dto.setNbPagesDetectees(fichier.getNbPagesDetectees());
+        dto.setDateUpload(fichier.getDateUpload());
         return dto;
     }
 }

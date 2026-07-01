@@ -6,6 +6,8 @@ import com.printnow.module.shop.model.Produit;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "lignes_commande")
@@ -47,9 +49,8 @@ public class LigneCommande {
 
     @Column(name = "finition")
     private String finition;
-    /*
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "fichier_pdf_id")
-    private FichierPDF fichierPdf;
-    */
+
+    @OneToMany(mappedBy = "ligneCommande", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<FichierPDF> fichiers = new ArrayList<>();
 }
