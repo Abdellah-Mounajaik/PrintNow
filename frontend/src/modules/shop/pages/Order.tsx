@@ -325,7 +325,7 @@ const Order = () => {
   };
 
   const subtotal = files.reduce((sum, f) => sum + computeFilePrice(f), 0);
-  const expressAmount = expressOption ? (shop.prixExpress2h ?? 5) : 0;
+  const expressAmount = expressOption ? (shop?.prixExpress2h ?? 5) : 0;
   const deliveryPrice = fulfillment === "delivery" ? 4.99 : 0;
   const studentDiscountAmount = (studentDiscount && shop?.pourcentageRemiseEtudiant)
     ? subtotal * (shop.pourcentageRemiseEtudiant / 100) : 0;
@@ -710,7 +710,7 @@ const Order = () => {
                           <Checkbox id="express" checked={expressOption} disabled={!expressOk} onCheckedChange={(checked) => setExpressOption(checked === true)} />
                           <div className="flex-1">
                             <Label htmlFor="express" className={`flex items-center gap-2 ${expressOk ? "cursor-pointer" : "cursor-not-allowed"}`}>
-                              <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">Express 2h</span> <Badge variant="secondary" className="ml-auto">+{(shop.prixExpress2h ?? 5).toFixed(2)}€</Badge>
+                              <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">Express 2h</span> <Badge variant="secondary" className="ml-auto">+{(shop?.prixExpress2h ?? 5).toFixed(2)}€</Badge>
                             </Label>
                             <p className="text-sm text-muted-foreground mt-1">
                               {expressOk ? "Prêt dans les 2 heures." : "Indisponible — l'imprimerie ferme dans moins de 2h ou est fermée aujourd'hui."}

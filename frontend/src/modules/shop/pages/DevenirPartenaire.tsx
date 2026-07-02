@@ -158,6 +158,7 @@ const DevenirPartenaire = () => {
 
   // Step 2 - extra options
   const [offersExpress, setOffersExpress] = useState(false);
+  const [expressPrice, setExpressPrice] = useState("5.00");
   const [offersDelivery, setOffersDelivery] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState("5.00");
   const [offersStudentDiscount, setOffersStudentDiscount] = useState(false);
@@ -276,6 +277,7 @@ const DevenirPartenaire = () => {
         numeroTva: siret,
         description: description,
         proposeExpress2h: offersExpress,
+        prixExpress2h: offersExpress ? parseFloat(expressPrice) : undefined,
         livraisonActive: offersDelivery,
         proposeTarifEtudiant: offersStudentDiscount,
         pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) : undefined,
@@ -614,6 +616,12 @@ const DevenirPartenaire = () => {
                         </Label>
                         <p className="text-sm text-muted-foreground mt-1">Besoin urgent ? Proposez l'impression en 2 heures.</p>
                       </div>
+                      {offersExpress && (
+                        <div className="flex items-center gap-2">
+                          <Input type="number" step="0.50" min="0" value={expressPrice} onChange={(e) => setExpressPrice(e.target.value)} className="w-24 h-9" placeholder="Frais" />
+                          <span className="text-sm text-muted-foreground">€</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
