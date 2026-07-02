@@ -13,6 +13,7 @@ public class ImprimerieResponseDTO {
     private String adresse;
     private String ville;
     private Boolean proposeExpress2h;
+    private Double prixExpress2h;
     private Boolean livraisonActive;
     private Boolean actif;
     private List<HoraireOuvertureResponseDTO> horaires;

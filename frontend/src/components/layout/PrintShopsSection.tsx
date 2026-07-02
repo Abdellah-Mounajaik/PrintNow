@@ -89,7 +89,7 @@ const PrintShopsSection = () => {
     if (!produits || produits.length === 0) return ["Standard"];
     
     // Extraire les types de produits sans doublons
-    const types = Array.from(new Set(produits.map((p: any) => p.typeProduit)));
+    const types = Array.from(new Set(produits.filter((p: any) => p.actif).map((p: any) => p.typeProduit)));
     
     // Traduire le nom du backend pour l'affichage
     const traductions: Record<string, string> = {

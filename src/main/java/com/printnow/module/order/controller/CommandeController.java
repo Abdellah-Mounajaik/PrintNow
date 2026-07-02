@@ -7,6 +7,7 @@ import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class CommandeController {
      * Permet à un client connecté de passer une nouvelle commande.
      */
     @PostMapping
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<CommandeResponseDTO> passerCommande(@RequestBody CommandeRequestDTO request) {
         // 1. On récupère l'email de l'utilisateur actuellement connecté via le Token JWT
         String email = SecurityContextHolder.getContext().getAuthentication().getName();

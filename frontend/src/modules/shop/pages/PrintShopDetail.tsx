@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/context/AuthContext";
 import { imprimerieService } from "../services/imprimerieService.service";
 import type { ImprimerieDetail } from "../models/Imprimerie.model";
 
@@ -24,6 +25,8 @@ interface TabItem {
 const PrintShopDetail = () => {
     
   const { id } = useParams<{ id: string }>();
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [shop, setShop] = useState<ImprimerieDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,12 +56,14 @@ const PrintShopDetail = () => {
   if (isLoading) return <div className="p-20 text-center">Chargement...</div>;
   if (error || !shop) return <div className="p-20 text-center text-red-500">Erreur : {error}</div>;
 
+  const produitsActifs = shop.produits?.filter(p => p.actif) ?? [];
+
   // 1. DOCUMENTS
   const documentsItems: TabItem[] = [];
-  const nbA4 = shop.produits?.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A4" && p.prixBase <= 0.20);
-  const coulA4 = shop.produits?.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A4" && p.prixBase > 0.20);
-  const nbA3 = shop.produits?.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && p.prixBase <= 0.65);
-  const coulA3 = shop.produits?.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && p.prixBase > 0.65);
+  const nbA4 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A4" && p.prixBase <= 0.20);
+  const coulA4 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A4" && p.prixBase > 0.20);
+  const nbA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && p.prixBase <= 0.65);
+  const coulA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && p.prixBase > 0.65);
 
   if (nbA4) documentsItems.push({ label: "N&B A4", format: "Papier 80g", prixBase: nbA4.prixBase, prixParPage: nbA4.prixParPage });
   if (coulA4) documentsItems.push({ label: "Couleur A4", format: "Papier 80g", prixBase: coulA4.prixBase, prixParPage: coulA4.prixParPage });
@@ -67,19 +72,19 @@ const PrintShopDetail = () => {
 
   // 2. FLYERS & AFFICHES
   const flyersItems: TabItem[] = [];
-  const flyer = shop.produits?.find(p => p.typeProduit === "FLYER");
-  const poster = shop.produits?.find(p => p.typeProduit === "POSTER");
+  const flyer = produitsActifs.find(p => p.typeProduit === "FLYER");
+  const poster = produitsActifs.find(p => p.typeProduit === "POSTER");
   if (flyer) flyersItems.push({ label: "Flyers / Dépliants", format: flyer.formatImpression, prixBase: flyer.prixBase, prixParPage: flyer.prixParPage });
   if (poster) flyersItems.push({ label: "Affiches grand format", format: poster.formatImpression, prixBase: poster.prixBase, prixParPage: poster.prixParPage });
 
   // 3. CARTES DE VISITE
   const cartesItems: TabItem[] = [];
-  const carte = shop.produits?.find(p => p.typeProduit === "CARTE_VISITE");
+  const carte = produitsActifs.find(p => p.typeProduit === "CARTE_VISITE");
   if (carte) cartesItems.push({ label: "Cartes de visite", format: "Standard", prixBase: carte.prixBase, prixParPage: carte.prixParPage });
 
   // 4. RELIURE ET PLASTIFICATION (ANTI-DOUBLONS)
   const reliureItems: TabItem[] = [];
-  shop.produits?.forEach(p => {
+  produitsActifs.forEach(p => {
     if (p.proposeReliure && p.prixParTypeReliure) {
       Object.entries(p.prixParTypeReliure).forEach(([type, prix]) => {
         if (type !== "AUCUNE" && prix != null) {
@@ -215,9 +220,19 @@ const PrintShopDetail = () => {
             </div>
 
             <div className="space-y-6">
-              <Button size="lg" className="w-full text-lg h-14" asChild>
-                <Link to={`/commander/${shop.id}`}>Commander maintenant</Link>
-              </Button>
+              {user?.role === "ROLE_IMPRIMERIE" ? (
+                <Button size="lg" className="w-full text-lg h-14" disabled>
+                  Réservé aux clients
+                </Button>
+              ) : !token ? (
+                <Button size="lg" className="w-full text-lg h-14" onClick={() => navigate("/login")}>
+                  Se connecter pour commander
+                </Button>
+              ) : (
+                <Button size="lg" className="w-full text-lg h-14" asChild>
+                  <Link to={`/commander/${shop.id}`}>Commander maintenant</Link>
+                </Button>
+              )}
               <Card>
                 <CardHeader><CardTitle className="text-lg">Contact</CardTitle></CardHeader>
                 <CardContent className="space-y-3">

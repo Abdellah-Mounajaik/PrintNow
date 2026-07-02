@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import Header from "../../../components/layout/Header";
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
@@ -196,7 +196,10 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 // ──────────────────────────────────────────────────────────────────────────────
 const Order = () => {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+
+  if (!token) return <Navigate to="/login" replace />;
+  if (user?.role === "ROLE_IMPRIMERIE") return <Navigate to="/dashboard-imprimeur" replace />;
 
   const [shop, setShop] = useState<ImprimerieDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -235,6 +238,18 @@ const Order = () => {
     if (!text) return "";
     const formatted = text.replace(/_/g, " ").toLowerCase();
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  };
+
+  const getProductLabel = (p: { typeProduit: string; formatImpression: string; prixBase: number }): string => {
+    if (p.typeProduit === "DOCUMENT") {
+      const nbThreshold: Record<string, number> = { A4: 0.20, A3: 0.65 };
+      const t = nbThreshold[p.formatImpression];
+      if (t !== undefined) return `${p.prixBase <= t ? "N&B" : "Couleur"} ${p.formatImpression}`;
+    }
+    if (p.typeProduit === "CARTE_VISITE") return "Cartes de visite";
+    if (p.typeProduit === "FLYER") return "Flyers / Dépliants";
+    if (p.typeProduit === "POSTER") return "Affiches grand format";
+    return `${formatEnumName(p.typeProduit)} ${p.formatImpression}`;
   };
 
   const countPdfPages = async (file: File): Promise<number> => {
@@ -310,7 +325,7 @@ const Order = () => {
   };
 
   const subtotal = files.reduce((sum, f) => sum + computeFilePrice(f), 0);
-  const expressAmount = expressOption ? subtotal * 0.50 : 0;
+  const expressAmount = expressOption ? (shop.prixExpress2h ?? 5) : 0;
   const deliveryPrice = fulfillment === "delivery" ? 4.99 : 0;
   const studentDiscountAmount = (studentDiscount && shop?.pourcentageRemiseEtudiant)
     ? subtotal * (shop.pourcentageRemiseEtudiant / 100) : 0;
@@ -523,7 +538,7 @@ const Order = () => {
                           <SelectContent>
                             {activeProducts.map((p) => (
                               <SelectItem key={p.id} value={p.id.toString()}>
-                                {formatEnumName(p.typeProduit)} {p.formatImpression}{" "}
+                                {getProductLabel(p)}{" "}
                                 <span className="text-muted-foreground ml-2">({(p.prixBase + p.prixParPage).toFixed(2)}€/page)</span>
                               </SelectItem>
                             ))}
@@ -695,7 +710,7 @@ const Order = () => {
                           <Checkbox id="express" checked={expressOption} disabled={!expressOk} onCheckedChange={(checked) => setExpressOption(checked === true)} />
                           <div className="flex-1">
                             <Label htmlFor="express" className={`flex items-center gap-2 ${expressOk ? "cursor-pointer" : "cursor-not-allowed"}`}>
-                              <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">Express 2h</span> <Badge variant="secondary" className="ml-auto">+50%</Badge>
+                              <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">Express 2h</span> <Badge variant="secondary" className="ml-auto">+{(shop.prixExpress2h ?? 5).toFixed(2)}€</Badge>
                             </Label>
                             <p className="text-sm text-muted-foreground mt-1">
                               {expressOk ? "Prêt dans les 2 heures." : "Indisponible — l'imprimerie ferme dans moins de 2h ou est fermée aujourd'hui."}
@@ -796,7 +811,7 @@ const Order = () => {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">{uploadedFile.file.name}</p>
                               <p className="text-xs text-muted-foreground">
-                                {prod ? `${formatEnumName(prod.typeProduit)} ${prod.formatImpression}` : "Non sélectionné"} • {uploadedFile.options.copies}x
+                                {prod ? getProductLabel(prod) : "Non sélectionné"} • {uploadedFile.options.copies}x
                               </p>
                             </div>
                             <span className="text-sm font-medium">{computeFilePrice(uploadedFile).toFixed(2)}€</span>
@@ -818,7 +833,7 @@ const Order = () => {
                       </span>
                       <span>{fulfillment === "pickup" ? "Gratuit" : `+${deliveryPrice.toFixed(2)}€`}</span>
                     </div>
-                    {expressOption && <div className="flex justify-between"><span className="text-muted-foreground">Express 2h (+50%)</span><span>+{expressAmount.toFixed(2)}€</span></div>}
+                    {expressOption && <div className="flex justify-between"><span className="text-muted-foreground">Express 2h</span><span>+{expressAmount.toFixed(2)}€</span></div>}
                     {studentDiscount && <div className="flex justify-between text-success"><span>Réduction étudiant</span><span>-{studentDiscountAmount.toFixed(2)}€</span></div>}
                     {appliedPromo && <div className="flex justify-between text-success"><span>Code promo</span><span>-{promoDiscountAmount.toFixed(2)}€</span></div>}
                   </div>

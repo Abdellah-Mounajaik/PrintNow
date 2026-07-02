@@ -32,6 +32,7 @@ export interface ImprimerieDetail {
   telephoneContact? : string;
   emailContact: string;
   proposeExpress2h: boolean;
+  prixExpress2h?: number;
   accepteEtudiants: boolean;
   pourcentageRemiseEtudiant?: number;  
   livraisonActive: boolean;

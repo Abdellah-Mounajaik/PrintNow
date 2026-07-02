@@ -239,6 +239,7 @@ const DashboardImprimeur = () => {
     ville: shop?.ville,
     numeroTva: (shop as any)?.numeroTva,
     proposeExpress2h: shop?.proposeExpress2h,
+    prixExpress2h: shop?.prixExpress2h,
     livraisonActive: shop?.livraisonActive,
     proposeTarifEtudiant: shop?.proposeTarifEtudiant,
     pourcentageRemiseEtudiant: shop?.pourcentageRemiseEtudiant,
@@ -275,6 +276,17 @@ const DashboardImprimeur = () => {
   };
 
   // ── Options ──────────────────────────────────────────────────────────────
+  const handleUpdatePrixExpress = async (prix: number) => {
+    if (!user || !shop || isNaN(prix)) return;
+    try {
+      const updated = await imprimerieService.updateImprimerie(user.id.toString(), buildFullDto({ prixExpress2h: prix }));
+      setShop(updated);
+      toast({ title: "Prix express mis à jour" });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
+    }
+  };
+
   const handleToggleOption = async (field: "proposeExpress2h" | "livraisonActive" | "proposeTarifEtudiant", value: boolean) => {
     if (!user || !shop) return;
     try {
@@ -443,7 +455,7 @@ const DashboardImprimeur = () => {
           </div>
 
           {/* TABS */}
-          <Tabs defaultValue="services" className="space-y-6">
+          <Tabs defaultValue="orders" className="space-y-6">
             <TabsList className="flex flex-wrap h-auto gap-2 bg-transparent p-0">
               <TabsTrigger value="orders" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Commandes</TabsTrigger>
               <TabsTrigger value="services" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Services & Tarifs</TabsTrigger>
@@ -730,12 +742,28 @@ const DashboardImprimeur = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background">
-                  <div>
-                    <Label className="font-semibold flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Impression express 2h</Label>
-                    <p className="text-sm text-muted-foreground mt-1">Proposez l'impression prioritaire très rapide.</p>
+                <div className="p-4 border border-border rounded-lg bg-background space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-semibold flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Impression express 2h</Label>
+                      <p className="text-sm text-muted-foreground mt-1">Proposez l'impression prioritaire très rapide.</p>
+                    </div>
+                    <Switch checked={!!shop.proposeExpress2h} onCheckedChange={(v) => handleToggleOption("proposeExpress2h", v)} />
                   </div>
-                  <Switch checked={!!shop.proposeExpress2h} onCheckedChange={(v) => handleToggleOption("proposeExpress2h", v)} />
+                  {shop.proposeExpress2h && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                      <Label className="text-sm text-muted-foreground">Frais express :</Label>
+                      <Input
+                        type="number"
+                        defaultValue={shop.prixExpress2h ?? 5}
+                        min={0}
+                        step={0.5}
+                        className="w-24 h-8"
+                        onBlur={(e) => handleUpdatePrixExpress(parseFloat(e.target.value))}
+                      />
+                      <span className="text-sm text-muted-foreground">€</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background">
