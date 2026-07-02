@@ -19,9 +19,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -72,6 +75,35 @@ public class CommandeService {
 
         // 3. Gestion de l'option Express 2h
         boolean isExpress = request.getExpress2h() != null && request.getExpress2h();
+        if (isExpress) {
+            // Récupérer l'imprimerie via le premier produit commandé
+            Long premierProduitId = request.getLignes().get(0).getProduitId();
+            Produit produit = produitRepository.findById(premierProduitId)
+                    .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
+            var horaires = produit.getImprimerie().getHoraires();
+
+            Map<DayOfWeek, String> joursMap = Map.of(
+                DayOfWeek.MONDAY, "LUNDI", DayOfWeek.TUESDAY, "MARDI",
+                DayOfWeek.WEDNESDAY, "MERCREDI", DayOfWeek.THURSDAY, "JEUDI",
+                DayOfWeek.FRIDAY, "VENDREDI", DayOfWeek.SATURDAY, "SAMEDI",
+                DayOfWeek.SUNDAY, "DIMANCHE"
+            );
+            String jourAujourdhui = joursMap.get(LocalDateTime.now().getDayOfWeek());
+
+            LocalTime maintenant = LocalTime.now();
+            boolean disponible = horaires != null && horaires.stream().anyMatch(h ->
+                jourAujourdhui.equals(h.getJourSemaine()) &&
+                (h.getFerme() == null || !h.getFerme()) &&
+                h.getHeureOuverture() != null &&
+                h.getHeureFermeture() != null &&
+                maintenant.isAfter(h.getHeureOuverture()) &&
+                maintenant.plusHours(2).isBefore(h.getHeureFermeture())
+            );
+
+            if (!disponible) {
+                throw new RuntimeException("L'option express 2h n'est pas disponible : l'imprimerie ferme dans moins de 2 heures ou est fermée aujourd'hui.");
+            }
+        }
         commande.setExpress2h(isExpress);
 
         if (request.getLignes() == null || request.getLignes().isEmpty()) {
@@ -146,7 +178,7 @@ public class CommandeService {
         commande.setTotalTVA(totalHT.multiply(new BigDecimal("0.20"))); // TVA fixe à 20%
         commande.setTotalTTC(commande.getTotalHT().add(commande.getTotalTVA()));
         
-        // Commission PrintHub (10% du TTC)
+        // Commission (10% du TTC)
         BigDecimal commission = commande.getTotalTTC().multiply(new BigDecimal("0.10"));
         commande.setCommissionPlateforme(commission);
         

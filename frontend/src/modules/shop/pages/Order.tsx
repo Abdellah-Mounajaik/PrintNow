@@ -341,6 +341,20 @@ const Order = () => {
     !!(address.nomDestinataire.trim() && address.rue.trim() && address.numero.trim() &&
       address.codePostal.trim() && address.ville.trim() && address.telephone.trim());
 
+  const isExpressAvailable = (): boolean => {
+    if (!shop?.horaires) return false;
+    const JOURS = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
+    const now = new Date();
+    const jourAujourdhui = JOURS[now.getDay()];
+    const horaire = shop.horaires.find(h => h.jourSemaine === jourAujourdhui);
+    if (!horaire || horaire.ferme) return false;
+    const toMinutes = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+    const maintenant = now.getHours() * 60 + now.getMinutes();
+    const ouverture = toMinutes(horaire.heureOuverture);
+    const fermeture = toMinutes(horaire.heureFermeture);
+    return maintenant >= ouverture && fermeture - maintenant >= 120;
+  };
+
   // Called after Stripe payment is confirmed — creates the commande and uploads PDFs
   const handleCreateOrder = async (_paymentIntentId: string) => {
     const payload = {
@@ -674,17 +688,22 @@ const Order = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {shop.proposeExpress2h && (
-                      <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                        <Checkbox id="express" checked={expressOption} onCheckedChange={(checked) => setExpressOption(checked === true)} />
-                        <div className="flex-1">
-                          <Label htmlFor="express" className="flex items-center gap-2 cursor-pointer">
-                            <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">Express 2h</span> <Badge variant="secondary" className="ml-auto">+50%</Badge>
-                          </Label>
-                          <p className="text-sm text-muted-foreground mt-1">Prêt dans les 2 heures.</p>
+                    {shop.proposeExpress2h && (() => {
+                      const expressOk = isExpressAvailable();
+                      return (
+                        <div className={`flex items-start space-x-3 p-4 rounded-lg transition-colors ${expressOk ? "bg-muted/50 hover:bg-muted" : "bg-muted/20 opacity-60"}`}>
+                          <Checkbox id="express" checked={expressOption} disabled={!expressOk} onCheckedChange={(checked) => setExpressOption(checked === true)} />
+                          <div className="flex-1">
+                            <Label htmlFor="express" className={`flex items-center gap-2 ${expressOk ? "cursor-pointer" : "cursor-not-allowed"}`}>
+                              <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">Express 2h</span> <Badge variant="secondary" className="ml-auto">+50%</Badge>
+                            </Label>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {expressOk ? "Prêt dans les 2 heures." : "Indisponible — l'imprimerie ferme dans moins de 2h ou est fermée aujourd'hui."}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                     {shop.proposeTarifEtudiant && shop.pourcentageRemiseEtudiant && shop.pourcentageRemiseEtudiant > 0 && (
                       <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                         <Checkbox id="student" checked={studentDiscount} onCheckedChange={(checked) => setStudentDiscount(checked === true)} />
