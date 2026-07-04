@@ -315,13 +315,18 @@ const DashboardImprimeur = () => {
           imprimerieId: shop.id,
         }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        let msg = "Impossible de créer le code.";
+        try { const err = await res.json(); msg = err.message || err.detail || msg; } catch { /* ignore */ }
+        toast({ title: "Erreur", description: msg, variant: "destructive" });
+        return;
+      }
       const created = await res.json();
       setPromos(prev => [created, ...prev]);
       setPromoForm({ code: "", typeReduction: "POURCENTAGE", valeurReduction: "", dateFin: "", utilisationMax: "", montantMinimumCommande: "" });
       toast({ title: "Code promo créé !" });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de créer le code.", variant: "destructive" });
+      toast({ title: "Erreur réseau", description: "Vérifiez votre connexion.", variant: "destructive" });
     }
   };
 
@@ -999,7 +1004,7 @@ const DashboardImprimeur = () => {
                       <Input type="date" value={promoForm.dateFin} onChange={(e) => setPromoForm(f => ({ ...f, dateFin: e.target.value }))} />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Utilisations max (optionnel)</Label>
+                      <Label className="text-xs text-muted-foreground">Utilisations max par personne (optionnel)</Label>
                       <Input type="number" min="1" placeholder="Illimité" value={promoForm.utilisationMax} onChange={(e) => setPromoForm(f => ({ ...f, utilisationMax: e.target.value }))} />
                     </div>
                     <div className="space-y-1">
@@ -1028,7 +1033,7 @@ const DashboardImprimeur = () => {
                           <span className="text-xs text-muted-foreground">Expire le {new Date(p.dateFin).toLocaleDateString("fr-BE")}</span>
                         )}
                         {p.utilisationMax && (
-                          <span className="text-xs text-muted-foreground">{p.utilisationCourante}/{p.utilisationMax} utilisations</span>
+                          <span className="text-xs text-muted-foreground">Max {p.utilisationMax}x/personne · {p.utilisationCourante} utilisation{p.utilisationCourante !== 1 ? "s" : ""} au total</span>
                         )}
                         {p.montantMinimumCommande && (
                           <span className="text-xs text-muted-foreground">Min. {Number(p.montantMinimumCommande).toFixed(2)}€</span>

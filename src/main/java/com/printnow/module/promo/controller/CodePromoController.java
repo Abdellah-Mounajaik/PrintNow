@@ -3,9 +3,11 @@ package com.printnow.module.promo.controller;
 import com.printnow.module.promo.dto.CodePromoRequestDTO;
 import com.printnow.module.promo.dto.CodePromoResponseDTO;
 import com.printnow.module.promo.service.CodePromoService;
+import com.printnow.module.user.model.User;
+import com.printnow.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -19,13 +21,17 @@ import java.util.Map;
 public class CodePromoController {
 
     private final CodePromoService codePromoService;
+    private final UserRepository userRepository;
 
     @GetMapping("/valider")
     public ResponseEntity<?> valider(
             @RequestParam String code,
             @RequestParam BigDecimal montant) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User client = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Utilisateur non trouvé"));
         try {
-            return ResponseEntity.ok(codePromoService.validerCode(code, montant));
+            return ResponseEntity.ok(codePromoService.validerCode(code, montant, client.getId()));
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode())
                     .body(Map.of("message", e.getReason() != null ? e.getReason() : "Code invalide"));

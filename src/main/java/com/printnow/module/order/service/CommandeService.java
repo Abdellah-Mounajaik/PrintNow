@@ -185,7 +185,7 @@ public class CommandeService {
         BigDecimal montantReduction = BigDecimal.ZERO;
         if (request.getCodePromo() != null && !request.getCodePromo().isBlank()) {
             BigDecimal totalTTCAvantPromo = totalHT.multiply(new BigDecimal("1.20"));
-            CodePromo promo = codePromoService.appliquerCode(request.getCodePromo(), totalTTCAvantPromo);
+            CodePromo promo = codePromoService.appliquerCode(request.getCodePromo(), totalTTCAvantPromo, client.getId());
             if (promo.getTypeReduction() == TypeReduction.POURCENTAGE) {
                 montantReduction = totalHT.multiply(promo.getValeurReduction()).divide(new BigDecimal("100"));
             } else {

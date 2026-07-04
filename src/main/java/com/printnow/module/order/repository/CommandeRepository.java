@@ -23,4 +23,6 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     
     // Récupérer les commandes d'une imprimerie filtrées par statut (ex: "EN_ATTENTE_PAIEMENT")
     List<Commande> findByImprimerie_IdAndStatut(Long imprimerieId, StatutCommande statut);
+
+    long countByClient_IdAndCodePromo_Code(Long clientId, String code);
 }

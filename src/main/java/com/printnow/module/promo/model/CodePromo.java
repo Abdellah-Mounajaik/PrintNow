@@ -45,6 +45,9 @@ public class CodePromo {
     @Column(columnDefinition = "boolean default true")
     private Boolean actif = true;
 
+    @Column(columnDefinition = "boolean default false")
+    private Boolean supprime = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "imprimerie_id")
     private Imprimerie imprimerie;
