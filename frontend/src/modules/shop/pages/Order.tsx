@@ -52,11 +52,6 @@ interface UploadedFile {
   options: FileOptions;
 }
 
-const PROMO_CODES: Record<string, number> = {
-  WELCOME10: 10,
-  PRINT20: 20,
-  STUDENT5: 5,
-};
 
 interface DeliveryAddress {
   nomDestinataire: string;
@@ -209,7 +204,8 @@ const Order = () => {
   const [studentDiscount, setStudentDiscount] = useState(false);
   const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">("pickup");
   const [promoInput, setPromoInput] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<{ code: string; pct: number } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; typeReduction: string; valeurReduction: number; montantMinimum?: number } | null>(null);
 
   const [address, setAddress] = useState<DeliveryAddress>({
     nomDestinataire: "", rue: "", numero: "", codePostal: "", ville: "", pays: "Belgique", telephone: "",
@@ -329,19 +325,50 @@ const Order = () => {
   const deliveryPrice = fulfillment === "delivery" ? 4.99 : 0;
   const studentDiscountAmount = (studentDiscount && shop?.pourcentageRemiseEtudiant)
     ? subtotal * (shop.pourcentageRemiseEtudiant / 100) : 0;
-  const promoDiscountAmount = appliedPromo ? subtotal * (appliedPromo.pct / 100) : 0;
-  const totalHT = Math.max(0, subtotal + expressAmount + deliveryPrice - studentDiscountAmount - promoDiscountAmount);
+  const totalAvantPromo = subtotal + expressAmount + deliveryPrice - studentDiscountAmount;
+  const promoDiscountAmount = appliedPromo
+    ? (appliedPromo.typeReduction === "POURCENTAGE"
+        ? subtotal * (appliedPromo.valeurReduction / 100)
+        : appliedPromo.valeurReduction)
+    : 0;
+  const totalHT = Math.max(0, totalAvantPromo - promoDiscountAmount);
   const tva = totalHT * 0.20;
   const total = totalHT + tva;
 
-  const applyPromo = () => {
+  useEffect(() => {
+    if (appliedPromo?.montantMinimum && totalAvantPromo * 1.20 < appliedPromo.montantMinimum) {
+      setAppliedPromo(null);
+      toast({ title: "Code promo retiré", description: `Montant minimum de ${appliedPromo.montantMinimum.toFixed(2)}€ requis.`, variant: "destructive" });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalAvantPromo]);
+
+  const applyPromo = async () => {
     const code = promoInput.trim().toUpperCase();
     if (!code) return;
-    if (PROMO_CODES[code]) {
-      setAppliedPromo({ code, pct: PROMO_CODES[code] });
-      toast({ title: "Code appliqué", description: `Réduction de ${PROMO_CODES[code]}% activée.` });
-    } else {
-      toast({ title: "Code invalide", description: "Ce code promo n'existe pas.", variant: "destructive" });
+    setPromoError(null);
+    try {
+      const totalTTCAvantPromo = totalAvantPromo * 1.20;
+      const res = await fetch(`http://localhost:8080/api/promos/valider?code=${encodeURIComponent(code)}&montant=${totalTTCAvantPromo.toFixed(2)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        let msg = "Code invalide ou inexistant.";
+        try { const err = await res.json(); msg = err.message || err.detail || msg; } catch { /* ignore */ }
+        setPromoError(msg);
+        return;
+      }
+      const promo = await res.json();
+      setAppliedPromo({
+        code: promo.code,
+        typeReduction: promo.typeReduction,
+        valeurReduction: Number(promo.valeurReduction),
+        montantMinimum: promo.montantMinimumCommande ? Number(promo.montantMinimumCommande) : undefined,
+      });
+      setPromoError(null);
+      toast({ title: "Code appliqué !", description: promo.typeReduction === "POURCENTAGE" ? `Réduction de ${promo.valeurReduction}%` : `Réduction de ${Number(promo.valeurReduction).toFixed(2)}€` });
+    } catch {
+      setPromoError("Impossible de vérifier le code. Vérifiez votre connexion.");
     }
   };
 
@@ -375,6 +402,7 @@ const Order = () => {
     const payload = {
       modeRetrait: fulfillment === "pickup" ? "RETRAIT_MAGASIN" : "LIVRAISON",
       express2h: expressOption,
+      codePromo: appliedPromo?.code ?? null,
       adresseLivraison: fulfillment === "delivery" ? {
         nomDestinataire: address.nomDestinataire,
         rue: address.rue,
@@ -751,18 +779,34 @@ const Order = () => {
                         <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center"><Check className="h-5 w-5 text-success" /></div>
                         <div>
                           <div className="font-medium">{appliedPromo.code}</div>
-                          <div className="text-sm text-muted-foreground">Réduction de {appliedPromo.pct}% appliquée</div>
+                          <div className="text-sm text-muted-foreground">
+                            {appliedPromo.typeReduction === "POURCENTAGE"
+                              ? `Réduction de ${appliedPromo.valeurReduction}% appliquée`
+                              : `Réduction de ${appliedPromo.valeurReduction.toFixed(2)}€ appliquée`}
+                          </div>
                         </div>
                       </div>
                       <Button variant="ghost" size="sm" onClick={removePromo}>Retirer</Button>
                     </div>
                   ) : (
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Entrez votre code" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} className="pl-9 uppercase" />
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Entrez votre code"
+                            value={promoInput}
+                            onChange={(e) => { setPromoInput(e.target.value); setPromoError(null); }}
+                            className={`pl-9 uppercase ${promoError ? "border-destructive" : ""}`}
+                          />
+                        </div>
+                        <Button variant="outline" onClick={applyPromo}>Appliquer</Button>
                       </div>
-                      <Button variant="outline" onClick={applyPromo}>Appliquer</Button>
+                      {promoError && (
+                        <p className="text-sm text-destructive flex items-center gap-1">
+                          <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {promoError}
+                        </p>
+                      )}
                     </div>
                   )}
                 </CardContent>

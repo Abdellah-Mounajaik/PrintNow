@@ -71,6 +71,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/horaires/**").permitAll()
                 .requestMatchers("/api/partners/register").permitAll() // L'inscription des partenaires est publique
                 .requestMatchers("/api/payments/**").permitAll()
+                .requestMatchers("/api/promos/**").authenticated()
                 .requestMatchers("/api/partners/**").permitAll()
                 .requestMatchers("/api/fichiers-pdf/**").authenticated()
                 .anyRequest().authenticated() // TOUT le reste nécessite un token JWT valide

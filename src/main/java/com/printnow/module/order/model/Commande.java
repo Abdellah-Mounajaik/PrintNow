@@ -5,6 +5,7 @@ import com.printnow.module.user.model.User;
 import com.printnow.module.order.enums.ModeRetrait;
 import com.printnow.module.order.enums.StatutCommande;
 import com.printnow.module.shop.model.Imprimerie;
+import com.printnow.module.promo.model.CodePromo;
 // Importe tes autres entités (Paiement, AdresseLivraison, etc.) selon tes packages
 
 import jakarta.persistence.*;
@@ -81,20 +82,9 @@ public class Commande {
 
     @OneToOne(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
     private Livraison livraison;
-    // --- Autres Relations (à décommenter/adapter quand tu auras créé ces classes) ---
-    /*
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "code_promo_id")
     private CodePromo codePromo;
-
-
-
-    @OneToOne(mappedBy = "commande")
-    private Paiement paiement;
-
-    @OneToMany(mappedBy = "commande")
-    private List<Facture> factures = new ArrayList<>();
-    */
 
     // Méthode utilitaire pour ajouter une ligne de commande facilement
     public void addLigneCommande(LigneCommande ligne) {

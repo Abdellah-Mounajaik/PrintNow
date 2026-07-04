@@ -11,6 +11,10 @@ import com.printnow.module.order.mapper.CommandeMapper;
 
 import com.printnow.module.order.model.*;
 import com.printnow.module.order.repository.CommandeRepository;
+import com.printnow.module.promo.enums.TypeReduction;
+import com.printnow.module.promo.model.CodePromo;
+import com.printnow.module.promo.service.CodePromoService;
+import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.model.Produit;
 import com.printnow.module.shop.repository.ProduitRepository;
 import com.printnow.module.user.model.User;
@@ -35,7 +39,8 @@ public class CommandeService {
     private final CommandeRepository commandeRepository;
     private final ProduitRepository produitRepository;
     private final CommandeMapper commandeMapper;
-    private final AdresseLivraisonMapper adresseLivraisonMapper; 
+    private final AdresseLivraisonMapper adresseLivraisonMapper;
+    private final CodePromoService codePromoService;
 
     /**
      * Crée une nouvelle commande avec calcul des prix, taxes, livraison et commissions
@@ -162,18 +167,36 @@ public class CommandeService {
             totalHT = totalHT.add(ligne.getPrixTotal());
         }
 
-        // 5. Application de la majoration +50% si option Express activée
+        // 5. Frais express (prix configuré par l'imprimeur)
         if (isExpress) {
-            BigDecimal surcharge = totalHT.multiply(new BigDecimal("0.50"));
-            totalHT = totalHT.add(surcharge);
+            Imprimerie imp = commande.getImprimerie();
+            BigDecimal prixExpress = (imp.getPrixExpress2h() != null)
+                    ? BigDecimal.valueOf(imp.getPrixExpress2h())
+                    : new BigDecimal("5.00");
+            totalHT = totalHT.add(prixExpress);
         }
 
-        // 6. Ajout des frais de livraison au Total HT
+        // 6. Frais de livraison
         if (isLivraison) {
-            totalHT = totalHT.add(new BigDecimal("4.99")); // Frais de port fixes pour le moment
+            totalHT = totalHT.add(new BigDecimal("4.99"));
         }
 
-        // 7. Calculs financiers finaux
+        // 7. Application du code promo
+        BigDecimal montantReduction = BigDecimal.ZERO;
+        if (request.getCodePromo() != null && !request.getCodePromo().isBlank()) {
+            BigDecimal totalTTCAvantPromo = totalHT.multiply(new BigDecimal("1.20"));
+            CodePromo promo = codePromoService.appliquerCode(request.getCodePromo(), totalTTCAvantPromo);
+            if (promo.getTypeReduction() == TypeReduction.POURCENTAGE) {
+                montantReduction = totalHT.multiply(promo.getValeurReduction()).divide(new BigDecimal("100"));
+            } else {
+                montantReduction = promo.getValeurReduction();
+            }
+            totalHT = totalHT.subtract(montantReduction).max(BigDecimal.ZERO);
+            commande.setCodePromo(promo);
+            commande.setMontantReduction(montantReduction);
+        }
+
+        // 8. Calculs financiers finaux
         commande.setTotalHT(totalHT);
         commande.setTotalTVA(totalHT.multiply(new BigDecimal("0.20"))); // TVA fixe à 20%
         commande.setTotalTTC(commande.getTotalHT().add(commande.getTotalTVA()));

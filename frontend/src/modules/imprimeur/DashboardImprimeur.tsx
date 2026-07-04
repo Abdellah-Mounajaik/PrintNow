@@ -13,8 +13,11 @@ import {
   Package, Euro, Clock, Star,
   Store, Truck, Layers, Book, Printer,
   Zap, GraduationCap, ChevronDown, ChevronUp,
-  FileText, CheckCircle, RotateCcw
+  FileText, CheckCircle, RotateCcw, Tag, Trash2
 } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "../../components/ui/select";
 import { toast } from "../../hooks/use-toast";
 
 import { imprimerieService } from "../shop/services/imprimerieService.service";
@@ -95,6 +98,8 @@ const DashboardImprimeur = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [orders, setOrders] = useState<any[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [promos, setPromos] = useState<any[]>([]);
+  const [promoForm, setPromoForm] = useState({ code: "", typeReduction: "POURCENTAGE", valeurReduction: "", dateFin: "", utilisationMax: "", montantMinimumCommande: "" });
   const [updatingStatutId, setUpdatingStatutId] = useState<number | null>(null);
 
   // Services
@@ -287,6 +292,60 @@ const DashboardImprimeur = () => {
     }
   };
 
+  // ── Codes Promo ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!shop?.id || !token) return;
+    fetch(`http://localhost:8080/api/promos/imprimerie/${shop.id}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : []).then(setPromos).catch(() => {});
+  }, [shop?.id, token]);
+
+  const handleCreerPromo = async () => {
+    if (!shop || !promoForm.code || !promoForm.valeurReduction) return;
+    try {
+      const res = await fetch("http://localhost:8080/api/promos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          code: promoForm.code,
+          typeReduction: promoForm.typeReduction,
+          valeurReduction: parseFloat(promoForm.valeurReduction),
+          dateFin: promoForm.dateFin ? `${promoForm.dateFin}T23:59:59` : null,
+          utilisationMax: promoForm.utilisationMax ? parseInt(promoForm.utilisationMax) : null,
+          montantMinimumCommande: promoForm.montantMinimumCommande ? parseFloat(promoForm.montantMinimumCommande) : null,
+          imprimerieId: shop.id,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      const created = await res.json();
+      setPromos(prev => [created, ...prev]);
+      setPromoForm({ code: "", typeReduction: "POURCENTAGE", valeurReduction: "", dateFin: "", utilisationMax: "", montantMinimumCommande: "" });
+      toast({ title: "Code promo créé !" });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de créer le code.", variant: "destructive" });
+    }
+  };
+
+  const handleTogglePromo = async (id: number) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/promos/${id}/toggle`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error();
+      const updated = await res.json();
+      setPromos(prev => prev.map((p: any) => p.id === id ? updated : p));
+    } catch {
+      toast({ title: "Erreur", variant: "destructive" });
+    }
+  };
+
+  const handleSupprimerPromo = async (id: number) => {
+    try {
+      await fetch(`http://localhost:8080/api/promos/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      setPromos(prev => prev.filter((p: any) => p.id !== id));
+      toast({ title: "Code supprimé" });
+    } catch {
+      toast({ title: "Erreur", variant: "destructive" });
+    }
+  };
+
   const handleToggleOption = async (field: "proposeExpress2h" | "livraisonActive" | "proposeTarifEtudiant", value: boolean) => {
     if (!user || !shop) return;
     try {
@@ -462,6 +521,7 @@ const DashboardImprimeur = () => {
               <TabsTrigger value="options" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Options</TabsTrigger>
               <TabsTrigger value="hours" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Horaires</TabsTrigger>
               <TabsTrigger value="shop" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Ma boutique</TabsTrigger>
+              <TabsTrigger value="promos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Codes Promo</TabsTrigger>
             </TabsList>
 
             {/* COMMANDES */}
@@ -900,6 +960,88 @@ const DashboardImprimeur = () => {
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40 resize-none" : "resize-none"} rows={3} />
                   </div>
+                </div>
+              </Card>
+            </TabsContent>
+
+            {/* CODES PROMO */}
+            <TabsContent value="promos">
+              <Card className="p-6 space-y-6">
+                <div>
+                  <h3 className="font-display font-semibold text-lg mb-1">Codes promo</h3>
+                  <p className="text-sm text-muted-foreground">Créez des codes de réduction pour vos clients.</p>
+                </div>
+
+                {/* Formulaire création */}
+                <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+                  <h4 className="font-medium text-sm flex items-center gap-2"><Tag className="h-4 w-4" /> Nouveau code</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Code</Label>
+                      <Input placeholder="EX: BIENVENUE10" value={promoForm.code} onChange={(e) => setPromoForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Type de réduction</Label>
+                      <Select value={promoForm.typeReduction} onValueChange={(v) => setPromoForm(f => ({ ...f, typeReduction: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="POURCENTAGE">Pourcentage (%)</SelectItem>
+                          <SelectItem value="MONTANT_FIXE">Montant fixe (€)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Valeur {promoForm.typeReduction === "POURCENTAGE" ? "(%)" : "(€)"}</Label>
+                      <Input type="number" min="0" value={promoForm.valeurReduction} onChange={(e) => setPromoForm(f => ({ ...f, valeurReduction: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Date d'expiration (optionnel)</Label>
+                      <Input type="date" value={promoForm.dateFin} onChange={(e) => setPromoForm(f => ({ ...f, dateFin: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Utilisations max (optionnel)</Label>
+                      <Input type="number" min="1" placeholder="Illimité" value={promoForm.utilisationMax} onChange={(e) => setPromoForm(f => ({ ...f, utilisationMax: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Montant minimum commande (optionnel)</Label>
+                      <Input type="number" min="0" placeholder="Aucun" value={promoForm.montantMinimumCommande} onChange={(e) => setPromoForm(f => ({ ...f, montantMinimumCommande: e.target.value }))} />
+                    </div>
+                  </div>
+                  <Button onClick={handleCreerPromo} disabled={!promoForm.code || !promoForm.valeurReduction}>
+                    <Tag className="h-4 w-4 mr-2" /> Créer le code
+                  </Button>
+                </div>
+
+                {/* Liste des codes */}
+                <div className="space-y-3">
+                  {promos.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">Aucun code promo pour l'instant.</p>
+                  )}
+                  {promos.map((p: any) => (
+                    <div key={p.id} className={`flex items-center justify-between p-4 rounded-lg border ${p.actif ? "bg-background" : "bg-muted/30 opacity-60"}`}>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="font-mono font-bold text-sm">{p.code}</span>
+                        <Badge variant="outline">
+                          {p.typeReduction === "POURCENTAGE" ? `-${p.valeurReduction}%` : `-${Number(p.valeurReduction).toFixed(2)}€`}
+                        </Badge>
+                        {p.dateFin && (
+                          <span className="text-xs text-muted-foreground">Expire le {new Date(p.dateFin).toLocaleDateString("fr-BE")}</span>
+                        )}
+                        {p.utilisationMax && (
+                          <span className="text-xs text-muted-foreground">{p.utilisationCourante}/{p.utilisationMax} utilisations</span>
+                        )}
+                        {p.montantMinimumCommande && (
+                          <span className="text-xs text-muted-foreground">Min. {Number(p.montantMinimumCommande).toFixed(2)}€</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <Switch checked={!!p.actif} onCheckedChange={() => handleTogglePromo(p.id)} />
+                        <Button variant="ghost" size="icon" onClick={() => handleSupprimerPromo(p.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </Card>
             </TabsContent>

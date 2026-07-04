@@ -76,6 +76,7 @@ export interface ImprimerieRequestDTO {
   proposeTarifEtudiant: boolean;
   pourcentageRemiseEtudiant?: number;
   proposeExpress2h: boolean;
+  prixExpress2h?: number;
 }
 
 export interface PartnerRegistrationRequest {
