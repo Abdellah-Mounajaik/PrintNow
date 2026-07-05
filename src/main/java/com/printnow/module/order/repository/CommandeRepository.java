@@ -25,4 +25,6 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     List<Commande> findByImprimerie_IdAndStatut(Long imprimerieId, StatutCommande statut);
 
     long countByClient_IdAndCodePromo_Code(Long clientId, String code);
+
+    List<Commande> findAllByOrderByDateCreationDesc();
 }

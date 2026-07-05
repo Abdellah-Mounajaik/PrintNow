@@ -63,6 +63,15 @@ public class CommandeController {
     }
 
     /**
+     * GET /api/commandes
+     * Récupère toutes les commandes (Dashboard Admin).
+     */
+    @GetMapping
+    public ResponseEntity<List<CommandeResponseDTO>> getAllCommandes() {
+        return ResponseEntity.ok(commandeService.getAllCommandes());
+    }
+
+    /**
      * GET /api/commandes/me
      * Récupère les commandes du client connecté (Dashboard Client).
      */

@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import DevenirPartenaire from './modules/shop/pages/DevenirPartenaire';
 import DashboardImprimeur from './modules/imprimeur/DashboardImprimeur';
 import DashboardClient from './modules/user/DashboardClient';
+import DashboardAdmin from './modules/admin/DashboardAdmin';
 import PrintShopDetail from './modules/shop/pages/PrintShopDetail';
 import Order from './modules/shop/pages/Order';
 
@@ -43,6 +44,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardClient />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard-admin"
+            element={
+              <ProtectedRoute>
+                <DashboardAdmin />
               </ProtectedRoute>
             }
           />

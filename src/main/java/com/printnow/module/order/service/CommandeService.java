@@ -252,4 +252,11 @@ public class CommandeService {
                 .map(commandeMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    public List<CommandeResponseDTO> getAllCommandes() {
+        return commandeRepository.findAllByOrderByDateCreationDesc()
+                .stream()
+                .map(commandeMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }

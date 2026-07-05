@@ -55,9 +55,11 @@ const Auth = () => {
       role: data.role 
     });
 
-    // 2. Utilise le chemin EXACT déclaré dans App.tsx
+    // 2. Redirection selon le rôle
     if (data.role === "ROLE_IMPRIMERIE") {
-      navigate("/dashboard-imprimeur"); // 👈 Changé ici
+      navigate("/dashboard-imprimeur");
+    } else if (data.role === "ROLE_ADMIN") {
+      navigate("/dashboard-admin");
     } else {
       navigate("/dashboard");
     }
