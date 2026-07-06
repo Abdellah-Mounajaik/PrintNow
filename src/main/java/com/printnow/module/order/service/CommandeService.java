@@ -13,6 +13,8 @@ import com.printnow.module.order.model.*;
 import com.printnow.module.order.repository.CommandeRepository;
 import com.printnow.module.promo.enums.TypeReduction;
 import com.printnow.module.promo.model.CodePromo;
+import com.printnow.module.etudiant.enums.StatutEtudiant;
+import com.printnow.module.etudiant.repository.VerificationEtudiantRepository;
 import com.printnow.module.promo.service.CodePromoService;
 import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.model.Produit;
@@ -41,6 +43,7 @@ public class CommandeService {
     private final CommandeMapper commandeMapper;
     private final AdresseLivraisonMapper adresseLivraisonMapper;
     private final CodePromoService codePromoService;
+    private final VerificationEtudiantRepository verificationEtudiantRepository;
 
     /**
      * Crée une nouvelle commande avec calcul des prix, taxes, livraison et commissions
@@ -181,7 +184,26 @@ public class CommandeService {
             totalHT = totalHT.add(new BigDecimal("4.99"));
         }
 
-        // 7. Application du code promo
+        // 7. Remise étudiant
+        if (Boolean.TRUE.equals(request.getTarifEtudiant())) {
+            Imprimerie imp = commande.getImprimerie();
+            if (!Boolean.TRUE.equals(imp.getProposeTarifEtudiant()) || imp.getPourcentageRemiseEtudiant() == null) {
+                throw new RuntimeException("Cette imprimerie ne propose pas de tarif étudiant.");
+            }
+            boolean verifie = verificationEtudiantRepository.findByUser_Id(client.getId())
+                    .map(v -> v.getStatut() == StatutEtudiant.ACCEPTE
+                            && v.getValableJusquA() != null
+                            && java.time.LocalDateTime.now().isBefore(v.getValableJusquA()))
+                    .orElse(false);
+            if (!verifie) {
+                throw new RuntimeException("Votre statut étudiant n'est pas vérifié ou a expiré.");
+            }
+            BigDecimal remise = totalHT.multiply(
+                    BigDecimal.valueOf(imp.getPourcentageRemiseEtudiant()).divide(new BigDecimal("100")));
+            totalHT = totalHT.subtract(remise).max(BigDecimal.ZERO);
+        }
+
+        // 8. Application du code promo
         BigDecimal montantReduction = BigDecimal.ZERO;
         if (request.getCodePromo() != null && !request.getCodePromo().isBlank()) {
             BigDecimal totalTTCAvantPromo = totalHT.multiply(new BigDecimal("1.20"));

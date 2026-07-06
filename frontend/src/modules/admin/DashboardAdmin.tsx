@@ -13,6 +13,12 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
+import {
   Users,
   Store,
   Euro,
@@ -23,7 +29,10 @@ import {
   Settings,
   Loader2,
   ShoppingCart,
+  GraduationCap,
+  XCircle,
 } from "lucide-react";
+import { toast } from "../../hooks/use-toast";
 import { useAuth } from "../auth/context/AuthContext";
 
 type UserDTO = {
@@ -54,6 +63,54 @@ type CommandeDTO = {
   nomImprimerie: string;
 };
 
+type VerificationDTO = {
+  id: number;
+  userId: number;
+  nomUtilisateur: string;
+  emailUtilisateur: string;
+  statut: string;
+  dateSoumission: string;
+  dateValidation: string | null;
+  valableJusquA: string | null;
+  carteEtudiantePresente: boolean;
+  carteIdentitePresente: boolean;
+};
+
+const STATUT_VERIF_CONFIG: Record<string, { label: string; className: string }> = {
+  EN_ATTENTE: { label: "En attente", className: "bg-warning/10 text-warning border-warning/30" },
+  ACCEPTE:    { label: "Acceptée",   className: "status-open" },
+  REFUSE:     { label: "Refusée",    className: "status-closed" },
+  EXPIRE:     { label: "Expirée",    className: "bg-muted text-muted-foreground" },
+};
+
+const AuthImage = ({ url, alt, token }: { url: string; alt: string; token: string }) => {
+  const [src, setSrc] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.blob();
+      })
+      .then((blob) => setSrc(URL.createObjectURL(blob)))
+      .catch(() => setError(true));
+  }, [url, token]);
+
+  if (error) return <p className="text-xs text-destructive">{alt} introuvable</p>;
+  if (!src) return (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Loader2 className="h-4 w-4 animate-spin" /> Chargement {alt}…
+    </div>
+  );
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-medium text-muted-foreground">{alt}</p>
+      <img src={src} alt={alt} className="max-h-52 rounded-lg object-contain border border-border" />
+    </div>
+  );
+};
+
 const STATUT_LABELS: Record<string, string> = {
   EN_ATTENTE_PAIEMENT: "En attente",
   PAYEE: "Payée",
@@ -68,22 +125,49 @@ const DashboardAdmin = () => {
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [imprimeries, setImprimeries] = useState<ImprimerieDTO[]>([]);
   const [commandes, setCommandes] = useState<CommandeDTO[]>([]);
+  const [verifications, setVerifications] = useState<VerificationDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedVerif, setSelectedVerif] = useState<VerificationDTO | null>(null);
+
+  const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
-    const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
       fetch("http://localhost:8080/api/users", { headers }).then((r) => r.json()),
       fetch("http://localhost:8080/api/imprimeries").then((r) => r.json()),
       fetch("http://localhost:8080/api/commandes", { headers }).then((r) => r.json()),
+      fetch("http://localhost:8080/api/verifications-etudiants", { headers }).then((r) => r.json()),
     ])
-      .then(([u, i, c]) => {
+      .then(([u, i, c, v]) => {
         setUsers(Array.isArray(u) ? u : []);
         setImprimeries(Array.isArray(i) ? i : []);
         setCommandes(Array.isArray(c) ? c : []);
+        setVerifications(Array.isArray(v) ? v : []);
       })
       .finally(() => setLoading(false));
   }, [token]);
+
+  const handleValider = async (id: number) => {
+    const res = await fetch(`http://localhost:8080/api/verifications-etudiants/${id}/valider`, {
+      method: "PATCH", headers,
+    });
+    if (res.ok) {
+      const updated: VerificationDTO = await res.json();
+      setVerifications((prev) => prev.map((v) => v.id === id ? updated : v));
+      toast({ title: "Vérification acceptée" });
+    }
+  };
+
+  const handleRefuser = async (id: number) => {
+    const res = await fetch(`http://localhost:8080/api/verifications-etudiants/${id}/refuser`, {
+      method: "PATCH", headers,
+    });
+    if (res.ok) {
+      const updated: VerificationDTO = await res.json();
+      setVerifications((prev) => prev.map((v) => v.id === id ? updated : v));
+      toast({ title: "Vérification refusée", variant: "destructive" });
+    }
+  };
 
   const imprimeriesActives = imprimeries.filter((i) => i.actif);
   const caTotal = commandes.reduce((s, c) => s + Number(c.totalTTC ?? 0), 0);
@@ -97,7 +181,7 @@ const DashboardAdmin = () => {
         <main className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
-      </div>
+ue       </div>
     );
   }
 
@@ -171,6 +255,14 @@ const DashboardAdmin = () => {
               <TabsTrigger value="shops">Imprimeries</TabsTrigger>
               <TabsTrigger value="users">Utilisateurs</TabsTrigger>
               <TabsTrigger value="commandes">Commandes</TabsTrigger>
+              <TabsTrigger value="verifications">
+                Vérifications étudiantes
+                {verifications.filter((v) => v.statut === "EN_ATTENTE").length > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-warning text-warning-foreground">
+                    {verifications.filter((v) => v.statut === "EN_ATTENTE").length}
+                  </span>
+                )}
+              </TabsTrigger>
             </TabsList>
 
             {/* Inscriptions récentes */}
@@ -384,6 +476,133 @@ const DashboardAdmin = () => {
                   </div>
                 )}
               </Card>
+            </TabsContent>
+            {/* Vérifications étudiantes */}
+            <TabsContent value="verifications">
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                      <GraduationCap className="h-5 w-5 text-primary" />
+                      Vérifications étudiantes
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Validité jusqu'au 30 juin · renouvellement annuel obligatoire
+                    </p>
+                  </div>
+                  <Badge variant="outline">
+                    {verifications.filter((v) => v.statut === "EN_ATTENTE").length} en attente
+                  </Badge>
+                </div>
+
+                {verifications.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Aucune demande reçue.</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Étudiant</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Soumis le</TableHead>
+                        <TableHead>Valable jusqu'au</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Dossier</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...verifications]
+                        .sort((a, b) => (a.statut === "EN_ATTENTE" ? -1 : b.statut === "EN_ATTENTE" ? 1 : 0))
+                        .map((v) => {
+                          const cfg = STATUT_VERIF_CONFIG[v.statut] ?? { label: v.statut, className: "" };
+                          return (
+                            <TableRow key={v.id}>
+                              <TableCell className="font-medium">{v.nomUtilisateur}</TableCell>
+                              <TableCell className="text-muted-foreground">{v.emailUtilisateur}</TableCell>
+                              <TableCell>{new Date(v.dateSoumission).toLocaleDateString("fr-BE")}</TableCell>
+                              <TableCell>
+                                {v.valableJusquA
+                                  ? new Date(v.valableJusquA).toLocaleDateString("fr-BE")
+                                  : "—"}
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={cfg.className}>{cfg.label}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Button variant="outline" size="sm" onClick={() => setSelectedVerif(v)}>
+                                  <Eye className="h-4 w-4 mr-1" /> Voir
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                )}
+              </Card>
+
+              {/* Modale de détail */}
+              <Dialog open={!!selectedVerif} onOpenChange={(open) => !open && setSelectedVerif(null)}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <GraduationCap className="h-5 w-5 text-primary" />
+                      {selectedVerif?.nomUtilisateur}
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  {selectedVerif && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>{selectedVerif.emailUtilisateur}</span>
+                        <Badge className={STATUT_VERIF_CONFIG[selectedVerif.statut]?.className ?? ""}>
+                          {STATUT_VERIF_CONFIG[selectedVerif.statut]?.label ?? selectedVerif.statut}
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <AuthImage
+                          url={`http://localhost:8080/api/verifications-etudiants/${selectedVerif.id}/image/etudiante`}
+                          alt="Carte étudiant"
+                          token={token!}
+                        />
+                        <AuthImage
+                          url={`http://localhost:8080/api/verifications-etudiants/${selectedVerif.id}/image/identite`}
+                          alt="Carte d'identité"
+                          token={token!}
+                        />
+                      </div>
+
+                      {selectedVerif.statut === "EN_ATTENTE" && (
+                        <div className="flex gap-2 pt-2 border-t border-border">
+                          <Button
+                            className="flex-1"
+                            onClick={async () => {
+                              await handleValider(selectedVerif.id);
+                              setSelectedVerif((prev) =>
+                                prev ? { ...prev, statut: "ACCEPTE" } : null
+                              );
+                            }}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-1" /> Accepter
+                          </Button>
+                          <Button
+                            className="flex-1"
+                            variant="destructive"
+                            onClick={async () => {
+                              await handleRefuser(selectedVerif.id);
+                              setSelectedVerif((prev) =>
+                                prev ? { ...prev, statut: "REFUSE" } : null
+                              );
+                            }}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" /> Refuser
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
             </TabsContent>
           </Tabs>
         </div>

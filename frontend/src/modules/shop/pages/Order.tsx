@@ -202,6 +202,7 @@ const Order = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [expressOption, setExpressOption] = useState(false);
   const [studentDiscount, setStudentDiscount] = useState(false);
+  const [studentVerified, setStudentVerified] = useState(false);
   const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">("pickup");
   const [promoInput, setPromoInput] = useState("");
   const [promoError, setPromoError] = useState<string | null>(null);
@@ -229,6 +230,20 @@ const Order = () => {
       setIsLoading(false);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch("http://localhost:8080/api/verifications-etudiants/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(res => {
+      if (res.status === 204) return null;
+      return res.json();
+    }).then(data => {
+      if (data && data.statut === "ACCEPTE" && data.valableJusquA && new Date(data.valableJusquA) > new Date()) {
+        setStudentVerified(true);
+      }
+    }).catch(() => {});
+  }, [token]);
 
   const formatEnumName = (text: string) => {
     if (!text) return "";
@@ -402,6 +417,7 @@ const Order = () => {
     const payload = {
       modeRetrait: fulfillment === "pickup" ? "RETRAIT_MAGASIN" : "LIVRAISON",
       express2h: expressOption,
+      tarifEtudiant: studentDiscount && studentVerified,
       codePromo: appliedPromo?.code ?? null,
       adresseLivraison: fulfillment === "delivery" ? {
         nomDestinataire: address.nomDestinataire,
@@ -748,13 +764,22 @@ const Order = () => {
                       );
                     })()}
                     {shop.proposeTarifEtudiant && shop.pourcentageRemiseEtudiant && shop.pourcentageRemiseEtudiant > 0 && (
-                      <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                        <Checkbox id="student" checked={studentDiscount} onCheckedChange={(checked) => setStudentDiscount(checked === true)} />
+                      <div className={`flex items-start space-x-3 p-4 rounded-lg transition-colors ${studentVerified ? "bg-muted/50 hover:bg-muted" : "bg-muted/20 opacity-60"}`}>
+                        <Checkbox
+                          id="student"
+                          checked={studentDiscount}
+                          disabled={!studentVerified}
+                          onCheckedChange={(checked) => studentVerified && setStudentDiscount(checked === true)}
+                        />
                         <div className="flex-1">
-                          <Label htmlFor="student" className="flex items-center gap-2 cursor-pointer">
-                            <GraduationCap className="h-4 w-4 text-info" /> <span className="font-medium">Tarif étudiant</span> <Badge variant="outline" className="ml-auto text-success border-success">-{shop.pourcentageRemiseEtudiant}%</Badge>
+                          <Label htmlFor="student" className={`flex items-center gap-2 ${studentVerified ? "cursor-pointer" : "cursor-not-allowed"}`}>
+                            <GraduationCap className="h-4 w-4 text-info" />
+                            <span className="font-medium">Tarif étudiant</span>
+                            <Badge variant="outline" className="ml-auto text-success border-success">-{shop.pourcentageRemiseEtudiant}%</Badge>
                           </Label>
-                          <p className="text-sm text-muted-foreground mt-1">Justificatif requis lors du retrait.</p>
+                          {!studentVerified && (
+                            <p className="text-sm text-destructive mt-1">Vérification étudiant requise — déposez vos documents dans votre espace client.</p>
+                          )}
                         </div>
                       </div>
                     )}
