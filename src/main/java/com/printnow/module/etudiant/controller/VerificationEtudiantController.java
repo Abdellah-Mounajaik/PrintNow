@@ -56,8 +56,11 @@ public class VerificationEtudiantController {
 
     /** Admin : refuse une vérification */
     @PatchMapping("/{id}/refuser")
-    public ResponseEntity<VerificationEtudiantResponseDTO> refuser(@PathVariable Long id) {
-        return ResponseEntity.ok(service.refuser(id));
+    public ResponseEntity<VerificationEtudiantResponseDTO> refuser(
+            @PathVariable Long id,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
+        String motif = body != null ? body.get("motifRefus") : null;
+        return ResponseEntity.ok(service.refuser(id, motif));
     }
 
     /** Admin : voir une image (carte-etudiante ou carte-identite) */

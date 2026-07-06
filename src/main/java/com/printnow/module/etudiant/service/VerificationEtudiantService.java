@@ -108,11 +108,15 @@ public class VerificationEtudiantService {
     }
 
     @Transactional
-    public VerificationEtudiantResponseDTO refuser(Long id) {
+    public VerificationEtudiantResponseDTO refuser(Long id, String motifRefus) {
+        if (motifRefus == null || motifRefus.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le motif de refus est obligatoire.");
+        }
         VerificationEtudiant v = repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vérification introuvable"));
         v.setStatut(StatutEtudiant.REFUSE);
         v.setDateValidation(LocalDateTime.now());
+        v.setMotifRefus(motifRefus);
         return mapper.toDto(repository.save(v));
     }
 

@@ -31,7 +31,11 @@ const Header = () => {
 
   // 👇 RÉCUPÉRATION DE L'ÉTAT DE CONNEXION
   const { isAuthenticated, logoutGlobal, user } = useAuth();
-  const dashboardPath = user?.role === "ROLE_IMPRIMERIE" ? "/dashboard-imprimeur" : "/dashboard";
+  const dashboardPath = user?.role === "ROLE_IMPRIMERIE"
+    ? "/dashboard-imprimeur"
+    : user?.role === "ROLE_ADMIN"
+    ? "/dashboard-admin"
+    : "/dashboard";
 
   const languages = [
     { code: "FR", label: "Français" },

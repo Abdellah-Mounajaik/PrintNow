@@ -74,6 +74,7 @@ type VerificationDTO = {
   valableJusquA: string | null;
   carteEtudiantePresente: boolean;
   carteIdentitePresente: boolean;
+  motifRefus: string | null;
 };
 
 const STATUT_VERIF_CONFIG: Record<string, { label: string; className: string }> = {
@@ -128,6 +129,7 @@ const DashboardAdmin = () => {
   const [verifications, setVerifications] = useState<VerificationDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVerif, setSelectedVerif] = useState<VerificationDTO | null>(null);
+  const [motifRefus, setMotifRefus] = useState("");
 
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -158,9 +160,11 @@ const DashboardAdmin = () => {
     }
   };
 
-  const handleRefuser = async (id: number) => {
+  const handleRefuser = async (id: number, motif: string) => {
     const res = await fetch(`http://localhost:8080/api/verifications-etudiants/${id}/refuser`, {
-      method: "PATCH", headers,
+      method: "PATCH",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ motifRefus: motif }),
     });
     if (res.ok) {
       const updated: VerificationDTO = await res.json();
@@ -541,7 +545,7 @@ ue       </div>
               </Card>
 
               {/* Modale de détail */}
-              <Dialog open={!!selectedVerif} onOpenChange={(open) => !open && setSelectedVerif(null)}>
+              <Dialog open={!!selectedVerif} onOpenChange={(open) => { if (!open) { setSelectedVerif(null); setMotifRefus(""); } }}>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -572,31 +576,46 @@ ue       </div>
                         />
                       </div>
 
+                      {selectedVerif.motifRefus && selectedVerif.statut !== "EN_ATTENTE" && (
+                        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm">
+                          <p className="font-medium text-destructive mb-1">Motif du refus précédent</p>
+                          <p className="text-muted-foreground">{selectedVerif.motifRefus}</p>
+                        </div>
+                      )}
+
                       {selectedVerif.statut === "EN_ATTENTE" && (
-                        <div className="flex gap-2 pt-2 border-t border-border">
-                          <Button
-                            className="flex-1"
-                            onClick={async () => {
-                              await handleValider(selectedVerif.id);
-                              setSelectedVerif((prev) =>
-                                prev ? { ...prev, statut: "ACCEPTE" } : null
-                              );
-                            }}
-                          >
-                            <CheckCircle2 className="h-4 w-4 mr-1" /> Accepter
-                          </Button>
-                          <Button
-                            className="flex-1"
-                            variant="destructive"
-                            onClick={async () => {
-                              await handleRefuser(selectedVerif.id);
-                              setSelectedVerif((prev) =>
-                                prev ? { ...prev, statut: "REFUSE" } : null
-                              );
-                            }}
-                          >
-                            <XCircle className="h-4 w-4 mr-1" /> Refuser
-                          </Button>
+                        <div className="space-y-3 pt-2 border-t border-border">
+                          <textarea
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                            rows={3}
+                            placeholder="Motif du refus (optionnel) — visible par l'étudiant"
+                            value={motifRefus}
+                            onChange={(e) => setMotifRefus(e.target.value)}
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              className="flex-1"
+                              onClick={async () => {
+                                await handleValider(selectedVerif.id);
+                                setSelectedVerif((prev) => prev ? { ...prev, statut: "ACCEPTE" } : null);
+                                setMotifRefus("");
+                              }}
+                            >
+                              <CheckCircle2 className="h-4 w-4 mr-1" /> Accepter
+                            </Button>
+                            <Button
+                              className="flex-1"
+                              variant="destructive"
+                              disabled={!motifRefus.trim()}
+                              onClick={async () => {
+                                await handleRefuser(selectedVerif.id, motifRefus);
+                                setSelectedVerif((prev) => prev ? { ...prev, statut: "REFUSE", motifRefus } : null);
+                                setMotifRefus("");
+                              }}
+                            >
+                              <XCircle className="h-4 w-4 mr-1" /> Refuser
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>

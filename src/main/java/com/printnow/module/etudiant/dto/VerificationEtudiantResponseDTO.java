@@ -16,4 +16,5 @@ public class VerificationEtudiantResponseDTO {
     private LocalDateTime valableJusquA;
     private boolean carteEtudiantePresente;
     private boolean carteIdentitePresente;
+    private String motifRefus;
 }

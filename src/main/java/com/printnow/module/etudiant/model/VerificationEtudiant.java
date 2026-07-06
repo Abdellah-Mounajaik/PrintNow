@@ -42,4 +42,7 @@ public class VerificationEtudiant {
 
     @Column(name = "valable_jusqu_a")
     private LocalDateTime valableJusquA;
+
+    @Column(name = "motif_refus", columnDefinition = "TEXT")
+    private String motifRefus;
 }

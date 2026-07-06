@@ -38,6 +38,7 @@ type VerifDTO = {
   statut: string;
   dateSoumission: string;
   valableJusquA: string | null;
+  motifRefus: string | null;
 };
 
 const DashboardClient = () => {
@@ -166,7 +167,7 @@ const DashboardClient = () => {
             <TabsList>
               <TabsTrigger value="orders">Mes commandes</TabsTrigger>
               <TabsTrigger value="invoices">Factures</TabsTrigger>
-              <TabsTrigger value="etudiant">Tarif étudiant</TabsTrigger>
+              <TabsTrigger value="etudiant">Vérification étudiant</TabsTrigger>
               <TabsTrigger value="profile">Profil</TabsTrigger>
             </TabsList>
 
@@ -267,7 +268,12 @@ const DashboardClient = () => {
                         </>
                       )}
                       {verif.statut === "REFUSE" && (
-                        <p className="font-semibold text-destructive">Demande refusée — vous pouvez soumettre à nouveau.</p>
+                        <>
+                          <p className="font-semibold text-destructive">Demande refusée — vous pouvez soumettre à nouveau.</p>
+                          {verif.motifRefus && (
+                            <p className="text-sm text-muted-foreground mt-1">Motif : {verif.motifRefus}</p>
+                          )}
+                        </>
                       )}
                       {verif.statut === "EXPIRE" && (
                         <p className="font-semibold text-destructive">Vérification expirée — renouvelez votre demande.</p>
