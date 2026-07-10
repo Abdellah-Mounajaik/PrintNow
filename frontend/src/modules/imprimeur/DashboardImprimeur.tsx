@@ -101,6 +101,8 @@ const DashboardImprimeur = () => {
   const [promos, setPromos] = useState<any[]>([]);
   const [promoForm, setPromoForm] = useState({ code: "", typeReduction: "POURCENTAGE", valeurReduction: "", dateFin: "", utilisationMax: "", montantMinimumCommande: "" });
   const [updatingStatutId, setUpdatingStatutId] = useState<number | null>(null);
+  const [suiviInputs, setSuiviInputs] = useState<Record<number, string>>({});
+  const [suiviSaving, setSuiviSaving] = useState<number | null>(null);
 
   // Services
   const [servicesState, setServicesState] = useState<Record<string, any>>({});
@@ -433,6 +435,26 @@ const DashboardImprimeur = () => {
     }
   };
 
+  const handleAjouterSuivi = async (orderId: number) => {
+    const numeroSuivi = suiviInputs[orderId]?.trim();
+    if (!numeroSuivi) return;
+    setSuiviSaving(orderId);
+    try {
+      const res = await fetch(`http://localhost:8080/api/livraisons/${orderId}/suivi`, {
+        method: "PATCH",
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ numeroSuivi }),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: "Numéro de suivi enregistré", description: `Le client peut maintenant suivre son colis bpost.` });
+      setSuiviInputs(prev => ({ ...prev, [orderId]: "" }));
+    } catch {
+      toast({ title: "Erreur", description: "Impossible d'enregistrer le numéro de suivi.", variant: "destructive" });
+    } finally {
+      setSuiviSaving(null);
+    }
+  };
+
   const STATUT_LABELS: Record<string, { label: string; color: string }> = {
     EN_ATTENTE_PAIEMENT: { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
     PAYEE:               { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
@@ -620,6 +642,30 @@ const DashboardImprimeur = () => {
                                 <span className="text-muted-foreground">Total TTC</span>
                                 <span className="font-bold text-primary">{Number(order.totalTTC).toFixed(2)}€</span>
                               </div>
+
+                              {/* Suivi bpost pour les livraisons */}
+                              {order.modeRetrait === "LIVRAISON" && (
+                                <div className="pt-2 border-t space-y-2">
+                                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                                    <Truck className="h-3.5 w-3.5" /> Numéro de suivi bpost
+                                  </p>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      placeholder="ex: 010123456789"
+                                      value={suiviInputs[order.id] ?? ""}
+                                      onChange={(e) => setSuiviInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
+                                    />
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled={!suiviInputs[order.id]?.trim() || suiviSaving === order.id}
+                                      onClick={() => handleAjouterSuivi(order.id)}
+                                    >
+                                      {suiviSaving === order.id ? <RotateCcw className="h-4 w-4 animate-spin" /> : "Enregistrer"}
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
 
                               {/* Bouton d'action statut */}
                               {nextAction && (

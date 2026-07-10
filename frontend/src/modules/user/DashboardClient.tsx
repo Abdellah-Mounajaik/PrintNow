@@ -19,6 +19,8 @@ import {
   AlertCircle,
   Clock3,
   Loader2,
+  Truck,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "../../hooks/use-toast";
 import { useRef } from "react";
@@ -44,6 +46,8 @@ type VerifDTO = {
 const DashboardClient = () => {
   const { user, token } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
+  const [suiviData, setSuiviData] = useState<Record<number, any>>({});
+  const [suiviLoading, setSuiviLoading] = useState<number | null>(null);
   const [verif, setVerif] = useState<VerifDTO | null>(null);
   const [verifLoaded, setVerifLoaded] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -64,6 +68,22 @@ const DashboardClient = () => {
       .then(data => { setVerif(data ?? null); setVerifLoaded(true); })
       .catch(() => { setVerif(null); setVerifLoaded(true); });
   }, [token]);
+
+  const handleFetchSuivi = async (orderId: number) => {
+    setSuiviLoading(orderId);
+    try {
+      const res = await fetch(`http://localhost:8080/api/livraisons/${orderId}/suivi`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setSuiviData(prev => ({ ...prev, [orderId]: data }));
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de récupérer le suivi.", variant: "destructive" });
+    } finally {
+      setSuiviLoading(null);
+    }
+  };
 
   const handleSoumettre = async () => {
     const carteEt = carteEtudianteRef.current?.files?.[0];
@@ -190,18 +210,60 @@ const DashboardClient = () => {
                   <div className="space-y-3">
                     {orders.map((order: any) => {
                       const status = STATUS_MAP[order.statut] ?? { label: order.statut, variant: "outline" };
+                      const isLivraison = order.modeRetrait === "LIVRAISON";
+                      const suivi = suiviData[order.id];
                       return (
-                        <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg bg-muted/10 gap-4">
-                          <div className="min-w-0">
-                            <p className="font-mono font-medium text-sm">{order.numeroCommande}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {order.nomImprimerie} · {new Date(order.dateCreation).toLocaleDateString("fr-BE")}
-                            </p>
+                        <div key={order.id} className="border rounded-lg bg-muted/10 overflow-hidden">
+                          <div className="flex items-center justify-between p-4 gap-4">
+                            <div className="min-w-0">
+                              <p className="font-mono font-medium text-sm">{order.numeroCommande}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                                {order.nomImprimerie} · {new Date(order.dateCreation).toLocaleDateString("fr-BE")}
+                                {isLivraison && <span className="inline-flex items-center gap-1"><Truck className="h-3 w-3" /> Livraison</span>}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <Badge variant={status.variant as any}>{status.label}</Badge>
+                              <span className="font-semibold text-primary">{Number(order.totalTTC).toFixed(2)}€</span>
+                              {isLivraison && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleFetchSuivi(order.id)}
+                                  disabled={suiviLoading === order.id}
+                                >
+                                  {suiviLoading === order.id
+                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    : <Truck className="h-3.5 w-3.5" />}
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3 shrink-0">
-                            <Badge variant={status.variant as any}>{status.label}</Badge>
-                            <span className="font-semibold text-primary">{Number(order.totalTTC).toFixed(2)}€</span>
-                          </div>
+
+                          {suivi && (
+                            <div className="px-4 pb-4 pt-0 border-t border-border bg-background">
+                              {suivi.numeroSuivi ? (
+                                <div className="flex items-center justify-between gap-3 pt-3">
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">Numéro de suivi bpost</p>
+                                    <p className="font-mono text-sm font-medium">{suivi.numeroSuivi}</p>
+                                    {suivi.statutAfterShipping && (
+                                      <p className="text-xs text-muted-foreground mt-0.5">Statut : {suivi.statutAfterShipping}</p>
+                                    )}
+                                  </div>
+                                  {suivi.lienSuiviBpost && (
+                                    <Button size="sm" asChild>
+                                      <a href={suivi.lienSuiviBpost} target="_blank" rel="noopener noreferrer">
+                                        <ExternalLink className="h-3.5 w-3.5 mr-1" /> Suivre sur bpost
+                                      </a>
+                                    </Button>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="pt-3 text-sm text-muted-foreground">Votre colis n'a pas encore été déposé chez bpost.</p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
