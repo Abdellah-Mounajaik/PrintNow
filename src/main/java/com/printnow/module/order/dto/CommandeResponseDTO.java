@@ -20,5 +20,6 @@ private Long id;
     private String nomClient;
     private String nomImprimerie;
     private String numeroSuivi;
+    private AdresseLivraisonResponseDTO adresseLivraison;
     private List<LigneCommandeResponseDTO> lignes;
 }

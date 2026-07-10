@@ -23,6 +23,7 @@ public class ImprimerieRequestDTO {
     private Integer pourcentageRemiseEtudiant;
     private Double prixExpress2h;
     private Boolean livraisonActive;
+    private Double prixLivraison;
     private Boolean proposeTarifEtudiant;
     private String numeroTva;
 

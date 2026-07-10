@@ -8,13 +8,17 @@ import com.printnow.module.order.model.Commande;
 import com.printnow.module.order.model.FichierPDF;
 import com.printnow.module.order.model.LigneCommande;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class CommandeMapper {
+
+    private final AdresseLivraisonMapper adresseLivraisonMapper;
 
     /**
      * Transforme une entité Commande en CommandeResponseDTO
@@ -55,6 +59,11 @@ public class CommandeMapper {
         // Mapping du numéro de suivi (si livraison)
         if (commande.getLivraison() != null) {
             dto.setNumeroSuivi(commande.getLivraison().getNumeroSuivi());
+        }
+
+        // Mapping de l'adresse de livraison (si livraison à domicile)
+        if (commande.getAdresseLivraison() != null) {
+            dto.setAdresseLivraison(adresseLivraisonMapper.toDto(commande.getAdresseLivraison()));
         }
 
         // Transformation de la liste des lignes de commande

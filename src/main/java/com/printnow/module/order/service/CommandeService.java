@@ -179,9 +179,13 @@ public class CommandeService {
             totalHT = totalHT.add(prixExpress);
         }
 
-        // 6. Frais de livraison
+        // 6. Frais de livraison (prix configuré par l'imprimeur, 4.99€ par défaut)
         if (isLivraison) {
-            totalHT = totalHT.add(new BigDecimal("4.99"));
+            Imprimerie imp = commande.getImprimerie();
+            BigDecimal prixLivraison = (imp.getPrixLivraison() != null)
+                    ? BigDecimal.valueOf(imp.getPrixLivraison())
+                    : new BigDecimal("4.99");
+            totalHT = totalHT.add(prixLivraison);
         }
 
         // 7. Remise étudiant

@@ -13,7 +13,7 @@ import {
   Package, Euro, Clock, Star,
   Store, Truck, Layers, Book, Printer,
   Zap, GraduationCap, ChevronDown, ChevronUp,
-  FileText, CheckCircle, RotateCcw, Tag, Trash2
+  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -248,6 +248,7 @@ const DashboardImprimeur = () => {
     proposeExpress2h: shop?.proposeExpress2h,
     prixExpress2h: shop?.prixExpress2h,
     livraisonActive: shop?.livraisonActive,
+    prixLivraison: shop?.prixLivraison,
     proposeTarifEtudiant: shop?.proposeTarifEtudiant,
     pourcentageRemiseEtudiant: shop?.pourcentageRemiseEtudiant,
     ...overrides,
@@ -289,6 +290,17 @@ const DashboardImprimeur = () => {
       const updated = await imprimerieService.updateImprimerie(user.id.toString(), buildFullDto({ prixExpress2h: prix }));
       setShop(updated);
       toast({ title: "Prix express mis à jour" });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
+    }
+  };
+
+  const handleUpdatePrixLivraison = async (prix: number) => {
+    if (!user || !shop || isNaN(prix)) return;
+    try {
+      const updated = await imprimerieService.updateImprimerie(user.id.toString(), buildFullDto({ prixLivraison: prix }));
+      setShop(updated);
+      toast({ title: "Prix de livraison mis à jour" });
     } catch {
       toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
     }
@@ -463,10 +475,17 @@ const DashboardImprimeur = () => {
     ANNULEE:             { label: "Annulée", color: "bg-red-100 text-red-800 border-red-200" },
   };
 
-  const NEXT_STATUT: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {
-    EN_ATTENTE_PAIEMENT: { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
-    PAYEE:               { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
-    PRETE:               { statut: "LIVREE", label: "Marquer comme récupéré", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+  const NEXT_STATUT_RETRAIT: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {
+    EN_ATTENTE_PAIEMENT: { statut: "PRETE",            label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    PAYEE:               { statut: "PRETE",            label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    PRETE:               { statut: "LIVREE",           label: "Marquer comme récupéré",       icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+  };
+
+  const NEXT_STATUT_LIVRAISON: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {
+    EN_ATTENTE_PAIEMENT: { statut: "EN_COURS_IMPRESSION", label: "Marquer en cours d'impression", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    PAYEE:               { statut: "EN_COURS_IMPRESSION", label: "Marquer en cours d'impression", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    EN_COURS_IMPRESSION: { statut: "PRETE",               label: "Marquer comme expédié",         icon: <Truck className="h-4 w-4 mr-2" /> },
+    PRETE:               { statut: "LIVREE",               label: "Marquer comme livré",           icon: <CheckCircle className="h-4 w-4 mr-2" /> },
   };
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
@@ -566,7 +585,9 @@ const DashboardImprimeur = () => {
                     {orders.map((order: any) => {
                       const isExpanded = expandedOrderId === order.id;
                       const statutInfo = STATUT_LABELS[order.statut];
-                      const nextAction = NEXT_STATUT[order.statut];
+                      const nextAction = order.modeRetrait === "LIVRAISON"
+                        ? NEXT_STATUT_LIVRAISON[order.statut]
+                        : NEXT_STATUT_RETRAIT[order.statut];
                       const isUpdating = updatingStatutId === order.id;
 
                       return (
@@ -642,6 +663,28 @@ const DashboardImprimeur = () => {
                                 <span className="text-muted-foreground">Total TTC</span>
                                 <span className="font-bold text-primary">{Number(order.totalTTC).toFixed(2)}€</span>
                               </div>
+
+                              {/* Adresse de livraison */}
+                              {order.modeRetrait === "LIVRAISON" && order.adresseLivraison && (
+                                <div className="pt-2 border-t space-y-1">
+                                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                                    <MapPin className="h-3.5 w-3.5" /> Adresse de livraison
+                                  </p>
+                                  <div className="text-sm bg-muted/30 rounded-lg p-3">
+                                    <p className="font-medium">{order.adresseLivraison.nomDestinataire}</p>
+                                    <p className="text-muted-foreground">
+                                      {order.adresseLivraison.rue} {order.adresseLivraison.numero}
+                                    </p>
+                                    <p className="text-muted-foreground">
+                                      {order.adresseLivraison.codePostal} {order.adresseLivraison.ville}
+                                      {order.adresseLivraison.pays ? `, ${order.adresseLivraison.pays}` : ""}
+                                    </p>
+                                    {order.adresseLivraison.telephone && (
+                                      <p className="text-muted-foreground mt-1">Tél : {order.adresseLivraison.telephone}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
 
                               {/* Suivi bpost pour les livraisons */}
                               {order.modeRetrait === "LIVRAISON" && (
@@ -877,12 +920,28 @@ const DashboardImprimeur = () => {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background">
-                  <div>
-                    <Label className="font-semibold flex items-center gap-2"><Truck className="h-4 w-4 text-primary" /> Livraison à domicile</Label>
-                    <p className="text-sm text-muted-foreground mt-1">Activez la livraison autour de votre boutique.</p>
+                <div className="p-4 border border-border rounded-lg bg-background space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-semibold flex items-center gap-2"><Truck className="h-4 w-4 text-primary" /> Livraison à domicile</Label>
+                      <p className="text-sm text-muted-foreground mt-1">Activez la livraison autour de votre boutique.</p>
+                    </div>
+                    <Switch checked={!!shop.livraisonActive} onCheckedChange={(v) => handleToggleOption("livraisonActive", v)} />
                   </div>
-                  <Switch checked={!!shop.livraisonActive} onCheckedChange={(v) => handleToggleOption("livraisonActive", v)} />
+                  {shop.livraisonActive && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                      <Label className="text-sm text-muted-foreground">Frais de livraison :</Label>
+                      <Input
+                        type="number"
+                        defaultValue={shop.prixLivraison ?? 4.99}
+                        min={0}
+                        step={0.5}
+                        className="w-24 h-8"
+                        onBlur={(e) => handleUpdatePrixLivraison(parseFloat(e.target.value))}
+                      />
+                      <span className="text-sm text-muted-foreground">€</span>
+                    </div>
+                  )}
                 </div>
               </Card>
             </TabsContent>

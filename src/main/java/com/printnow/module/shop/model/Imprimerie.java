@@ -60,6 +60,9 @@ public class Imprimerie {
     @Column(name = "livraison_active")
     private Boolean livraisonActive;
 
+    @Column(name = "prix_livraison")
+    private Double prixLivraison;
+
     private Boolean proposeTarifEtudiant;
 
     @Column(name = "pourcentage_remise_etudiant")

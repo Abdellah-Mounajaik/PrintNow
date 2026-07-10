@@ -68,7 +68,7 @@ interface OrderConfirmation {
   numeroSuivi?: string;
   statutPaiement: "SUCCES";
   statutLivraison?: "EN_PREPARATION";
-  modeRetrait: "RETRAIT_MAGASIN" | "LIVRAISON_DHL";
+  modeRetrait: "RETRAIT_MAGASIN" | "LIVRAISON";
   total: number;
 }
 
@@ -337,7 +337,7 @@ const Order = () => {
 
   const subtotal = files.reduce((sum, f) => sum + computeFilePrice(f), 0);
   const expressAmount = expressOption ? (shop?.prixExpress2h ?? 5) : 0;
-  const deliveryPrice = fulfillment === "delivery" ? 4.99 : 0;
+  const deliveryPrice = fulfillment === "delivery" ? (shop?.prixLivraison ?? 4.99) : 0;
   const studentDiscountAmount = (studentDiscount && shop?.pourcentageRemiseEtudiant)
     ? subtotal * (shop.pourcentageRemiseEtudiant / 100) : 0;
   const totalAvantPromo = subtotal + expressAmount + deliveryPrice - studentDiscountAmount;
@@ -488,7 +488,7 @@ const Order = () => {
       numeroSuivi: data.numeroSuivi ?? undefined,
       statutPaiement: "SUCCES",
       statutLivraison: fulfillment === "delivery" ? "EN_PREPARATION" : undefined,
-      modeRetrait: fulfillment === "delivery" ? "LIVRAISON_DHL" : "RETRAIT_MAGASIN",
+      modeRetrait: fulfillment === "delivery" ? "LIVRAISON" : "RETRAIT_MAGASIN",
       total: Number(data.totalTTC),
     });
   };
@@ -673,7 +673,7 @@ const Order = () => {
                           <RadioGroupItem value="delivery" id="delivery" className="mt-1" />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 font-medium">
-                              <Truck className="h-4 w-4" /> Livraison <Badge variant="secondary" className="ml-auto">+4.99€</Badge>
+                              <Truck className="h-4 w-4" /> Livraison <Badge variant="secondary" className="ml-auto">+{(shop.prixLivraison ?? 4.99).toFixed(2)}€</Badge>
                             </div>
                             <p className="text-sm text-muted-foreground mt-1">Livraison à domicile sous 24-48h.</p>
                           </div>
@@ -955,7 +955,7 @@ const Order = () => {
                 <span className="text-muted-foreground flex items-center gap-2">
                   {confirmation.modeRetrait === "RETRAIT_MAGASIN" ? <Store className="h-4 w-4" /> : <Truck className="h-4 w-4" />} Mode de retrait
                 </span>
-                <span className="font-medium">{confirmation.modeRetrait === "RETRAIT_MAGASIN" ? "Retrait magasin" : "Livraison DHL"}</span>
+                <span className="font-medium">{confirmation.modeRetrait === "RETRAIT_MAGASIN" ? "Retrait magasin" : "Livraison bpost"}</span>
               </div>
               {confirmation.numeroSuivi && (
                 <div className="flex justify-between p-3 rounded-lg bg-muted/50">

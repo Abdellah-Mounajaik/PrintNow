@@ -15,6 +15,7 @@ public class ImprimerieResponseDTO {
     private Boolean proposeExpress2h;
     private Double prixExpress2h;
     private Boolean livraisonActive;
+    private Double prixLivraison;
     private Boolean actif;
     private List<HoraireOuvertureResponseDTO> horaires;
     private List<ProduitResponseDTO> produits;

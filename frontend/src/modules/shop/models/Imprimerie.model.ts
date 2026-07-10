@@ -36,6 +36,7 @@ export interface ImprimerieDetail {
   accepteEtudiants: boolean;
   pourcentageRemiseEtudiant?: number;  
   livraisonActive: boolean;
+  prixLivraison?: number;
   actif: boolean;
   horaires?: Horaire[];
   produits: Produit[];
