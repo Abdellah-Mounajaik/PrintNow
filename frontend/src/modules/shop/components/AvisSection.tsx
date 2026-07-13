@@ -3,6 +3,9 @@ import { Star, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Textarea } from "../../../components/ui/textarea";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "../../../components/ui/select";
 import { toast } from "../../../hooks/use-toast";
 import { avisService, type AvisImprimerie } from "../services/avisService.service";
 
@@ -53,6 +56,7 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
   const [note, setNote] = useState(0);
   const [commentaire, setCommentaire] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [tri, setTri] = useState<"recent" | "meilleur" | "pire">("recent");
 
   const charger = () => {
     avisService.getAvisImprimerie(imprimerieId, token)
@@ -133,20 +137,42 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
                 Aucun avis pour le moment. Soyez le premier à donner votre avis après une commande !
               </p>
             ) : (
-              <div className="space-y-4">
-                {data.avis.map((a) => (
-                  <div key={a.id} className="border-b last:border-b-0 pb-4 last:pb-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-sm">{a.nomClient}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(a.dateCreation).toLocaleDateString("fr-BE")}
-                      </span>
-                    </div>
-                    <StarDisplay note={a.note} />
-                    {a.commentaire && <p className="text-sm text-muted-foreground mt-1.5">{a.commentaire}</p>}
-                  </div>
-                ))}
-              </div>
+              <>
+                {/* Tri des avis */}
+                <div className="flex justify-end">
+                  <Select value={tri} onValueChange={(v) => setTri(v as typeof tri)}>
+                    <SelectTrigger className="w-48 h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recent">Plus récents</SelectItem>
+                      <SelectItem value="meilleur">Notes les plus élevées</SelectItem>
+                      <SelectItem value="pire">Notes les plus basses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-4">
+                  {[...data.avis]
+                    .sort((a, b) => {
+                      if (tri === "meilleur") return b.note - a.note;
+                      if (tri === "pire") return a.note - b.note;
+                      return new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime();
+                    })
+                    .map((a) => (
+                      <div key={a.id} className="border-b last:border-b-0 pb-4 last:pb-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-sm">{a.nomClient}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(a.dateCreation).toLocaleDateString("fr-BE")}
+                          </span>
+                        </div>
+                        <StarDisplay note={a.note} />
+                        {a.commentaire && <p className="text-sm text-muted-foreground mt-1.5">{a.commentaire}</p>}
+                      </div>
+                    ))}
+                </div>
+              </>
             )}
           </>
         )}
