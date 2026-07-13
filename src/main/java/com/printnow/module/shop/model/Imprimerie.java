@@ -77,4 +77,11 @@ public class Imprimerie {
 
     @Column(name = "numero_tva", unique = true, length = 50)
     private String numeroTva;
+
+    // Champs dénormalisés — recalculés à chaque nouvel avis
+    @Column(name = "note_moyenne")
+    private Double noteMoyenne;
+
+    @Column(name = "nombre_avis")
+    private Integer nombreAvis = 0;
 }

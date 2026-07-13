@@ -79,12 +79,14 @@ const PrintShopCard = ({ shop, index = 0 }: PrintShopCardProps) => {
             {shop.distance}
           </div>
 
-          {/* Rating */}
-          <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-card/90 backdrop-blur-sm rounded-full px-2 py-1">
-            <Star className="h-4 w-4 text-secondary fill-secondary" />
-            <span className="text-sm font-medium">{shop.rating}</span>
-            <span className="text-xs text-muted-foreground">({shop.reviewCount})</span>
-          </div>
+          {/* Rating — affiché seulement s'il y a au moins un avis */}
+          {shop.reviewCount > 0 && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-card/90 backdrop-blur-sm rounded-full px-2 py-1">
+              <Star className="h-4 w-4 text-secondary fill-secondary" />
+              <span className="text-sm font-medium">{shop.rating.toFixed(1)}</span>
+              <span className="text-xs text-muted-foreground">({shop.reviewCount})</span>
+            </div>
+          )}
         </div>
 
         <CardContent className="p-4">

@@ -27,4 +27,7 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     long countByClient_IdAndCodePromo_Code(Long clientId, String code);
 
     List<Commande> findAllByOrderByDateCreationDesc();
+
+    // Vérifie qu'un client a au moins une commande livrée chez une imprimerie (pour autoriser un avis)
+    boolean existsByClient_IdAndImprimerie_IdAndStatut(Long clientId, Long imprimerieId, StatutCommande statut);
 }

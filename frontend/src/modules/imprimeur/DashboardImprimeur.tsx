@@ -554,8 +554,15 @@ const DashboardImprimeur = () => {
             </Card>
             <Card className="p-6">
               <Star className="h-8 w-8 text-secondary mb-3" />
-              <div className="font-display text-3xl font-bold">N/A</div>
-              <div className="text-sm text-muted-foreground">Note moyenne</div>
+              <div className="font-display text-3xl font-bold">
+                {shop.nombreAvis && shop.nombreAvis > 0 && shop.noteMoyenne != null
+                  ? shop.noteMoyenne.toFixed(1)
+                  : "—"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Note moyenne
+                {shop.nombreAvis && shop.nombreAvis > 0 ? ` (${shop.nombreAvis} avis)` : ""}
+              </div>
             </Card>
           </div>
 

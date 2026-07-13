@@ -1,0 +1,44 @@
+const API_BASE_URL = "http://localhost:8080/api";
+
+export interface AvisResponse {
+  id: number;
+  userId: number;
+  nomClient: string;
+  note: number;
+  commentaire: string | null;
+  dateCreation: string;
+}
+
+export interface AvisImprimerie {
+  noteMoyenne: number | null;
+  nombreAvis: number;
+  peutNoter: boolean;
+  dejaNote: boolean;
+  avis: AvisResponse[];
+}
+
+export const avisService = {
+  getAvisImprimerie: async (imprimerieId: number, token?: string | null): Promise<AvisImprimerie> => {
+    const response = await fetch(`${API_BASE_URL}/avis/imprimerie/${imprimerieId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!response.ok) throw new Error("Erreur lors de la récupération des avis");
+    return response.json();
+  },
+
+  creerAvis: async (
+    dto: { imprimerieId: number; note: number; commentaire: string },
+    token: string
+  ): Promise<AvisResponse> => {
+    const response = await fetch(`${API_BASE_URL}/avis`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(dto),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || "Erreur lors de l'envoi de l'avis");
+    }
+    return response.json();
+  },
+};

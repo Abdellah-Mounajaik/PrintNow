@@ -3,6 +3,7 @@ package com.printnow.infrastructure.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -74,6 +75,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/promos/**").authenticated()
                 .requestMatchers("/api/partners/**").permitAll()
                 .requestMatchers("/api/fichiers-pdf/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/avis/imprimerie/**").permitAll() // Lecture des avis publique
                 .anyRequest().authenticated() // TOUT le reste nécessite un token JWT valide
             );
 

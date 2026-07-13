@@ -24,4 +24,6 @@ public class ImprimerieResponseDTO {
     private String numeroTva;
     private String emailContact;
     private String telephoneContact;
+    private Double noteMoyenne;
+    private Integer nombreAvis;
 }

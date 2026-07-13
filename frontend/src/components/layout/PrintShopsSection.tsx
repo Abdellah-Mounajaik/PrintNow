@@ -119,10 +119,10 @@ const PrintShopsSection = () => {
             id: shopApi.id.toString(),
             name: shopApi.nom,
             address: `${shopApi.adresse}, ${shopApi.ville || "Belgique"}`,
-            distance: "À proximité", 
-            rating: 5.0, 
-            reviewCount: 0,
-            
+            distance: "À proximité",
+            rating: shopApi.noteMoyenne ?? 0,
+            reviewCount: shopApi.nombreAvis ?? 0,
+
             isOpen: status.isOpen, // 👈 Le badge sera Rouge ou Vert selon l'heure exacte
             openingHours: status.text, // 👈 Affichera "Fermé aujourd'hui" ou "8h - 19h"
             

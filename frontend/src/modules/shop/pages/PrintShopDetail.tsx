@@ -10,10 +10,11 @@ import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
-import { 
-  MapPin, Clock, Phone, Mail, Zap, GraduationCap, Truck, 
-  ChevronLeft, FileText, Image as ImageIcon, CreditCard, Printer 
+import {
+  MapPin, Clock, Phone, Mail, Zap, GraduationCap, Truck,
+  ChevronLeft, FileText, Image as ImageIcon, CreditCard, Printer, Star
 } from "lucide-react";
+import AvisSection from "../components/AvisSection";
 
 interface TabItem {
   label: string;
@@ -140,6 +141,15 @@ const PrintShopDetail = () => {
               <Card>
                 <CardContent className="p-6">
                   <h1 className="text-3xl font-bold mb-2">{shop.nom}</h1>
+                  {shop.nombreAvis != null && shop.nombreAvis > 0 && shop.noteMoyenne != null && (
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <span className="font-semibold">{shop.noteMoyenne.toFixed(1)}</span>
+                      <span className="text-sm text-muted-foreground">
+                        ({shop.nombreAvis} avis)
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-muted-foreground mb-4">
                     <MapPin className="h-4 w-4" />
                     <span>{shop.adresse}, {shop.ville}</span>
@@ -217,6 +227,8 @@ const PrintShopDetail = () => {
                   )}
                 </CardContent>
               </Card>
+
+              <AvisSection imprimerieId={shop.id} token={token} />
             </div>
 
             <div className="space-y-6">

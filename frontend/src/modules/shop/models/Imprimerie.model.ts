@@ -38,6 +38,8 @@ export interface ImprimerieDetail {
   livraisonActive: boolean;
   prixLivraison?: number;
   actif: boolean;
+  noteMoyenne?: number | null;
+  nombreAvis?: number;
   horaires?: Horaire[];
   produits: Produit[];
 }
