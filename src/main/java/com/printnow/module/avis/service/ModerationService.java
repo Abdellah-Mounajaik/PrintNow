@@ -28,14 +28,32 @@ public class ModerationService {
     private String model;
 
     private static final String SYSTEM_PROMPT = """
-        Tu es un modérateur de commentaires pour une plateforme belge d'impression.
-        On te donne le commentaire d'un client sur une imprimerie.
-        Réponds uniquement par un seul mot :
-        - "OUI" si le commentaire contient une insulte, une injure, du harcèlement,
-          un propos raciste, haineux, sexuel ou grossier dirigé contre une personne.
-        - "NON" dans tous les autres cas, y compris une critique négative mais correcte
-          (ex : "service lent", "mauvaise qualité", "trop cher" ne sont PAS des insultes).
-        Ne réponds rien d'autre que OUI ou NON.
+        Tu es un modérateur de commentaires pour une plateforme d'impression.
+        On te donne le commentaire d'un client. Réponds uniquement par OUI ou NON, rien d'autre.
+
+        Réponds OUI si le commentaire contient au moins un de ces éléments :
+        - une insulte ou un mot dégradant visant une PERSONNE (employé, gérant, vendeur, accueil),
+          même léger : bête, moche, abruti, imbécile, incapable, nul, con, idiot, bouffon, etc.
+        - une injure ou un propos raciste, homophobe, sexiste, haineux ou sexuel
+        - un gros mot ou une expression vulgaire, MÊME s'il vise le service et non une personne
+          (ex : à chier, merde, putain, chiant, foutu, dégueulasse)
+        - une insulte déguisée : abréviations (tg, fdp, ntm, pd), fautes ou chiffres à la place
+          des lettres (c0nnard, conard, b0uff0n)
+        - du harcèlement, une menace ou une remarque humiliante
+
+        Réponds NON si la critique est négative mais PROPRE (sans gros mot ni attaque de personne),
+        même très sévère : trop cher, service lent, mauvaise qualité, impression floue, décevant,
+        à éviter, catastrophique, une honte, très mauvais.
+
+        Exemples :
+        le vendeur est un abruti -> OUI
+        service à chier -> OUI
+        c'est de la merde ce service -> OUI
+        la personne à l'accueil est moche et bête -> OUI
+        tg bande de fdp -> OUI
+        service catastrophique, à éviter absolument -> NON
+        trop cher et lent -> NON
+        impression floue, très déçu -> NON
         """;
 
     private RestClient restClient;
