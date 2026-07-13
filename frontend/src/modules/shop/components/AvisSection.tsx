@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Star, Loader2 } from "lucide-react";
+import { Star, Loader2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Textarea } from "../../../components/ui/textarea";
@@ -56,6 +56,7 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
   const [note, setNote] = useState(0);
   const [commentaire, setCommentaire] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
   const [tri, setTri] = useState<"recent" | "meilleur" | "pire">("recent");
 
   const charger = () => {
@@ -77,6 +78,7 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
     }
     if (!token) return;
     setSubmitting(true);
+    setErreur(null);
     try {
       await avisService.creerAvis({ imprimerieId, note, commentaire }, token);
       toast({ title: "Merci pour votre avis !" });
@@ -84,7 +86,9 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
       setCommentaire("");
       charger();
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      const message = (e as Error).message || "Une erreur est survenue. Réessayez.";
+      setErreur(message);
+      toast({ title: "Avis non publié", description: message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -117,9 +121,15 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
                 <Textarea
                   placeholder="Partagez votre expérience (optionnel)…"
                   value={commentaire}
-                  onChange={(e) => setCommentaire(e.target.value)}
+                  onChange={(e) => { setCommentaire(e.target.value); setErreur(null); }}
                   rows={3}
                 />
+                {erreur && (
+                  <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                    <span>{erreur}</span>
+                  </div>
+                )}
                 <Button onClick={handleSubmit} disabled={submitting}>
                   {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                   Publier mon avis

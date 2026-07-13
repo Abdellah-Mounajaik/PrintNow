@@ -28,6 +28,7 @@ public class AvisService {
     private final ImprimerieRepository imprimerieRepository;
     private final CommandeRepository commandeRepository;
     private final AvisMapper avisMapper;
+    private final ModerationService moderationService;
 
     /**
      * Un client laisse un avis. Conditions :
@@ -54,6 +55,12 @@ public class AvisService {
 
         if (avisRepository.existsByUser_IdAndImprimerie_Id(client.getId(), imprimerie.getId())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Vous avez déjà laissé un avis pour cette imprimerie.");
+        }
+
+        // Modération IA du commentaire : on rejette la soumission si un propos injurieux est détecté
+        if (moderationService.estInapproprie(request.getCommentaire())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Votre commentaire contient un langage inapproprié. Merci de le reformuler.");
         }
 
         Avis avis = new Avis();

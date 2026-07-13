@@ -66,6 +66,7 @@ public class SecurityConfig {
             
             // 5. Configuration des accès aux routes
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/error").permitAll() // Redispatch d'erreur : évite que 400/403/409 soient transformés en 401
                 .requestMatchers("/api/auth/**").permitAll() // L'authentification est publique
                 .requestMatchers("/api/imprimeries/**").permitAll() // Le catalogue est public
                 .requestMatchers("/api/produits/**").permitAll()

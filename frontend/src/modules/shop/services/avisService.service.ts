@@ -37,7 +37,9 @@ export const avisService = {
     });
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      throw new Error(err.message || "Erreur lors de l'envoi de l'avis");
+      // Spring peut renvoyer le texte dans "message" (format classique) ou "detail" (ProblemDetail)
+      const message = err.message || err.detail || err.error;
+      throw new Error(message || "Erreur lors de l'envoi de l'avis");
     }
     return response.json();
   },
