@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Header from "../../components/layout/Header";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import Header from "../../../components/layout/Header";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
+import { Badge } from "../../../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import {
   Package,
   FileText,
@@ -22,9 +22,11 @@ import {
   Truck,
   ExternalLink,
 } from "lucide-react";
-import { toast } from "../../hooks/use-toast";
+import { toast } from "../../../hooks/use-toast";
 import { useRef } from "react";
-import { useAuth } from "../auth/context/AuthContext";
+import { useAuth } from "../../auth/context/AuthContext";
+import { userService } from "../services/user.service";
+import type { CommandeDTO, VerifDTO, SuiviDTO } from "../models/user.model";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
   EN_ATTENTE_PAIEMENT: { label: "En attente", variant: "outline" },
@@ -35,18 +37,10 @@ const STATUS_MAP: Record<string, { label: string; variant: "default"|"secondary"
   ANNULEE: { label: "Annulée", variant: "destructive" },
 };
 
-type VerifDTO = {
-  id: number;
-  statut: string;
-  dateSoumission: string;
-  valableJusquA: string | null;
-  motifRefus: string | null;
-};
-
 const DashboardClient = () => {
   const { user, token } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
-  const [suiviData, setSuiviData] = useState<Record<number, any>>({});
+  const [orders, setOrders] = useState<CommandeDTO[]>([]);
+  const [suiviData, setSuiviData] = useState<Record<number, SuiviDTO>>({});
   const [suiviLoading, setSuiviLoading] = useState<number | null>(null);
   const [verif, setVerif] = useState<VerifDTO | null>(null);
   const [verifLoaded, setVerifLoaded] = useState(false);
@@ -54,29 +48,24 @@ const DashboardClient = () => {
   const carteEtudianteRef = useRef<HTMLInputElement>(null);
   const carteIdentiteRef = useRef<HTMLInputElement>(null);
 
-  const headers = { Authorization: `Bearer ${token}` };
-
   useEffect(() => {
     if (!token) return;
-    fetch("http://localhost:8080/api/commandes/me", { headers })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setOrders(data))
+
+    userService.getMesCommandes(token)
+      .then(setOrders)
       .catch(() => setOrders([]));
 
-    fetch("http://localhost:8080/api/verifications-etudiants/me", { headers })
-      .then(res => res.status === 204 ? null : res.json())
-      .then(data => { setVerif(data ?? null); setVerifLoaded(true); })
-      .catch(() => { setVerif(null); setVerifLoaded(true); });
+    userService.getMaVerification(token)
+      .then((data) => setVerif(data))
+      .catch(() => setVerif(null))
+      .finally(() => setVerifLoaded(true));
   }, [token]);
 
   const handleFetchSuivi = async (orderId: number) => {
+    if (!token) return;
     setSuiviLoading(orderId);
     try {
-      const res = await fetch(`http://localhost:8080/api/livraisons/${orderId}/suivi`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
+      const data = await userService.getSuiviLivraison(orderId, token);
       setSuiviData(prev => ({ ...prev, [orderId]: data }));
     } catch {
       toast({ title: "Erreur", description: "Impossible de récupérer le suivi.", variant: "destructive" });
@@ -92,26 +81,14 @@ const DashboardClient = () => {
       toast({ title: "Sélectionnez les deux documents", variant: "destructive" });
       return;
     }
+    if (!token) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append("carteEtudiante", carteEt);
-    formData.append("carteIdentite", carteId);
     try {
-      const res = await fetch("http://localhost:8080/api/verifications-etudiants/me", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setVerif(data);
-        toast({ title: "Demande envoyée", description: "L'admin examinera vos documents." });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Erreur", description: err.message ?? "Impossible d'envoyer.", variant: "destructive" });
-      }
-    } catch {
-      toast({ title: "Erreur réseau", variant: "destructive" });
+      const data = await userService.soumettreVerification(carteEt, carteId, token);
+      setVerif(data);
+      toast({ title: "Demande envoyée", description: "L'admin examinera vos documents." });
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
     } finally {
       setUploading(false);
     }

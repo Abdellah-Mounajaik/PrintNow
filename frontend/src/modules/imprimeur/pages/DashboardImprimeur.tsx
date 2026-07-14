@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import Header from "../../components/layout/Header";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Switch } from "../../components/ui/switch";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import { Checkbox } from "../../components/ui/checkbox";
+import Header from "../../../components/layout/Header";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
+import { Badge } from "../../../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
+import { Switch } from "../../../components/ui/switch";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
+import { Textarea } from "../../../components/ui/textarea";
+import { Checkbox } from "../../../components/ui/checkbox";
 import {
   Package, Euro, Clock, Star,
   Store, Truck, Layers, Book, Printer,
@@ -17,13 +17,15 @@ import {
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "../../components/ui/select";
-import { toast } from "../../hooks/use-toast";
+} from "../../../components/ui/select";
+import { toast } from "../../../hooks/use-toast";
 
-import { imprimerieService } from "../shop/services/imprimerieService.service";
-import type { ImprimerieDetail } from "../shop/models/Imprimerie.model";
-import { useAuth } from "../auth/context/AuthContext";
-import { SERVICES } from "../shop/models/partner.constants";
+import { imprimerieService } from "../../shop/services/imprimerieService.service";
+import type { ImprimerieDetail } from "../../shop/models/Imprimerie.model";
+import { useAuth } from "../../auth/context/AuthContext";
+import { SERVICES } from "../../shop/models/partner.constants";
+import { imprimeurService } from "../services/imprimeur.service";
+import type { CommandeImprimeurDTO, PromoDTO } from "../models/imprimeur.model";
 
 // ─── Constantes options de finition ──────────────────────────────────────────
 const DEFAULT_PLAST_PRICES = { MAT: "0.50", BRILLANT: "0.60", SOFT_TOUCH: "0.80" };
@@ -96,9 +98,9 @@ const DashboardImprimeur = () => {
 
   const [shop, setShop] = useState<ImprimerieDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<CommandeImprimeurDTO[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
-  const [promos, setPromos] = useState<any[]>([]);
+  const [promos, setPromos] = useState<PromoDTO[]>([]);
   const [promoForm, setPromoForm] = useState({ code: "", typeReduction: "POURCENTAGE", valeurReduction: "", dateFin: "", utilisationMax: "", montantMinimumCommande: "" });
   const [updatingStatutId, setUpdatingStatutId] = useState<number | null>(null);
   const [suiviInputs, setSuiviInputs] = useState<Record<number, string>>({});
@@ -136,11 +138,8 @@ const DashboardImprimeur = () => {
           numeroTva: (data as any).numeroTva || "",
           description: data.description || "",
         });
-        return fetch(`http://localhost:8080/api/commandes/imprimerie/${data.id}`, {
-          headers: { "Authorization": `Bearer ${token}` },
-        });
+        return token ? imprimeurService.getCommandes(data.id, token) : [];
       })
-      .then(res => res && res.ok ? res.json() : [])
       .then(data => { setOrders(data); setIsLoading(false); })
       .catch(() => {
         toast({ title: "Erreur", description: "Impossible de charger les données", variant: "destructive" });
@@ -309,56 +308,46 @@ const DashboardImprimeur = () => {
   // ── Codes Promo ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!shop?.id || !token) return;
-    fetch(`http://localhost:8080/api/promos/imprimerie/${shop.id}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : []).then(setPromos).catch(() => {});
+    imprimeurService.getPromos(shop.id, token)
+      .then(setPromos)
+      .catch(() => {});
   }, [shop?.id, token]);
 
   const handleCreerPromo = async () => {
-    if (!shop || !promoForm.code || !promoForm.valeurReduction) return;
+    if (!shop || !token || !promoForm.code || !promoForm.valeurReduction) return;
     try {
-      const res = await fetch("http://localhost:8080/api/promos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          code: promoForm.code,
-          typeReduction: promoForm.typeReduction,
-          valeurReduction: parseFloat(promoForm.valeurReduction),
-          dateFin: promoForm.dateFin ? `${promoForm.dateFin}T23:59:59` : null,
-          utilisationMax: promoForm.utilisationMax ? parseInt(promoForm.utilisationMax) : null,
-          montantMinimumCommande: promoForm.montantMinimumCommande ? parseFloat(promoForm.montantMinimumCommande) : null,
-          imprimerieId: shop.id,
-        }),
-      });
-      if (!res.ok) {
-        let msg = "Impossible de créer le code.";
-        try { const err = await res.json(); msg = err.message || err.detail || msg; } catch { /* ignore */ }
-        toast({ title: "Erreur", description: msg, variant: "destructive" });
-        return;
-      }
-      const created = await res.json();
+      const created = await imprimeurService.creerPromo({
+        code: promoForm.code,
+        typeReduction: promoForm.typeReduction,
+        valeurReduction: parseFloat(promoForm.valeurReduction),
+        dateFin: promoForm.dateFin ? `${promoForm.dateFin}T23:59:59` : null,
+        utilisationMax: promoForm.utilisationMax ? parseInt(promoForm.utilisationMax) : null,
+        montantMinimumCommande: promoForm.montantMinimumCommande ? parseFloat(promoForm.montantMinimumCommande) : null,
+        imprimerieId: shop.id,
+      }, token);
       setPromos(prev => [created, ...prev]);
       setPromoForm({ code: "", typeReduction: "POURCENTAGE", valeurReduction: "", dateFin: "", utilisationMax: "", montantMinimumCommande: "" });
       toast({ title: "Code promo créé !" });
-    } catch {
-      toast({ title: "Erreur réseau", description: "Vérifiez votre connexion.", variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
     }
   };
 
   const handleTogglePromo = async (id: number) => {
+    if (!token) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/promos/${id}/toggle`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error();
-      const updated = await res.json();
-      setPromos(prev => prev.map((p: any) => p.id === id ? updated : p));
+      const updated = await imprimeurService.togglePromo(id, token);
+      setPromos(prev => prev.map((p) => p.id === id ? updated : p));
     } catch {
       toast({ title: "Erreur", variant: "destructive" });
     }
   };
 
   const handleSupprimerPromo = async (id: number) => {
+    if (!token) return;
     try {
-      await fetch(`http://localhost:8080/api/promos/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
-      setPromos(prev => prev.filter((p: any) => p.id !== id));
+      await imprimeurService.supprimerPromo(id, token);
+      setPromos(prev => prev.filter((p) => p.id !== id));
       toast({ title: "Code supprimé" });
     } catch {
       toast({ title: "Erreur", variant: "destructive" });
@@ -411,13 +400,9 @@ const DashboardImprimeur = () => {
   };
 
   const openPDF = async (fichierId: number, nomFichier: string) => {
+    if (!token) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/fichiers-pdf/${fichierId}/download`, {
-        headers: { "Authorization": `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error();
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      const url = await imprimeurService.downloadFichierPdf(fichierId, token);
       const a = document.createElement("a");
       a.href = url;
       a.target = "_blank";
@@ -430,14 +415,10 @@ const DashboardImprimeur = () => {
   };
 
   const handleUpdateStatut = async (orderId: number, newStatut: string) => {
+    if (!token) return;
     setUpdatingStatutId(orderId);
     try {
-      const res = await fetch(`http://localhost:8080/api/commandes/${orderId}/statut?statut=${newStatut}`, {
-        method: "PATCH",
-        headers: { "Authorization": `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error();
-      const updated = await res.json();
+      const updated = await imprimeurService.updateStatutCommande(orderId, newStatut, token);
       setOrders(prev => prev.map(o => o.id === orderId ? updated : o));
       toast({ title: "Statut mis à jour", description: `Commande passée à "${STATUT_LABELS[newStatut]?.label ?? newStatut}".` });
     } catch {
@@ -449,15 +430,10 @@ const DashboardImprimeur = () => {
 
   const handleAjouterSuivi = async (orderId: number) => {
     const numeroSuivi = suiviInputs[orderId]?.trim();
-    if (!numeroSuivi) return;
+    if (!numeroSuivi || !token) return;
     setSuiviSaving(orderId);
     try {
-      const res = await fetch(`http://localhost:8080/api/livraisons/${orderId}/suivi`, {
-        method: "PATCH",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ numeroSuivi }),
-      });
-      if (!res.ok) throw new Error();
+      await imprimeurService.ajouterNumeroSuivi(orderId, numeroSuivi, token);
       toast({ title: "Numéro de suivi enregistré", description: `Le client peut maintenant suivre son colis bpost.` });
       setSuiviInputs(prev => ({ ...prev, [orderId]: "" }));
     } catch {

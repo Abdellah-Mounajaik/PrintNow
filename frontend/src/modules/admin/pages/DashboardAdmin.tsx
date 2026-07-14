@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import Header from "../../components/layout/Header";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import Header from "../../../components/layout/Header";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
+import { Badge } from "../../../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -11,13 +11,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../components/ui/table";
+} from "../../../components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../components/ui/dialog";
+} from "../../../components/ui/dialog";
 import {
   Users,
   Store,
@@ -32,50 +32,15 @@ import {
   GraduationCap,
   XCircle,
 } from "lucide-react";
-import { toast } from "../../hooks/use-toast";
-import { useAuth } from "../auth/context/AuthContext";
-
-type UserDTO = {
-  id: number;
-  email: string;
-  prenom: string;
-  nom: string;
-  telephone: string;
-  actif: boolean;
-  roleNom: string;
-};
-
-type ImprimerieDTO = {
-  id: number;
-  nom: string;
-  ville: string;
-  emailContact: string;
-  actif: boolean;
-};
-
-type CommandeDTO = {
-  id: number;
-  numeroCommande: string;
-  statut: string;
-  totalTTC: number;
-  dateCreation: string;
-  nomClient: string;
-  nomImprimerie: string;
-};
-
-type VerificationDTO = {
-  id: number;
-  userId: number;
-  nomUtilisateur: string;
-  emailUtilisateur: string;
-  statut: string;
-  dateSoumission: string;
-  dateValidation: string | null;
-  valableJusquA: string | null;
-  carteEtudiantePresente: boolean;
-  carteIdentitePresente: boolean;
-  motifRefus: string | null;
-};
+import { toast } from "../../../hooks/use-toast";
+import { useAuth } from "../../auth/context/AuthContext";
+import { adminService } from "../services/admin.service";
+import type {
+  UserDTO,
+  ImprimerieDTO,
+  CommandeDTO,
+  VerificationDTO,
+} from "../models/admin.model";
 
 const STATUT_VERIF_CONFIG: Record<string, { label: string; className: string }> = {
   EN_ATTENTE: { label: "En attente", className: "bg-warning/10 text-warning border-warning/30" },
@@ -89,12 +54,8 @@ const AuthImage = ({ url, alt, token }: { url: string; alt: string; token: strin
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.blob();
-      })
-      .then((blob) => setSrc(URL.createObjectURL(blob)))
+    adminService.fetchImageBlob(url, token)
+      .then(setSrc)
       .catch(() => setError(true));
   }, [url, token]);
 
@@ -131,14 +92,13 @@ const DashboardAdmin = () => {
   const [selectedVerif, setSelectedVerif] = useState<VerificationDTO | null>(null);
   const [motifRefus, setMotifRefus] = useState("");
 
-  const headers = { Authorization: `Bearer ${token}` };
-
   useEffect(() => {
+    if (!token) return;
     Promise.all([
-      fetch("http://localhost:8080/api/users", { headers }).then((r) => r.json()),
-      fetch("http://localhost:8080/api/imprimeries").then((r) => r.json()),
-      fetch("http://localhost:8080/api/commandes", { headers }).then((r) => r.json()),
-      fetch("http://localhost:8080/api/verifications-etudiants", { headers }).then((r) => r.json()),
+      adminService.getUsers(token),
+      adminService.getImprimeries(),
+      adminService.getCommandes(token),
+      adminService.getVerifications(token),
     ])
       .then(([u, i, c, v]) => {
         setUsers(Array.isArray(u) ? u : []);
@@ -150,26 +110,24 @@ const DashboardAdmin = () => {
   }, [token]);
 
   const handleValider = async (id: number) => {
-    const res = await fetch(`http://localhost:8080/api/verifications-etudiants/${id}/valider`, {
-      method: "PATCH", headers,
-    });
-    if (res.ok) {
-      const updated: VerificationDTO = await res.json();
-      setVerifications((prev) => prev.map((v) => v.id === id ? updated : v));
+    if (!token) return;
+    try {
+      const updated = await adminService.validerVerification(id, token);
+      setVerifications((prev) => prev.map((v) => (v.id === id ? updated : v)));
       toast({ title: "Vérification acceptée" });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de valider.", variant: "destructive" });
     }
   };
 
   const handleRefuser = async (id: number, motif: string) => {
-    const res = await fetch(`http://localhost:8080/api/verifications-etudiants/${id}/refuser`, {
-      method: "PATCH",
-      headers: { ...headers, "Content-Type": "application/json" },
-      body: JSON.stringify({ motifRefus: motif }),
-    });
-    if (res.ok) {
-      const updated: VerificationDTO = await res.json();
-      setVerifications((prev) => prev.map((v) => v.id === id ? updated : v));
+    if (!token) return;
+    try {
+      const updated = await adminService.refuserVerification(id, motif, token);
+      setVerifications((prev) => prev.map((v) => (v.id === id ? updated : v)));
       toast({ title: "Vérification refusée", variant: "destructive" });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de refuser.", variant: "destructive" });
     }
   };
 
@@ -565,12 +523,12 @@ ue       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <AuthImage
-                          url={`http://localhost:8080/api/verifications-etudiants/${selectedVerif.id}/image/etudiante`}
+                          url={adminService.getImageUrl(selectedVerif.id, "etudiante")}
                           alt="Carte étudiant"
                           token={token!}
                         />
                         <AuthImage
-                          url={`http://localhost:8080/api/verifications-etudiants/${selectedVerif.id}/image/identite`}
+                          url={adminService.getImageUrl(selectedVerif.id, "identite")}
                           alt="Carte d'identité"
                           token={token!}
                         />

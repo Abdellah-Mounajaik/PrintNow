@@ -6,9 +6,9 @@ import Auth from './modules/auth/pages/Auth';
 import Header from './components/layout/Header';
 import Home from './pages/Home'; 
 import DevenirPartenaire from './modules/shop/pages/DevenirPartenaire';
-import DashboardImprimeur from './modules/imprimeur/DashboardImprimeur';
-import DashboardClient from './modules/user/DashboardClient';
-import DashboardAdmin from './modules/admin/DashboardAdmin';
+import DashboardImprimeur from './modules/imprimeur/pages/DashboardImprimeur';
+import DashboardClient from './modules/user/pages/DashboardClient';
+import DashboardAdmin from './modules/admin/pages/DashboardAdmin';
 import PrintShopDetail from './modules/shop/pages/PrintShopDetail';
 import Order from './modules/shop/pages/Order';
 
