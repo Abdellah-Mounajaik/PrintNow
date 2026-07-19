@@ -794,7 +794,7 @@ const Order = () => {
                     <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">
                       {(shop.proposeExpress2h || shop.proposeTarifEtudiant) ? "4" : "3"}
                     </span>
-                    Code promo PrintHub
+                    Code promo PrintNow
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

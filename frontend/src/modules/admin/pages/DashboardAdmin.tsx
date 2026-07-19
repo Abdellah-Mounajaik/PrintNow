@@ -159,7 +159,7 @@ ue       </div>
                 Administration
               </h1>
               <p className="text-muted-foreground">
-                Back-office PrintHub · Gestion globale de la plateforme
+                Back-office PrintNow · Gestion globale de la plateforme
               </p>
             </div>
             <Badge variant="outline" className="w-fit">

@@ -309,7 +309,7 @@ const DevenirPartenaire = () => {
                 <CheckCircle2 className="h-10 w-10 text-success" />
               </div>
               <h1 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Bienvenue sur PrintHub ! 🎉
+                Bienvenue sur PrintNow ! 🎉
               </h1>
               <p className="text-muted-foreground mb-2">
                 Paiement de <strong>100€</strong> confirmé.

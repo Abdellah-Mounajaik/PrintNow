@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { Checkbox } from "../../../components/ui/checkbox";
 import Header from "../../../components/layout/Header";
-import { Printer, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 // 👇 NOUVEAUX IMPORTS POUR LE BACKEND
 import { authService } from "../services/auth.service";
@@ -107,13 +107,8 @@ const Auth = () => {
         <div className="container mx-auto px-4 max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 group">
-              <div className="p-3 rounded-xl bg-primary/10">
-                <Printer className="h-8 w-8 text-primary" />
-              </div>
-              <span className="font-display font-bold text-2xl text-foreground">
-                PrintHub
-              </span>
+            <Link to="/" className="inline-flex items-center group">
+              <img src="/logo.png" alt="PrintNow" className="h-12 w-auto object-contain" />
             </Link>
           </div>
 
@@ -183,7 +178,7 @@ const Auth = () => {
                   <div className="space-y-4">
                     <div className="text-center mb-6">
                       <CardTitle className="text-xl">Créer un compte</CardTitle>
-                      <CardDescription>Rejoignez PrintHub pour commander vos impressions</CardDescription>
+                      <CardDescription>Rejoignez PrintNow pour commander vos impressions</CardDescription>
                     </div>
 
                     <form onSubmit={handleSignup} className="space-y-4">

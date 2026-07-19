@@ -24,7 +24,7 @@ const CTASection = () => {
           </h2>
           
           <p className="text-lg text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-            Développez votre activité en rejoignant PrintHub. 
+            Développez votre activité en rejoignant PrintNow. 
             Accédez à de nouveaux clients et gérez vos commandes simplement.
           </p>
 

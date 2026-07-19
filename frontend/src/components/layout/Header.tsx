@@ -2,11 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "../ui/button"; 
-import { 
-  Printer, 
-  Menu, 
-  X, 
-  User, 
+import {
+  Menu,
+  X,
+  User,
   LogIn,
   LogOut,
   Globe,
@@ -69,22 +68,15 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link 
-            to="/" 
-            className="flex items-center gap-2 group"
+          <Link
+            to="/"
+            className="flex items-center group"
           >
-            <div className={`p-2 rounded-xl transition-colors ${
-              useLight ? "bg-primary-foreground/10" : "bg-primary/10"
-            }`}>
-              <Printer className={`h-6 w-6 ${
-                useLight ? "text-primary-foreground" : "text-primary"
-              }`} />
-            </div>
-            <span className={`font-display font-bold text-xl ${
-              useLight ? "text-primary-foreground" : "text-foreground"
-            }`}>
-              PrintHub
-            </span>
+            <img
+              src={useLight ? "/logo-white.png" : "/logo.png"}
+              alt="PrintNow"
+              className="h-9 md:h-11 w-auto object-contain"
+            />
           </Link>
 
           {/* Desktop Navigation */}
