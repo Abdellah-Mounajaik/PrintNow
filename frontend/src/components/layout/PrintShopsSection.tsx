@@ -5,6 +5,7 @@ import PrintShopCard, { type PrintShop } from "./PrintShopCard";
 import { partnerService } from "../../modules/shop/services/partner.service";
 import { toast } from "../../hooks/use-toast";
 import { resolveFileUrl, haversineDistanceKm } from "../../lib/utils";
+import ShopsMapDialog from "./ShopsMapDialog";
 
 import { 
   SlidersHorizontal, 
@@ -241,6 +242,7 @@ const PrintShopsSection = () => {
                 <SelectItem value="price-desc">Prix décroissant</SelectItem>
               </SelectContent>
             </Select>
+            <ShopsMapDialog shops={shops} />
             {sortBy === "distance" && geoError && (
               <span className="text-xs text-muted-foreground hidden md:inline">{geoError}</span>
             )}
