@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,12 +24,14 @@ public class ImprimerieService {
     private final ImprimerieRepository imprimerieRepository;
     private final ShopMapper shopMapper;
     private final UserRepository userRepository;
+    private final GeocodingService geocodingService;
 
     public ImprimerieResponseDTO createImprimerie(ImprimerieRequestDTO dto) {
         Imprimerie imprimerie = shopMapper.toEntity(dto);
         User gerant = userRepository.findById(dto.getIdGerant())
             .orElseThrow(() -> new RuntimeException("Gérant non trouvé"));
         imprimerie.setGerant(gerant);
+        geocodeAndSetCoordonnees(imprimerie);
         return shopMapper.toResponse(imprimerieRepository.save(imprimerie));
     }
 
@@ -58,9 +61,38 @@ public class ImprimerieService {
     public ImprimerieResponseDTO updateImprimerie(Long id, ImprimerieRequestDTO dto) {
         Imprimerie imprimerie = imprimerieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Imprimerie non trouvée avec l'id : " + id));
-        
+
+        // On ne re-géocode que si l'adresse a réellement changé (ou si on n'a jamais réussi
+        // à la localiser), pour éviter un appel réseau à chaque simple modification d'option.
+        boolean adresseChangee = !Objects.equals(imprimerie.getAdresse(), dto.getAdresse())
+                || !Objects.equals(imprimerie.getVille(), dto.getVille());
+        boolean coordonneesManquantes = imprimerie.getLatitude() == null;
+
         shopMapper.updateImprimerieFromDto(dto, imprimerie);
+
+        if (adresseChangee || coordonneesManquantes) {
+            geocodeAndSetCoordonnees(imprimerie);
+        }
+
         return shopMapper.toResponse(imprimerieRepository.save(imprimerie));
+    }
+
+    /** Convertit l'adresse de l'imprimerie en coordonnées GPS (fail open si introuvable). */
+    private void geocodeAndSetCoordonnees(Imprimerie imprimerie) {
+        if (imprimerie.getAdresse() == null || imprimerie.getAdresse().isBlank()) {
+            return;
+        }
+        String ville = imprimerie.getVille();
+        boolean villeUtile = ville != null && !ville.isBlank() && !"Non spécifiée".equalsIgnoreCase(ville);
+
+        String query = imprimerie.getAdresse()
+                + (villeUtile ? ", " + ville : "")
+                + ", Belgique";
+
+        geocodingService.geocode(query).ifPresent(coords -> {
+            imprimerie.setLatitude(coords[0]);
+            imprimerie.setLongitude(coords[1]);
+        });
     }
 
     public void deleteImprimerie(Long id) {

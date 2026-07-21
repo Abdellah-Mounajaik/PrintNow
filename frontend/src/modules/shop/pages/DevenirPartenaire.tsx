@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -19,7 +19,7 @@ import {
   Printer, Building2, Mail, Phone, MapPin, Upload,
   CheckCircle2, CreditCard, Clock, ArrowRight, ArrowLeft,
   Lock, Sparkles, Truck, GraduationCap, Zap,
-  Eye, EyeOff, Book, Layers
+  Eye, EyeOff, Book, Layers, Loader2
 } from "lucide-react";
 
 // 👇 Imports Stripe
@@ -118,6 +118,8 @@ const DevenirPartenaire = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [ville, setVille] = useState("");
+  const [pays, setPays] = useState("Belgique");
   const [siret, setSiret] = useState("");
   const [description, setDescription] = useState("");
   const [password, setPassword] = useState("");
@@ -141,6 +143,87 @@ const DevenirPartenaire = () => {
     } finally {
       setLogoUploading(false);
     }
+  };
+
+  // ── Autocomplétion d'adresse (Photon / OpenStreetMap, gratuit) ──────────────
+  // Nominatim interdit explicitement l'autocomplétion "au fil de la frappe" dans sa
+  // politique d'usage ; Photon est construit sur les mêmes données OSM mais est
+  // spécifiquement prévu pour ce cas d'usage.
+  interface AddressSuggestion {
+    label: string;
+    adresse: string;
+    ville: string;
+    pays: string;
+  }
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const addressSelectedRef = useRef(false);
+
+  useEffect(() => {
+    // Ne relance pas de recherche juste après avoir cliqué sur une suggestion
+    if (addressSelectedRef.current) {
+      addressSelectedRef.current = false;
+      return;
+    }
+    if (address.trim().length < 4) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setIsSearchingAddress(true);
+      try {
+        const res = await fetch(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=5&lang=fr`
+        );
+        const data = await res.json();
+        const suggestions: AddressSuggestion[] = (data.features || [])
+          .map((f: any) => {
+            const p = f.properties;
+            const rue = [p.housenumber, p.street || p.name].filter(Boolean).join(" ");
+            const ville = p.city || p.town || p.village || "";
+            const pays = p.country || "";
+            if (!rue || !ville) return null;
+            return {
+              label: [rue, p.postcode, ville].filter(Boolean).join(", "),
+              adresse: [rue, p.postcode].filter(Boolean).join(" "),
+              ville,
+              pays,
+            };
+          })
+          .filter(Boolean);
+        setAddressSuggestions(suggestions);
+        setShowSuggestions(true);
+      } catch {
+        setAddressSuggestions([]);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 500); // debounce : on attend que le client arrête de taper
+
+    return () => clearTimeout(timeoutId);
+  }, [address]);
+
+  // Ferme la liste de suggestions si on clique en dehors
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectSuggestion = (s: AddressSuggestion) => {
+    addressSelectedRef.current = true;
+    setAddress(s.adresse);
+    setVille(s.ville);
+    if (s.pays) setPays(s.pays);
+    setShowSuggestions(false);
+    setAddressSuggestions([]);
   };
 
   // Valeurs et états par défaut pour les options de finition
@@ -201,6 +284,7 @@ const DevenirPartenaire = () => {
     if (!phone.trim()) missing.push("téléphone");
     else if (!/^\+?[0-9 ()./-]{8,20}$/.test(phone)) missing.push("téléphone invalide");
     if (!address.trim()) missing.push("adresse");
+    if (!ville.trim()) missing.push("ville");
     if (!siret.trim()) missing.push("N° TVA");
     if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password)) missing.push("mot de passe (min. 8 caractères, lettres et chiffres)");
     if (password !== confirmPassword) missing.push("les mots de passe ne correspondent pas");
@@ -313,8 +397,8 @@ const DevenirPartenaire = () => {
         livraisonActive: offersDelivery,
         proposeTarifEtudiant: offersStudentDiscount,
         pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) : undefined,
-        ville: "Non spécifiée", 
-        pays: "Belgique"
+        ville: ville,
+        pays: pays,
       },
       produits: activeServices as any,
       horaires: activeHours
@@ -453,12 +537,46 @@ const DevenirPartenaire = () => {
                     <Input id="phone" className="pl-10" placeholder="+32 2 123 45 67" value={phone} onChange={(e) => setPhone(e.target.value)} />
                   </div>
                 </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="address">Adresse complète *</Label>
+                <div className="space-y-2 md:col-span-2 relative" ref={suggestionsRef}>
+                  <Label htmlFor="address">Adresse (rue et numéro) *</Label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="address" className="pl-10" placeholder="Rue, numéro, code postal, ville" value={address} onChange={(e) => setAddress(e.target.value)} />
+                    <Input
+                      id="address"
+                      className="pl-10 pr-10"
+                      placeholder="Rue et numéro"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
+                      autoComplete="off"
+                    />
+                    {isSearchingAddress && (
+                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                    )}
                   </div>
+                  {showSuggestions && addressSuggestions.length > 0 && (
+                    <div className="absolute z-20 mt-1 w-full bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+                      {addressSuggestions.map((s, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => handleSelectSuggestion(s)}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex items-center gap-2"
+                        >
+                          <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ville">Ville *</Label>
+                  <Input id="ville" placeholder="Bruxelles" value={ville} onChange={(e) => setVille(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pays">Pays *</Label>
+                  <Input id="pays" placeholder="Belgique" value={pays} onChange={(e) => setPays(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="siret">N° TVA *</Label>

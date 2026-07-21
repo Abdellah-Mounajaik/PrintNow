@@ -12,6 +12,8 @@ public class ImprimerieResponseDTO {
     private String logoUrl;
     private String adresse;
     private String ville;
+    private Double latitude;
+    private Double longitude;
     private Boolean proposeExpress2h;
     private Double prixExpress2h;
     private Boolean livraisonActive;

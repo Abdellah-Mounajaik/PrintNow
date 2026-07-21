@@ -19,6 +19,9 @@ export interface PrintShop {
   name: string;
   address: string;
   distance: string;
+  latitude: number | null;
+  longitude: number | null;
+  distanceKm?: number;
   rating: number;
   reviewCount: number;
   isOpen: boolean;
@@ -76,7 +79,7 @@ const PrintShopCard = ({ shop, index = 0 }: PrintShopCardProps) => {
           {/* Distance */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1 text-primary-foreground text-sm">
             <MapPin className="h-4 w-4" />
-            {shop.distance}
+            {shop.distanceKm != null ? `${shop.distanceKm.toFixed(1)} km` : shop.distance}
           </div>
 
           {/* Rating — affiché seulement s'il y a au moins un avis */}

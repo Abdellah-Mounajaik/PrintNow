@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "../../../components/layout/Header";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -13,7 +13,7 @@ import {
   Package, Euro, Clock, Star,
   Store, Truck, Layers, Book, Printer,
   Zap, GraduationCap, ChevronDown, ChevronUp,
-  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin
+  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin, Loader2
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -115,7 +115,7 @@ const DashboardImprimeur = () => {
   const [isSavingShop, setIsSavingShop] = useState(false);
   const [shopForm, setShopForm] = useState({
     nom: "", emailContact: "", telephoneContact: "",
-    adresse: "", ville: "", numeroTva: "", description: "",
+    adresse: "", ville: "", pays: "", numeroTva: "", description: "",
   });
 
   // Horaires
@@ -135,6 +135,7 @@ const DashboardImprimeur = () => {
           telephoneContact: (data as any).telephoneContact || "",
           adresse: data.adresse || "",
           ville: data.ville || "",
+          pays: (data as any).pays || "Belgique",
           numeroTva: (data as any).numeroTva || "",
           description: data.description || "",
         });
@@ -243,6 +244,7 @@ const DashboardImprimeur = () => {
     telephoneContact: (shop as any)?.telephoneContact,
     adresse: shop?.adresse,
     ville: shop?.ville,
+    pays: (shop as any)?.pays,
     numeroTva: (shop as any)?.numeroTva,
     proposeExpress2h: shop?.proposeExpress2h,
     prixExpress2h: shop?.prixExpress2h,
@@ -257,7 +259,7 @@ const DashboardImprimeur = () => {
     if (!user || !shop) return;
     setIsSavingShop(true);
     try {
-      const updated = await imprimerieService.updateImprimerie(user.id.toString(), buildFullDto(shopForm));
+      const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto(shopForm));
       setShop(updated);
       setIsEditingShop(false);
       toast({ title: "Succès", description: "Informations mises à jour." });
@@ -276,6 +278,7 @@ const DashboardImprimeur = () => {
       telephoneContact: (shop as any).telephoneContact || "",
       adresse: shop.adresse || "",
       ville: shop.ville || "",
+      pays: (shop as any).pays || "Belgique",
       numeroTva: (shop as any).numeroTva || "",
       description: shop.description || "",
     });
@@ -286,7 +289,7 @@ const DashboardImprimeur = () => {
   const handleUpdatePrixExpress = async (prix: number) => {
     if (!user || !shop || isNaN(prix)) return;
     try {
-      const updated = await imprimerieService.updateImprimerie(user.id.toString(), buildFullDto({ prixExpress2h: prix }));
+      const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ prixExpress2h: prix }));
       setShop(updated);
       toast({ title: "Prix express mis à jour" });
     } catch {
@@ -297,12 +300,86 @@ const DashboardImprimeur = () => {
   const handleUpdatePrixLivraison = async (prix: number) => {
     if (!user || !shop || isNaN(prix)) return;
     try {
-      const updated = await imprimerieService.updateImprimerie(user.id.toString(), buildFullDto({ prixLivraison: prix }));
+      const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ prixLivraison: prix }));
       setShop(updated);
       toast({ title: "Prix de livraison mis à jour" });
     } catch {
       toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
     }
+  };
+
+  // ── Autocomplétion d'adresse  ──
+  interface AddressSuggestion {
+    label: string;
+    adresse: string;
+    ville: string;
+    pays: string;
+  }
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const addressSelectedRef = useRef(false);
+
+  useEffect(() => {
+    if (addressSelectedRef.current) {
+      addressSelectedRef.current = false;
+      return;
+    }
+    if (shopForm.adresse.trim().length < 4) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setIsSearchingAddress(true);
+      try {
+        const res = await fetch(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(shopForm.adresse)}&limit=5&lang=fr`
+        );
+        const data = await res.json();
+        const suggestions: AddressSuggestion[] = (data.features || [])
+          .map((f: any) => {
+            const p = f.properties;
+            const rue = [p.housenumber, p.street || p.name].filter(Boolean).join(" ");
+            const ville = p.city || p.town || p.village || "";
+            const pays = p.country || "";
+            if (!rue || !ville) return null;
+            return {
+              label: [rue, p.postcode, ville].filter(Boolean).join(", "),
+              adresse: [rue, p.postcode].filter(Boolean).join(" "),
+              ville,
+              pays,
+            };
+          })
+          .filter(Boolean);
+        setAddressSuggestions(suggestions);
+        setShowSuggestions(true);
+      } catch {
+        setAddressSuggestions([]);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [shopForm.adresse]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectSuggestion = (s: AddressSuggestion) => {
+    addressSelectedRef.current = true;
+    setShopForm(f => ({ ...f, adresse: s.adresse, ville: s.ville, pays: s.pays || f.pays }));
+    setShowSuggestions(false);
+    setAddressSuggestions([]);
   };
 
   // ── Codes Promo ──────────────────────────────────────────────────────────────
@@ -357,7 +434,7 @@ const DashboardImprimeur = () => {
   const handleToggleOption = async (field: "proposeExpress2h" | "livraisonActive" | "proposeTarifEtudiant", value: boolean) => {
     if (!user || !shop) return;
     try {
-      const updated = await imprimerieService.updateImprimerie(user.id.toString(), buildFullDto({ [field]: value }));
+      const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ [field]: value }));
       setShop(updated);
       toast({ title: "Option mise à jour" });
     } catch {
@@ -1035,15 +1112,44 @@ const DashboardImprimeur = () => {
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40" : ""} />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative" ref={suggestionsRef}>
                     <Label htmlFor="shop-adresse">Adresse</Label>
-                    <Input id="shop-adresse" value={shopForm.adresse} onChange={(e) => setShopForm(f => ({ ...f, adresse: e.target.value }))}
-                      readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
-                      className={!isEditingShop ? "bg-muted/40" : ""} />
+                    <div className="relative">
+                      <Input id="shop-adresse" value={shopForm.adresse}
+                        onChange={(e) => setShopForm(f => ({ ...f, adresse: e.target.value }))}
+                        onFocus={() => isEditingShop && addressSuggestions.length > 0 && setShowSuggestions(true)}
+                        readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
+                        autoComplete="off"
+                        className={!isEditingShop ? "bg-muted/40 pr-9" : "pr-9"} />
+                      {isEditingShop && isSearchingAddress && (
+                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                      )}
+                    </div>
+                    {isEditingShop && showSuggestions && addressSuggestions.length > 0 && (
+                      <div className="absolute z-20 mt-1 w-full bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+                        {addressSuggestions.map((s, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => handleSelectSuggestion(s)}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex items-center gap-2"
+                          >
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="shop-ville">Ville</Label>
                     <Input id="shop-ville" value={shopForm.ville} onChange={(e) => setShopForm(f => ({ ...f, ville: e.target.value }))}
+                      readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
+                      className={!isEditingShop ? "bg-muted/40" : ""} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="shop-pays">Pays</Label>
+                    <Input id="shop-pays" value={shopForm.pays} onChange={(e) => setShopForm(f => ({ ...f, pays: e.target.value }))}
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40" : ""} />
                   </div>

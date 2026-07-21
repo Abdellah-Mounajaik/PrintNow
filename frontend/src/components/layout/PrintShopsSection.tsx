@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import PrintShopCard, { type PrintShop } from "./PrintShopCard";
 import { partnerService } from "../../modules/shop/services/partner.service";
 import { toast } from "../../hooks/use-toast";
-import { resolveFileUrl } from "../../lib/utils";
+import { resolveFileUrl, haversineDistanceKm } from "../../lib/utils";
 
 import { 
   SlidersHorizontal, 
@@ -48,6 +48,9 @@ const PrintShopsSection = () => {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("distance");
   const [showOpenOnly, setShowOpenOnly] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const geoRequested = useRef(false);
 
   // ========================================================
   // 1. FONCTION : Statut Ouvert/Fermé en temps réel
@@ -121,6 +124,8 @@ const PrintShopsSection = () => {
             name: shopApi.nom,
             address: `${shopApi.adresse}, ${shopApi.ville || "Belgique"}`,
             distance: "À proximité",
+            latitude: shopApi.latitude ?? null,
+            longitude: shopApi.longitude ?? null,
             rating: shopApi.noteMoyenne ?? 0,
             reviewCount: shopApi.nombreAvis ?? 0,
 
@@ -153,6 +158,41 @@ const PrintShopsSection = () => {
 
     fetchImprimeries();
   }, []);
+
+  // Demande la position du client au navigateur pour le tri par distance
+  useEffect(() => {
+    if (sortBy !== "distance" || geoRequested.current || !("geolocation" in navigator)) return;
+    geoRequested.current = true;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+        setGeoError(null);
+      },
+      () => {
+        setGeoError("Activez la localisation pour trier par distance.");
+      },
+      { timeout: 10000 }
+    );
+  }, [sortBy]);
+
+  // Calcule la distance réelle de chaque imprimerie par rapport au client
+  const shopsWithDistance = shops.map((shop) => {
+    if (userLocation && shop.latitude != null && shop.longitude != null) {
+      const distanceKm = haversineDistanceKm(userLocation.lat, userLocation.lng, shop.latitude, shop.longitude);
+      return { ...shop, distanceKm };
+    }
+    return shop;
+  });
+
+  const sortedShops = [...shopsWithDistance].sort((a, b) => {
+    if (sortBy !== "distance") return 0;
+    // Les imprimeries sans coordonnées connues passent en dernier plutôt que de casser le tri
+    if (a.distanceKm == null && b.distanceKm == null) return 0;
+    if (a.distanceKm == null) return 1;
+    if (b.distanceKm == null) return -1;
+    return a.distanceKm - b.distanceKm;
+  });
 
   const toggleFilter = (filterId: string) => {
     setSelectedFilters(prev => 
@@ -201,6 +241,9 @@ const PrintShopsSection = () => {
                 <SelectItem value="price-desc">Prix décroissant</SelectItem>
               </SelectContent>
             </Select>
+            {sortBy === "distance" && geoError && (
+              <span className="text-xs text-muted-foreground hidden md:inline">{geoError}</span>
+            )}
 
             {/* Filter Sheet */}
             <Sheet>
@@ -241,7 +284,7 @@ const PrintShopsSection = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {shops.map((shop, index) => (
+            {sortedShops.map((shop, index) => (
               <PrintShopCard key={shop.id} shop={shop} index={index} />
             ))}
           </div>
