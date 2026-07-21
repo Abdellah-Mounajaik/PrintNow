@@ -72,6 +72,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/produits/**").permitAll()
                 .requestMatchers("/api/horaires/**").permitAll()
                 .requestMatchers("/api/partners/register").permitAll() // L'inscription des partenaires est publique
+                .requestMatchers("/api/uploads/**").permitAll() // Upload du logo pendant l'inscription (avant authentification)
+                .requestMatchers("/uploads/**").permitAll() // Fichiers publics servis statiquement (logos)
                 .requestMatchers("/api/payments/**").permitAll()
                 .requestMatchers("/api/promos/**").authenticated()
                 .requestMatchers("/api/partners/**").permitAll()

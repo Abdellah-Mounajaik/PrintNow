@@ -66,6 +66,7 @@ export interface HoraireOuvertureRequestDTO {
 export interface ImprimerieRequestDTO {
   nom: string;
   description: string;
+  logoUrl: string;
   emailContact: string;
   telephoneContact: string;
   adresse: string;

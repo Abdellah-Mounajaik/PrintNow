@@ -12,7 +12,13 @@ export const authService = {
         });
 
         if (!response.ok) {
-            const errorMsg = await response.text();
+            // Le backend renvoie soit du JSON {message: "..."} (validation), soit du texte brut
+            const raw = await response.text();
+            let errorMsg = raw;
+            try {
+                const parsed = JSON.parse(raw);
+                errorMsg = parsed.message || parsed.detail || raw;
+            } catch { /* texte brut, on le garde tel quel */ }
             throw new Error(errorMsg || "Erreur lors de l'inscription");
         }
     },

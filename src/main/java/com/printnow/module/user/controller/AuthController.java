@@ -8,6 +8,7 @@ import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
 import com.printnow.module.user.service.UserService;
 import com.printnow.infrastructure.security.JwtUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -81,7 +82,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody SignupRequestDTO signUpRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequestDTO signUpRequest) {
         try {
             UserResponseDTO newUser = userService.registerClient(signUpRequest);
             return new ResponseEntity<>(newUser, HttpStatus.CREATED);

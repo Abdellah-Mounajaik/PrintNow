@@ -115,6 +115,25 @@ const DevenirPartenaire = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState("");
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fichier = e.target.files?.[0];
+    if (!fichier) return;
+    setLogoUploading(true);
+    setLogoError("");
+    try {
+      const url = await partnerService.uploadLogo(fichier);
+      setLogoUrl(url);
+    } catch (err) {
+      setLogoError((err as Error).message || "Erreur lors de l'envoi du logo");
+      setLogoUrl("");
+    } finally {
+      setLogoUploading(false);
+    }
+  };
 
   // Valeurs et états par défaut pour les options de finition
   const defaultPlastificationPrices = { MAT: "0.50", BRILLANT: "0.60", SOFT_TOUCH: "0.80" };
@@ -170,11 +189,15 @@ const DevenirPartenaire = () => {
     const missing: string[] = [];
     if (!shopName.trim()) missing.push("nom de l'imprimerie");
     if (!email.trim()) missing.push("email");
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) missing.push("email invalide");
     if (!phone.trim()) missing.push("téléphone");
+    else if (!/^\+?[0-9 ()./-]{8,20}$/.test(phone)) missing.push("téléphone invalide");
     if (!address.trim()) missing.push("adresse");
     if (!siret.trim()) missing.push("N° TVA");
-    if (password.length < 6) missing.push("mot de passe (min. 6 caractères)");
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password)) missing.push("mot de passe (min. 8 caractères, lettres et chiffres)");
     if (password !== confirmPassword) missing.push("les mots de passe ne correspondent pas");
+    if (!description.trim()) missing.push("description de l'imprimerie");
+    if (!logoUrl) missing.push("logo de l'imprimerie");
     return missing;
   };
   
@@ -276,6 +299,7 @@ const DevenirPartenaire = () => {
         adresse: address,
         numeroTva: siret,
         description: description,
+        logoUrl: logoUrl,
         proposeExpress2h: offersExpress,
         prixExpress2h: offersExpress ? parseFloat(expressPrice) : undefined,
         livraisonActive: offersDelivery,
@@ -436,7 +460,7 @@ const DevenirPartenaire = () => {
                 <div className="space-y-2">
                   <Label htmlFor="password">Mot de passe *</Label>
                   <div className="relative">
-                    <Input id="password" type={showPassword ? "text" : "password"} placeholder="Min. 6 caractères" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
+                    <Input id="password" type={showPassword ? "text" : "password"} placeholder="Min. 8 caractères, lettres et chiffres" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -454,16 +478,42 @@ const DevenirPartenaire = () => {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="description">Description de votre imprimerie</Label>
+                  <Label htmlFor="description">Description de votre imprimerie *</Label>
                   <Textarea id="description" placeholder="Présentez votre boutique, spécialités, équipements..." rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label>Logo de l'imprimerie</Label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
-                    <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">Cliquez pour téléverser (PNG, JPG)</p>
-                  </div>
+                  <Label>Logo de l'imprimerie *</Label>
+                  <label
+                    htmlFor="logo-upload"
+                    className="block border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                  >
+                    <input
+                      id="logo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoChange}
+                    />
+                    {logoUploading ? (
+                      <p className="text-sm text-muted-foreground">Envoi en cours…</p>
+                    ) : logoUrl ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <img
+                          src={`http://localhost:8080${logoUrl}`}
+                          alt="Logo de l'imprimerie"
+                          className="h-16 w-16 object-contain rounded-md border border-border bg-background"
+                        />
+                        <p className="text-sm text-success">Logo envoyé — cliquez pour changer</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">Cliquez pour téléverser (PNG, JPG)</p>
+                      </>
+                    )}
+                  </label>
+                  {logoError && <p className="text-sm text-destructive">{logoError}</p>}
                 </div>
               </div>
 

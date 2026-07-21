@@ -77,11 +77,21 @@ const Auth = () => {
     setErrorMsg("");
     setSuccessMsg("");
 
-    // 👇 VÉRIFICATION : Est-ce que les mots de passe correspondent ?
+    // 👇 VALIDATIONS avant d'appeler le backend
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(signupData.motDePasse)) {
+      setErrorMsg("Le mot de passe doit contenir au moins 8 caractères, avec des lettres et des chiffres.");
+      setIsLoading(false);
+      return;
+    }
     if (signupData.motDePasse !== confirmPassword) {
       setErrorMsg("Les mots de passe ne correspondent pas.");
       setIsLoading(false);
       return; // On arrête la fonction ici, on n'appelle pas le backend
+    }
+    if (signupData.telephone && !/^\+?[0-9 ()./-]{8,20}$/.test(signupData.telephone)) {
+      setErrorMsg("Le numéro de téléphone n'est pas valide.");
+      setIsLoading(false);
+      return;
     }
 
     try {

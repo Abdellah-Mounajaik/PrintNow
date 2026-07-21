@@ -2,6 +2,7 @@ package com.printnow.module.shop.controller;
 
 import com.printnow.module.shop.dto.PartnerRegistrationRequest;
 import com.printnow.module.shop.service.PartnerRegistrationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ public class PartnerController {
 private final PartnerRegistrationService registrationService;
 
 @PostMapping("/register")
-public ResponseEntity<Object> registerPartner(@RequestBody PartnerRegistrationRequest request) {
+public ResponseEntity<Object> registerPartner(@Valid @RequestBody PartnerRegistrationRequest request) {
     
     System.out.println("DEBUG: Tentative d'inscription avec l'email: [" + request.getEmail() + "]");
     
