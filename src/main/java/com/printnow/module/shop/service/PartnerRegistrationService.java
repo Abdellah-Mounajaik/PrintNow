@@ -11,9 +11,7 @@ import com.printnow.module.shop.dto.PartnerRegistrationRequest;
 import com.printnow.module.shop.dto.ProduitRequestDTO;
 import com.printnow.module.shop.mapper.ShopMapper;
 import com.printnow.module.shop.model.HoraireOuverture;
-import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.repository.HoraireOuvertureRepository;
-import com.printnow.module.shop.repository.ImprimerieRepository;
 
 import com.printnow.module.user.mapper.UserMapper;
 import com.printnow.module.user.model.Role;
@@ -29,18 +27,18 @@ public class PartnerRegistrationService {
 
     private final ImprimerieService imprimerieService;
     private final ProduitService produitService;
-    private final ImprimerieRepository imprimerieRepository;
-    private final HoraireOuvertureRepository horaireRepository; 
+    private final HoraireOuvertureRepository horaireRepository;
     private final ShopMapper shopMapper;
-    
+
     private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * Crée un nouveau partenaire (User + Imprimerie + Produits + Horaires)
-     * en mode inactif en attendant le paiement Stripe.
+     * Crée un nouveau partenaire (User + Imprimerie + Produits + Horaires), déjà actif.
+     * N'est appelé qu'après vérification par le contrôleur que le paiement Stripe
+     * a bien été confirmé : aucune ligne n'est créée en base en cas de paiement échoué.
      */
     @Transactional
     public Long registerNewPartner(PartnerRegistrationRequest request) {
@@ -48,7 +46,7 @@ public class PartnerRegistrationService {
         if (request.getSiret() == null || request.getSiret().isBlank()) {
             throw new IllegalArgumentException("Le numéro de TVA est obligatoire.");
         }
-        
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Cette adresse email est déjà utilisée.");
         }
@@ -57,15 +55,15 @@ public class PartnerRegistrationService {
         Role roleImprimerie = roleRepository.findByNom("IMPRIMERIE")
                 .orElseThrow(() -> new RuntimeException("Erreur : Rôle IMPRIMERIE non trouvé."));
 
-        // 2. CRÉER L'UTILISATEUR (Gérant)
+        // 2. CRÉER L'UTILISATEUR (Gérant) — le paiement est déjà confirmé à ce stade
         User newGerant = userMapper.toEntityFromPartnerRequest(request);
         newGerant.setMotDePasse(passwordEncoder.encode(request.getPassword()));
         newGerant.setRole(roleImprimerie);
-        newGerant.setActif(true); 
-        
+        newGerant.setActif(true);
+
         newGerant = userRepository.save(newGerant);
 
-        // 3. CRÉER L'IMPRIMERIE
+        // 3. CRÉER L'IMPRIMERIE (active par défaut via le mapper)
         ImprimerieRequestDTO shopDto = request.getImprimerie();
         shopDto.setIdGerant(newGerant.getId());
         shopDto.setNumeroTva(request.getSiret());
@@ -83,34 +81,12 @@ public class PartnerRegistrationService {
         // 5. CRÉER LES HORAIRES
         if (request.getHoraires() != null) {
             for (HoraireOuvertureRequestDTO horaireDto : request.getHoraires()) {
-                horaireDto.setImprimerieId(savedShop.getId()); 
+                horaireDto.setImprimerieId(savedShop.getId());
                 HoraireOuverture horaire = shopMapper.toEntity(horaireDto);
                 horaireRepository.save(horaire);
             }
         }
 
-        // Retourne l'ID pour le contrôleur et Stripe
         return savedShop.getId();
-    }
-
-    /**
-     * Active le compte suite à la confirmation du Webhook Stripe.
-     */
-    @Transactional
-    public void activatePartnerAccount(Long imprimerieId) {
-        Imprimerie imprimerie = imprimerieRepository.findById(imprimerieId)
-            .orElseThrow(() -> new RuntimeException("Imprimerie non trouvée"));
-        
-        // 1. Activer l'imprimerie
-        imprimerie.setActif(true);
-        imprimerieRepository.save(imprimerie); // Sauvegarde l'imprimerie
-        
-        // 2. Activer le gérant explicitement
-        if (imprimerie.getGerant() != null) {
-            User gerant = imprimerie.getGerant();
-            gerant.setActif(true);
-            userRepository.save(gerant); // 💡 TRÈS IMPORTANT : Sauvegarde l'utilisateur explicitement
-            System.out.println("DEBUG: L'utilisateur " + gerant.getEmail() + " a été activé.");
-        }
     }
 }

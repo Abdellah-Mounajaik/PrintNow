@@ -32,6 +32,11 @@ public class PartnerRegistrationRequest {
     @NotBlank(message = "Le numéro de TVA est obligatoire.")
     private String siret;
 
+    // Identifiant du PaymentIntent Stripe confirmé côté client. Le backend revérifie
+    // son statut auprès de Stripe avant de créer quoi que ce soit en base.
+    @NotBlank(message = "Le paiement doit être confirmé avant l'inscription.")
+    private String paymentIntentId;
+
     // ==========================================
     // 2. Infos de la boutique
     // ==========================================

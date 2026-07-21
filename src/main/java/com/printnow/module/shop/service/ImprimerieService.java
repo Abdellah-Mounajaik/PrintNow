@@ -46,6 +46,15 @@ public class ImprimerieService {
         return shopMapper.toResponse(imprimerie);
     }
 
+    /** Récupère l'imprimerie gérée par un utilisateur (dashboard imprimeur). */
+    @Transactional(readOnly = true)
+    public ImprimerieResponseDTO getImprimerieByGerantId(Long idGerant) {
+        Imprimerie imprimerie = imprimerieRepository.findByGerantId(idGerant).stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Aucune imprimerie associée à ce compte."));
+        return shopMapper.toResponse(imprimerie);
+    }
+
     public ImprimerieResponseDTO updateImprimerie(Long id, ImprimerieRequestDTO dto) {
         Imprimerie imprimerie = imprimerieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Imprimerie non trouvée avec l'id : " + id));

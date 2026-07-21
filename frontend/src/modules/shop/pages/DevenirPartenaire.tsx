@@ -46,18 +46,17 @@ const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) =
     setErrorMessage("");
 
     try {
-      const savedPartnerResponse = await partnerService.register(payload) as any;
-      const imprimerieId = savedPartnerResponse?.id || savedPartnerResponse;
-      
+      // 1. Créer le PaymentIntent — aucune donnée n'est encore écrite en base à ce stade
       const intentResponse = await fetch("http://localhost:8080/api/payments/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imprimerieId: imprimerieId })
+        body: JSON.stringify({ amount: Math.round(amount * 100) })
       });
-      
+
       if (!intentResponse.ok) throw new Error("Erreur lors de l'initialisation du paiement");
       const intentData = await intentResponse.json();
 
+      // 2. Confirmer le paiement par carte
       const result = await stripe.confirmCardPayment(intentData.clientSecret, {
         payment_method: {
           card: elements.getElement(CardElement)!,
@@ -66,9 +65,18 @@ const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) =
 
       if (result.error) {
         setErrorMessage(result.error.message || "Le paiement a échoué.");
-      } else if (result.paymentIntent?.status === "succeeded") {
-        onPaymentSuccess();
+        return;
       }
+      if (result.paymentIntent?.status !== "succeeded") {
+        setErrorMessage("Le paiement n'a pas pu être confirmé.");
+        return;
+      }
+
+      // 3. Paiement confirmé côté client : le compte n'est créé que maintenant.
+      // Le backend revérifie indépendamment le statut auprès de Stripe avant
+      // d'écrire quoi que ce soit — aucune ligne orpheline possible en cas d'échec.
+      await partnerService.register({ ...payload, paymentIntentId: result.paymentIntent.id });
+      onPaymentSuccess();
     } catch (error: any) {
       setErrorMessage(error.message || "Une erreur de communication est survenue.");
     } finally {

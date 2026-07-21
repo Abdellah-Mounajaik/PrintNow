@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/payments") 
+@RequestMapping("/api/payments")
 public class PaymentController {
 
     // On récupère ta clé Stripe depuis le fichier application.properties

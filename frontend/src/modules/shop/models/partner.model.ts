@@ -84,6 +84,7 @@ export interface PartnerRegistrationRequest {
   email: string;
   password?: string;
   siret?: string;
+  paymentIntentId?: string;
   imprimerie: ImprimerieRequestDTO;
   produits: ProduitRequestDTO[];
   horaires: HoraireOuvertureRequestDTO[];

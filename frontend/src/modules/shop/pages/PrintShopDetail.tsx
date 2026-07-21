@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/context/AuthContext";
 import { imprimerieService } from "../services/imprimerieService.service";
 import type { ImprimerieDetail } from "../models/Imprimerie.model";
+import { resolveFileUrl } from "../../../lib/utils";
 
 // UI Components & Icons
 import Header from "../../../components/layout/Header";
@@ -123,7 +124,7 @@ const PrintShopDetail = () => {
       <main className="flex-1 pt-20">
         <div className="relative h-64 md:h-80 overflow-hidden bg-slate-200">
           <img
-            src={shop.logoUrl || "https://images.unsplash.com/photo-1562240020-ce31ccb0fa7d?w=800&fit=crop"}
+            src={resolveFileUrl(shop.logoUrl) || "https://images.unsplash.com/photo-1562240020-ce31ccb0fa7d?w=800&fit=crop"}
             alt={shop.nom}
             className="w-full h-full object-cover"
           />

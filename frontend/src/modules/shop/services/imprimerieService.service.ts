@@ -29,6 +29,13 @@ export const imprimerieService = {
     return response.json();
   },
 
+  /** Récupère l'imprimerie gérée par un utilisateur (id du gérant, pas de l'imprimerie). */
+  getImprimerieByGerant: async (idGerant: string): Promise<ImprimerieDetail> => {
+    const response = await fetch(`${API_BASE_URL}/imprimeries/gerant/${idGerant}`);
+    if (!response.ok) throw new Error("Aucune imprimerie associée à ce compte.");
+    return response.json();
+  },
+
   updateImprimerie: async (id: string, dto: ImprimerieUpdateDTO): Promise<ImprimerieDetail> => {
     const response = await fetch(`${API_BASE_URL}/imprimeries/${id}`, {
       method: "PUT",

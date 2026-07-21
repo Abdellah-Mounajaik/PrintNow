@@ -32,6 +32,12 @@ public class ImprimerieController {
         return ResponseEntity.ok(imprimerieService.getImprimerieById(id));
     }
 
+    /** Récupère l'imprimerie du gérant connecté (dashboard imprimeur). */
+    @GetMapping("/gerant/{idGerant}")
+    public ResponseEntity<ImprimerieResponseDTO> getImprimerieByGerant(@PathVariable Long idGerant) {
+        return ResponseEntity.ok(imprimerieService.getImprimerieByGerantId(idGerant));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ImprimerieResponseDTO> updateImprimerie(@PathVariable Long id, @RequestBody ImprimerieRequestDTO dto) {
         return ResponseEntity.ok(imprimerieService.updateImprimerie(id, dto));

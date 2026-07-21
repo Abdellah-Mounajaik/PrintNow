@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import PrintShopCard, { type PrintShop } from "./PrintShopCard";
-import { partnerService } from "../../modules/shop/services/partner.service"; 
+import { partnerService } from "../../modules/shop/services/partner.service";
 import { toast } from "../../hooks/use-toast";
+import { resolveFileUrl } from "../../lib/utils";
 
 import { 
   SlidersHorizontal, 
@@ -126,7 +127,7 @@ const PrintShopsSection = () => {
             isOpen: status.isOpen, // 👈 Le badge sera Rouge ou Vert selon l'heure exacte
             openingHours: status.text, // 👈 Affichera "Fermé aujourd'hui" ou "8h - 19h"
             
-            image: shopApi.logoUrl || "https://images.unsplash.com/photo-1562240020-ce31ccb0fa7d?w=400&h=300&fit=crop", 
+            image: resolveFileUrl(shopApi.logoUrl) || "https://images.unsplash.com/photo-1562240020-ce31ccb0fa7d?w=400&h=300&fit=crop",
             
             services: servicesList, // 👈 Affichera "Documents", "Flyers", etc.
             

@@ -125,7 +125,7 @@ const DashboardImprimeur = () => {
 
   useEffect(() => {
     if (!user || !user.id) return;
-    imprimerieService.getImprimerieById(user.id.toString())
+    imprimerieService.getImprimerieByGerant(user.id.toString())
       .then(data => {
         setShop(data);
         setServicesState(initServicesFromProduits(data.produits || []));
@@ -149,7 +149,7 @@ const DashboardImprimeur = () => {
 
   const reloadShop = async () => {
     if (!user) return;
-    const updated = await imprimerieService.getImprimerieById(user.id.toString());
+    const updated = await imprimerieService.getImprimerieByGerant(user.id.toString());
     setShop(updated);
     return updated;
   };
