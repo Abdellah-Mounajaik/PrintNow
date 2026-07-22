@@ -1,14 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import PrintShopCard, { type PrintShop } from "./PrintShopCard";
+import PrintShopCard, { type PrintShop, type TravelTimeState } from "./PrintShopCard";
 import { partnerService } from "../../modules/shop/services/partner.service";
 import { toast } from "../../hooks/use-toast";
-import { resolveFileUrl, haversineDistanceKm } from "../../lib/utils";
+import {
+  resolveFileUrl,
+  haversineDistanceKm,
+  fetchDrivingDurationMin,
+  fetchWalkingDurationMin,
+} from "../../lib/utils";
 import ShopsMapDialog from "./ShopsMapDialog";
 
-import { 
-  SlidersHorizontal, 
+import {
+  SlidersHorizontal,
   MapPin,
   Clock,
   Zap,
@@ -53,6 +58,12 @@ const PrintShopsSection = () => {
   const [geoError, setGeoError] = useState<string | null>(null);
   const geoRequested = useRef(false);
 
+  // Temps de trajet réels (OSRM/Valhalla), chargés directement pour toutes les
+  // imprimeries dès que la position du client est connue.
+  const [walkTimes, setWalkTimes] = useState<Record<string, TravelTimeState>>({});
+  const [driveTimes, setDriveTimes] = useState<Record<string, TravelTimeState>>({});
+  const travelFetchedIds = useRef<Set<string>>(new Set());
+
   // ========================================================
   // 1. FONCTION : Statut Ouvert/Fermé en temps réel
   // ========================================================
@@ -76,14 +87,14 @@ const PrintShopsSection = () => {
     };
 
     const text = `${formatTime(todaySchedule.heureOuverture)} - ${formatTime(todaySchedule.heureFermeture)}`;
-    
+
     // Vérification de l'heure actuelle
     const currentTimeStr = now.toLocaleTimeString('fr-FR', { hour12: false });
     const isOpenNow = currentTimeStr >= todaySchedule.heureOuverture && currentTimeStr <= todaySchedule.heureFermeture;
 
-    return { 
-      isOpen: isOpenNow, 
-      text: isOpenNow ? text : `Fermé (Horaires : ${text})` 
+    return {
+      isOpen: isOpenNow,
+      text: isOpenNow ? text : `Fermé (Horaires : ${text})`
     };
   };
 
@@ -92,10 +103,10 @@ const PrintShopsSection = () => {
   // ========================================================
   const formatServices = (produits: any[]) => {
     if (!produits || produits.length === 0) return ["Standard"];
-    
+
     // Extraire les types de produits sans doublons
     const types = Array.from(new Set(produits.filter((p: any) => p.actif).map((p: any) => p.typeProduit)));
-    
+
     // Traduire le nom du backend pour l'affichage
     const traductions: Record<string, string> = {
       DOCUMENT: "Documents",
@@ -113,9 +124,9 @@ const PrintShopsSection = () => {
       try {
         setIsLoading(true);
         const dataBackend = await partnerService.getAllActive();
-        
+
         const formattedShops: PrintShop[] = dataBackend.map((shopApi: any) => {
-          
+
           // 👈 Appel de nos fonctions magiques ici
           const status = getShopStatus(shopApi.horaires);
           const servicesList = formatServices(shopApi.produits);
@@ -132,14 +143,14 @@ const PrintShopsSection = () => {
 
             isOpen: status.isOpen, // 👈 Le badge sera Rouge ou Vert selon l'heure exacte
             openingHours: status.text, // 👈 Affichera "Fermé aujourd'hui" ou "8h - 19h"
-            
+
             image: resolveFileUrl(shopApi.logoUrl) || "https://images.unsplash.com/photo-1562240020-ce31ccb0fa7d?w=400&h=300&fit=crop",
-            
+
             services: servicesList, // 👈 Affichera "Documents", "Flyers", etc.
-            
+
             hasExpressOption: !!shopApi.proposeExpress2h,
             hasDelivery: !!shopApi.livraisonActive, // 👈 Activera l'icône camion si coché !
-            hasStudentDiscount: !!shopApi.proposeTarifEtudiant,            
+            hasStudentDiscount: !!shopApi.proposeTarifEtudiant,
             priceRange: "€€"
           };
         });
@@ -177,6 +188,38 @@ const PrintShopsSection = () => {
     );
   }, [sortBy]);
 
+  // Charge le temps de trajet réel (marche + voiture) pour toutes les imprimeries
+  // dès que la position du client est connue.
+  useEffect(() => {
+    if (!userLocation) return;
+    const toFetch = shops.filter(
+      (s) => s.latitude != null && s.longitude != null && !travelFetchedIds.current.has(s.id)
+    );
+    if (toFetch.length === 0) return;
+    toFetch.forEach((s) => travelFetchedIds.current.add(s.id));
+
+    setWalkTimes((prev) => {
+      const next = { ...prev };
+      toFetch.forEach((s) => { next[s.id] = "loading"; });
+      return next;
+    });
+    setDriveTimes((prev) => {
+      const next = { ...prev };
+      toFetch.forEach((s) => { next[s.id] = "loading"; });
+      return next;
+    });
+
+    toFetch.forEach((shop) => {
+      const destination = { lat: shop.latitude as number, lng: shop.longitude as number };
+      fetchWalkingDurationMin(userLocation, destination).then((minutes) => {
+        setWalkTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
+      });
+      fetchDrivingDurationMin(userLocation, destination).then((minutes) => {
+        setDriveTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
+      });
+    });
+  }, [shops, userLocation]);
+
   // Calcule la distance réelle de chaque imprimerie par rapport au client
   const shopsWithDistance = shops.map((shop) => {
     if (userLocation && shop.latitude != null && shop.longitude != null) {
@@ -196,7 +239,7 @@ const PrintShopsSection = () => {
   });
 
   const toggleFilter = (filterId: string) => {
-    setSelectedFilters(prev => 
+    setSelectedFilters(prev =>
       prev.includes(filterId) ? prev.filter(f => f !== filterId) : [...prev, filterId]
     );
   };
@@ -242,7 +285,7 @@ const PrintShopsSection = () => {
                 <SelectItem value="price-desc">Prix décroissant</SelectItem>
               </SelectContent>
             </Select>
-            <ShopsMapDialog shops={shops} />
+            <ShopsMapDialog shops={sortedShops} userLocation={userLocation} />
             {sortBy === "distance" && geoError && (
               <span className="text-xs text-muted-foreground hidden md:inline">{geoError}</span>
             )}
@@ -287,7 +330,13 @@ const PrintShopsSection = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedShops.map((shop, index) => (
-              <PrintShopCard key={shop.id} shop={shop} index={index} />
+              <PrintShopCard
+                key={shop.id}
+                shop={shop}
+                index={index}
+                walkTime={walkTimes[shop.id]}
+                driveTime={driveTimes[shop.id]}
+              />
             ))}
           </div>
         )}

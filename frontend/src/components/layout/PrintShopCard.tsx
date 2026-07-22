@@ -1,18 +1,22 @@
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { 
-  MapPin, 
-  Clock, 
-  Star, 
-  Zap, 
-  GraduationCap, 
+import {
+  MapPin,
+  Clock,
+  Star,
+  Zap,
+  GraduationCap,
   Truck,
   FileText,
   Image,
-  CreditCard
+  CreditCard,
+  Footprints,
+  Car,
+  Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { formatDuration } from "../../lib/utils";
 
 export interface PrintShop {
   id: string;
@@ -34,14 +38,19 @@ export interface PrintShop {
   priceRange: string;
 }
 
+/** Temps de trajet réel (OSRM/Valhalla) : nombre de minutes, en cours de calcul, ou indisponible. */
+export type TravelTimeState = number | "loading" | "error";
+
 interface PrintShopCardProps {
   shop: PrintShop;
   index?: number;
+  walkTime?: TravelTimeState;
+  driveTime?: TravelTimeState;
 }
 
-const PrintShopCard = ({ shop, index = 0 }: PrintShopCardProps) => {
+const PrintShopCard = ({ shop, index = 0, walkTime, driveTime }: PrintShopCardProps) => {
   return (
-    <Card 
+    <Card
       className="group overflow-hidden hover-lift cursor-pointer border-border/50"
       style={{ animationDelay: `${index * 0.1}s` }}
     >
@@ -76,10 +85,27 @@ const PrintShopCard = ({ shop, index = 0 }: PrintShopCardProps) => {
             )}
           </div>
 
-          {/* Distance */}
-          <div className="absolute bottom-3 left-3 flex items-center gap-1 text-primary-foreground text-sm">
-            <MapPin className="h-4 w-4" />
-            {shop.distanceKm != null ? `${shop.distanceKm.toFixed(1)} km` : shop.distance}
+          {/* Distance + temps de trajet réel (OSRM/Valhalla) */}
+          <div className="absolute bottom-3 left-3 flex items-center gap-2 text-primary-foreground text-sm bg-foreground/40 backdrop-blur-sm rounded-full px-2.5 py-1">
+            <span className="flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              {shop.distanceKm != null ? `${shop.distanceKm.toFixed(1)} km` : shop.distance}
+            </span>
+            {(walkTime === "loading" || driveTime === "loading") && (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            )}
+            {typeof walkTime === "number" && (
+              <span className="flex items-center gap-1">
+                <Footprints className="h-3.5 w-3.5" />
+                {formatDuration(walkTime)}
+              </span>
+            )}
+            {typeof driveTime === "number" && (
+              <span className="flex items-center gap-1">
+                <Car className="h-3.5 w-3.5" />
+                {formatDuration(driveTime)}
+              </span>
+            )}
           </div>
 
           {/* Rating — affiché seulement s'il y a au moins un avis */}
