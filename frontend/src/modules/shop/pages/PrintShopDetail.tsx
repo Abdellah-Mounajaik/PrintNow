@@ -130,8 +130,8 @@ const PrintShopDetail = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute top-4 left-4">
-            <Button variant="secondary" size="sm" asChild>
-              <Link to="/"><ChevronLeft className="h-4 w-4 mr-1" /> Retour</Link>
+            <Button variant="secondary" size="sm" onClick={() => navigate(-1)}>
+              <ChevronLeft className="h-4 w-4 mr-1" /> Retour
             </Button>
           </div>
         </div>

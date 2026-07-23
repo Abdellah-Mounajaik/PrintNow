@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import PrintShopCard, { type PrintShop, type TravelTimeState } from "./PrintShopCard";
@@ -40,7 +41,6 @@ import { Search } from "lucide-react";
 const serviceFilters = [
   { id: "documents", label: "Documents", icon: FileText },
   { id: "flyers", label: "Flyers & Affiches", icon: ImageIcon },
-  { id: "photos", label: "Photos", icon: ImageIcon },
   { id: "cartes", label: "Cartes de visite", icon: CreditCard },
 ];
 
@@ -50,13 +50,42 @@ const optionFilters = [
   { id: "delivery", label: "Livraison", icon: Truck },
 ];
 
+// Mise en cache de la liste des imprimeries au niveau du module (survit au
+// démontage/remontage du composant lors d'une navigation) pour éviter de
+// rappeler le backend et de réafficher le spinner à chaque retour sur la page.
+let cachedShops: PrintShop[] | null = null;
+
 const PrintShopsSection = () => {
-  const [shops, setShops] = useState<PrintShop[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState("distance");
-  const [showOpenOnly, setShowOpenOnly] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [shops, setShops] = useState<PrintShop[]>(cachedShops ?? []);
+  const [isLoading, setIsLoading] = useState(!cachedShops);
+
+  // Filtres/tri/recherche stockés dans l'URL plutôt qu'en state local : ils
+  // survivent ainsi à la navigation vers une fiche imprimerie puis au retour.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") ?? "";
+  const sortBy = searchParams.get("sort") ?? "distance";
+  const showOpenOnly = searchParams.get("open") === "1";
+  const selectedFilters = searchParams.get("filters")?.split(",").filter(Boolean) ?? [];
+
+  const updateParam = (key: string, value: string | null) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (value === null || value === "") {
+          next.delete(key);
+        } else {
+          next.set(key, value);
+        }
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  const setSearchQuery = (value: string) => updateParam("q", value);
+  const setSortBy = (value: string) => updateParam("sort", value === "distance" ? null : value);
+  const setShowOpenOnly = (value: boolean) => updateParam("open", value ? "1" : null);
+
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const geoRequested = useRef(false);
@@ -123,6 +152,8 @@ const PrintShopsSection = () => {
 
   // === CHARGEMENT DES DONNÉES ===
   useEffect(() => {
+    if (cachedShops) return; // déjà chargées lors d'un précédent passage sur la page
+
     const fetchImprimeries = async () => {
       try {
         setIsLoading(true);
@@ -158,6 +189,7 @@ const PrintShopsSection = () => {
           };
         });
 
+        cachedShops = formattedShops;
         setShops(formattedShops);
       } catch (error) {
         console.error("Erreur backend:", error);
@@ -244,25 +276,59 @@ const PrintShopsSection = () => {
     return a.distanceKm - b.distanceKm;
   });
 
-  // Filtre par nom ou adresse selon le texte tapé dans la barre de recherche
+  // Filtre "Services" / "Options" du panneau de filtres
+  const matchesSelectedFilters = (shop: PrintShop) => {
+    if (showOpenOnly && !shop.isOpen) return false;
+    return selectedFilters.every((filterId) => {
+      switch (filterId) {
+        case "documents":
+          return shop.services.some((s) => s.toLowerCase().includes("document"));
+        case "flyers":
+          return shop.services.some(
+            (s) => s.toLowerCase().includes("flyer") || s.toLowerCase().includes("affiche")
+          );
+        case "cartes":
+          return shop.services.some((s) => s.toLowerCase().includes("carte"));
+        case "express":
+          return shop.hasExpressOption;
+        case "student":
+          return shop.hasStudentDiscount;
+        case "delivery":
+          return shop.hasDelivery;
+        default:
+          return true;
+      }
+    });
+  };
+
+  // Filtre par nom ou adresse selon le texte tapé dans la barre de recherche,
+  // combiné avec les filtres "Ouvert maintenant" / Services / Options
   const query = searchQuery.trim().toLowerCase();
-  const filteredShops = query
-    ? sortedShops.filter(
-        (shop) =>
-          shop.name.toLowerCase().includes(query) ||
-          shop.address.toLowerCase().includes(query)
-      )
-    : sortedShops;
+  const filteredShops = sortedShops.filter((shop) => {
+    const matchesQuery =
+      !query ||
+      shop.name.toLowerCase().includes(query) ||
+      shop.address.toLowerCase().includes(query);
+    return matchesQuery && matchesSelectedFilters(shop);
+  });
 
   const toggleFilter = (filterId: string) => {
-    setSelectedFilters(prev =>
-      prev.includes(filterId) ? prev.filter(f => f !== filterId) : [...prev, filterId]
-    );
+    const next = selectedFilters.includes(filterId)
+      ? selectedFilters.filter((f) => f !== filterId)
+      : [...selectedFilters, filterId];
+    updateParam("filters", next.join(","));
   };
 
   const clearFilters = () => {
-    setSelectedFilters([]);
-    setShowOpenOnly(false);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("filters");
+        next.delete("open");
+        return next;
+      },
+      { replace: true }
+    );
   };
 
   return (
@@ -335,11 +401,115 @@ const PrintShopsSection = () => {
                 <SheetHeader>
                   <SheetTitle className="font-display">Filtrer les imprimeries</SheetTitle>
                 </SheetHeader>
-                {/* ... Contenu du Sheet ... */}
+
+                <div className="mt-6 space-y-6">
+                  {/* Open Only */}
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <Checkbox
+                      id="open-only"
+                      checked={showOpenOnly}
+                      onCheckedChange={(checked) => setShowOpenOnly(checked === true)}
+                    />
+                    <Label htmlFor="open-only" className="flex items-center gap-2 cursor-pointer">
+                      <Clock className="h-4 w-4 text-success" />
+                      Ouvert maintenant
+                    </Label>
+                  </div>
+
+                  {/* Services */}
+                  <div>
+                    <h4 className="font-medium mb-3">Services</h4>
+                    <div className="space-y-2">
+                      {serviceFilters.map((filter) => (
+                        <div key={filter.id} className="flex items-center space-x-3">
+                          <Checkbox
+                            id={filter.id}
+                            checked={selectedFilters.includes(filter.id)}
+                            onCheckedChange={() => toggleFilter(filter.id)}
+                          />
+                          <Label htmlFor={filter.id} className="flex items-center gap-2 cursor-pointer">
+                            <filter.icon className="h-4 w-4 text-muted-foreground" />
+                            {filter.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Options */}
+                  <div>
+                    <h4 className="font-medium mb-3">Options</h4>
+                    <div className="space-y-2">
+                      {optionFilters.map((filter) => (
+                        <div key={filter.id} className="flex items-center space-x-3">
+                          <Checkbox
+                            id={filter.id}
+                            checked={selectedFilters.includes(filter.id)}
+                            onCheckedChange={() => toggleFilter(filter.id)}
+                          />
+                          <Label htmlFor={filter.id} className="flex items-center gap-2 cursor-pointer">
+                            <filter.icon className="h-4 w-4 text-muted-foreground" />
+                            {filter.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Clear Filters */}
+                  {(selectedFilters.length > 0 || showOpenOnly) && (
+                    <Button
+                      variant="ghost"
+                      className="w-full"
+                      onClick={clearFilters}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Effacer les filtres
+                    </Button>
+                  )}
+                </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
+
+        {/* Active Filters */}
+        {(selectedFilters.length > 0 || showOpenOnly) && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {showOpenOnly && (
+              <Badge variant="secondary" className="gap-1 pr-1">
+                <Clock className="h-3 w-3" />
+                Ouvert
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 p-0 hover:bg-transparent"
+                  onClick={() => setShowOpenOnly(false)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+            {selectedFilters.map((filterId) => {
+              const filter = [...serviceFilters, ...optionFilters].find((f) => f.id === filterId);
+              if (!filter) return null;
+              return (
+                <Badge key={filterId} variant="secondary" className="gap-1 pr-1">
+                  <filter.icon className="h-3 w-3" />
+                  {filter.label}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 p-0 hover:bg-transparent"
+                    onClick={() => toggleFilter(filterId)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              );
+            })}
+          </div>
+        )}
 
         {/* --- CONTENU PRINCIPAL --- */}
         {isLoading ? (
@@ -361,7 +531,11 @@ const PrintShopsSection = () => {
               <Search className="h-10 w-10 text-muted-foreground" />
             </div>
             <h3 className="text-xl font-bold mb-2">Aucun résultat</h3>
-            <p className="text-muted-foreground">Aucune imprimerie ne correspond à "{searchQuery}".</p>
+            <p className="text-muted-foreground">
+              {query
+                ? `Aucune imprimerie ne correspond à "${searchQuery}".`
+                : "Aucune imprimerie ne correspond à ces filtres."}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
