@@ -273,6 +273,7 @@ const DevenirPartenaire = () => {
   const [deliveryFee, setDeliveryFee] = useState("5.00");
   const [offersStudentDiscount, setOffersStudentDiscount] = useState(false);
   const [studentDiscountPct, setStudentDiscountPct] = useState("10");
+  const [rectoVersoDiscountPct, setRectoVersoDiscountPct] = useState("15");
 
   const enabledServicesCount = Object.values(services).filter((s) => s.enabled).length;
 
@@ -397,6 +398,7 @@ const DevenirPartenaire = () => {
         livraisonActive: offersDelivery,
         proposeTarifEtudiant: offersStudentDiscount,
         pourcentageRemiseEtudiant: offersStudentDiscount ? parseInt(studentDiscountPct) : undefined,
+        pourcentageRemiseRectoVerso: parseInt(rectoVersoDiscountPct) || 15,
         ville: ville,
         pays: pays,
       },
@@ -832,6 +834,20 @@ const DevenirPartenaire = () => {
                           <span className="text-sm text-muted-foreground">%</span>
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  <div className="p-4 border border-border rounded-lg">
+                    <div className="flex items-start gap-4">
+                      <Layers className="h-4 w-4 text-primary mt-1" />
+                      <div className="flex-1">
+                        <Label className="font-medium">Remise recto-verso</Label>
+                        <p className="text-sm text-muted-foreground mt-1">Réduction appliquée au coût d'impression quand le client choisit le recto-verso.</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input type="number" step="1" min="0" max="100" value={rectoVersoDiscountPct} onChange={(e) => setRectoVersoDiscountPct(e.target.value)} className="w-20 h-9" />
+                        <span className="text-sm text-muted-foreground">%</span>
+                      </div>
                     </div>
                   </div>
                 </div>
