@@ -64,6 +64,8 @@ const priceProductTypes = [
 // rappeler le backend et de réafficher le spinner à chaque retour sur la page.
 let cachedShops: PrintShop[] | null = null;
 
+const SHOPS_PER_PAGE = 9;
+
 const PrintShopsSection = () => {
   const [shops, setShops] = useState<PrintShop[]>(cachedShops ?? []);
   const [isLoading, setIsLoading] = useState(!cachedShops);
@@ -91,8 +93,11 @@ const PrintShopsSection = () => {
     );
   };
 
-  const setSearchQuery = (value: string) => updateParam("q", value);
-  const setShowOpenOnly = (value: boolean) => updateParam("open", value ? "1" : null);
+  const page = Math.max(1, Number(searchParams.get("page") ?? "1") || 1);
+  const setPage = (value: number) => updateParam("page", value > 1 ? String(value) : null);
+
+  const setSearchQuery = (value: string) => { updateParam("q", value); setPage(1); };
+  const setShowOpenOnly = (value: boolean) => { updateParam("open", value ? "1" : null); setPage(1); };
 
   // Change le tri, et nettoie le paramètre "type" (spécifique au tri par prix)
   // si on quitte ce mode, pour ne pas le laisser traîner inutilement dans l'URL.
@@ -108,6 +113,7 @@ const PrintShopsSection = () => {
         if (value !== "price-asc" && value !== "price-desc") {
           next.delete("type");
         }
+        next.delete("page");
         return next;
       },
       { replace: true }
@@ -116,11 +122,24 @@ const PrintShopsSection = () => {
 
   // Type de produit utilisé pour estimer un prix par imprimerie (tri par prix)
   const priceProductType = searchParams.get("type") ?? "";
-  const setPriceProductType = (value: string) => updateParam("type", value);
+  const setPriceProductType = (value: string) => { updateParam("type", value); setPage(1); };
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const geoRequested = useRef(false);
+
+  // Remonte en haut du catalogue à chaque changement de page (pas au premier
+  // rendu) : la hauteur de la grille varie selon le contenu des cartes, donc
+  // rester à la même position de défilement ferait atterrir ailleurs qu'attendu.
+  const catalogTopRef = useRef<HTMLDivElement>(null);
+  const isFirstPageRender = useRef(true);
+  useEffect(() => {
+    if (isFirstPageRender.current) {
+      isFirstPageRender.current = false;
+      return;
+    }
+    catalogTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [page]);
 
   // Temps de trajet réels (OSRM/Valhalla), chargés directement pour toutes les
   // imprimeries dès que la position du client est connue.
@@ -369,11 +388,21 @@ const PrintShopsSection = () => {
     return matchesQuery && matchesSelectedFilters(shop);
   });
 
+  // Pagination : la page demandée est ramenée dans les bornes valides si les
+  // filtres/recherche ont réduit le nombre de résultats entre-temps.
+  const totalPages = Math.max(1, Math.ceil(filteredShops.length / SHOPS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedShops = filteredShops.slice(
+    (currentPage - 1) * SHOPS_PER_PAGE,
+    currentPage * SHOPS_PER_PAGE
+  );
+
   const toggleFilter = (filterId: string) => {
     const next = selectedFilters.includes(filterId)
       ? selectedFilters.filter((f) => f !== filterId)
       : [...selectedFilters, filterId];
     updateParam("filters", next.join(","));
+    setPage(1);
   };
 
   const clearFilters = () => {
@@ -382,6 +411,7 @@ const PrintShopsSection = () => {
         const next = new URLSearchParams(prev);
         next.delete("filters");
         next.delete("open");
+        next.delete("page");
         return next;
       },
       { replace: true }
@@ -392,7 +422,7 @@ const PrintShopsSection = () => {
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div ref={catalogTopRef} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
               Imprimeries près de vous
@@ -611,18 +641,52 @@ const PrintShopsSection = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredShops.map((shop, index) => (
-              <PrintShopCard
-                key={shop.id}
-                shop={shop}
-                index={index}
-                walkTime={walkTimes[shop.id]}
-                driveTime={driveTimes[shop.id]}
-                estimatedPrice={getEstimatedPrice(shop)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedShops.map((shop, index) => (
+                <PrintShopCard
+                  key={shop.id}
+                  shop={shop}
+                  index={index}
+                  walkTime={walkTimes[shop.id]}
+                  driveTime={driveTimes[shop.id]}
+                  estimatedPrice={getEstimatedPrice(shop)}
+                />
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-10">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setPage(currentPage - 1)}
+                >
+                  Précédent
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                  <Button
+                    key={n}
+                    variant={n === currentPage ? "default" : "outline"}
+                    size="sm"
+                    className="w-9"
+                    onClick={() => setPage(n)}
+                  >
+                    {n}
+                  </Button>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setPage(currentPage + 1)}
+                >
+                  Suivant
+                </Button>
+              </div>
+            )}
+          </>
         )}
 
       </div>
