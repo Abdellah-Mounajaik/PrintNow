@@ -18,6 +18,14 @@ import {
 import { Link } from "react-router-dom";
 import { formatDuration } from "../../lib/utils";
 
+/** Produit actif d'une imprimerie, avec le nécessaire pour estimer un prix (voir tri par prix). */
+export interface PrintShopProduit {
+  typeProduit: string;
+  actif: boolean;
+  prixBase: number | null;
+  prixParPage: number | null;
+}
+
 export interface PrintShop {
   id: string;
   name: string;
@@ -32,10 +40,10 @@ export interface PrintShop {
   openingHours: string;
   image: string;
   services: string[];
+  produits: PrintShopProduit[];
   hasExpressOption: boolean;
   hasStudentDiscount: boolean;
   hasDelivery: boolean;
-  priceRange: string;
 }
 
 /** Temps de trajet réel (OSRM/Valhalla) : nombre de minutes, en cours de calcul, ou indisponible. */
@@ -46,9 +54,11 @@ interface PrintShopCardProps {
   index?: number;
   walkTime?: TravelTimeState;
   driveTime?: TravelTimeState;
+  /** Prix de départ estimé, calculé à partir des produits actifs de l'imprimerie. */
+  estimatedPrice: number | null;
 }
 
-const PrintShopCard = ({ shop, index = 0, walkTime, driveTime }: PrintShopCardProps) => {
+const PrintShopCard = ({ shop, index = 0, walkTime, driveTime, estimatedPrice }: PrintShopCardProps) => {
   return (
     <Card
       className="group overflow-hidden hover-lift cursor-pointer border-border/50"
@@ -164,7 +174,7 @@ const PrintShopCard = ({ shop, index = 0, walkTime, driveTime }: PrintShopCardPr
               )}
             </div>
             <span className="text-sm font-medium text-foreground">
-              {shop.priceRange}
+              {estimatedPrice != null ? `à partir de ${estimatedPrice.toFixed(2)} €` : "Prix indisponible"}
             </span>
           </div>
         </CardContent>

@@ -50,6 +50,15 @@ const optionFilters = [
   { id: "delivery", label: "Livraison", icon: Truck },
 ];
 
+// Types de produits utilisables pour le tri par prix (correspond à l'enum
+// TypeProduit du backend)
+const priceProductTypes = [
+  { id: "DOCUMENT", label: "Documents" },
+  { id: "FLYER", label: "Flyers" },
+  { id: "CARTE_VISITE", label: "Cartes de visite" },
+  { id: "POSTER", label: "Affiches" },
+];
+
 // Mise en cache de la liste des imprimeries au niveau du module (survit au
 // démontage/remontage du composant lors d'une navigation) pour éviter de
 // rappeler le backend et de réafficher le spinner à chaque retour sur la page.
@@ -83,8 +92,31 @@ const PrintShopsSection = () => {
   };
 
   const setSearchQuery = (value: string) => updateParam("q", value);
-  const setSortBy = (value: string) => updateParam("sort", value === "distance" ? null : value);
   const setShowOpenOnly = (value: boolean) => updateParam("open", value ? "1" : null);
+
+  // Change le tri, et nettoie le paramètre "type" (spécifique au tri par prix)
+  // si on quitte ce mode, pour ne pas le laisser traîner inutilement dans l'URL.
+  const setSortBy = (value: string) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (value === "distance") {
+          next.delete("sort");
+        } else {
+          next.set("sort", value);
+        }
+        if (value !== "price-asc" && value !== "price-desc") {
+          next.delete("type");
+        }
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  // Type de produit utilisé pour estimer un prix par imprimerie (tri par prix)
+  const priceProductType = searchParams.get("type") ?? "";
+  const setPriceProductType = (value: string) => updateParam("type", value);
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -182,10 +214,16 @@ const PrintShopsSection = () => {
 
             services: servicesList, // 👈 Affichera "Documents", "Flyers", etc.
 
+            produits: (shopApi.produits || []).map((p: any) => ({
+              typeProduit: p.typeProduit,
+              actif: !!p.actif,
+              prixBase: p.prixBase ?? null,
+              prixParPage: p.prixParPage ?? null,
+            })),
+
             hasExpressOption: !!shopApi.proposeExpress2h,
             hasDelivery: !!shopApi.livraisonActive, // 👈 Activera l'icône camion si coché !
             hasStudentDiscount: !!shopApi.proposeTarifEtudiant,
-            priceRange: "€€"
           };
         });
 
@@ -264,9 +302,29 @@ const PrintShopsSection = () => {
     return shop;
   });
 
+  // Estime le prix d'une imprimerie : le prix de départ le plus bas parmi les
+  // produits actifs correspondant au type choisi (tous formats confondus), ou
+  // parmi tous ses produits actifs si aucun type n'est choisi.
+  const getEstimatedPrice = (shop: PrintShop): number | null => {
+    const actifs = shop.produits.filter(
+      (p) => p.actif && p.prixBase != null && (!priceProductType || p.typeProduit === priceProductType)
+    );
+    if (actifs.length === 0) return null;
+    return Math.min(...actifs.map((p) => p.prixBase as number));
+  };
+
   const sortedShops = [...shopsWithDistance].sort((a, b) => {
     if (sortBy === "rating") {
       return b.rating - a.rating;
+    }
+    if (sortBy === "price-asc" || sortBy === "price-desc") {
+      const priceA = getEstimatedPrice(a);
+      const priceB = getEstimatedPrice(b);
+      // Les imprimeries sans prix estimable passent en dernier plutôt que de casser le tri
+      if (priceA == null && priceB == null) return 0;
+      if (priceA == null) return 1;
+      if (priceB == null) return -1;
+      return sortBy === "price-asc" ? priceA - priceB : priceB - priceA;
     }
     if (sortBy !== "distance") return 0;
     // Les imprimeries sans coordonnées connues passent en dernier plutôt que de casser le tri
@@ -379,6 +437,22 @@ const PrintShopsSection = () => {
                 <SelectItem value="price-desc">Prix décroissant</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Type de produit, pour estimer un prix plus précis lors du tri par prix */}
+            {(sortBy === "price-asc" || sortBy === "price-desc") && (
+              <Select value={priceProductType || "any"} onValueChange={(v) => setPriceProductType(v === "any" ? "" : v)}>
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue placeholder="Type de produit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Prix de départ (tous produits)</SelectItem>
+                  {priceProductTypes.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
             <ShopsMapDialog shops={filteredShops} userLocation={userLocation} />
             {sortBy === "distance" && geoError && (
               <span className="text-xs text-muted-foreground hidden md:inline">{geoError}</span>
@@ -546,6 +620,7 @@ const PrintShopsSection = () => {
                 index={index}
                 walkTime={walkTimes[shop.id]}
                 driveTime={driveTimes[shop.id]}
+                estimatedPrice={getEstimatedPrice(shop)}
               />
             ))}
           </div>
