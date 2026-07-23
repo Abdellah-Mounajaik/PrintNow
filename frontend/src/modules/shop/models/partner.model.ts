@@ -44,8 +44,9 @@ export interface ProduitRequestDTO {
   typeProduit: TypeProduit;
   formatImpression: FormatImpression;
   prixBase: number;
-  prixParPage: number;
-  
+  /** Uniquement pertinent pour les DOCUMENT (photocopies) : N&B ou Couleur */
+  couleur?: boolean;
+
   // NOUVEAUX CHAMPS POUR LES OPTIONS DE FINITION
   proposePlastification?: boolean;
   prixPlastification?: number | null;
@@ -78,6 +79,7 @@ export interface ImprimerieRequestDTO {
   pourcentageRemiseEtudiant?: number;
   proposeExpress2h: boolean;
   prixExpress2h?: number;
+  pourcentageRemiseRectoVerso?: number;
 }
 
 export interface PartnerRegistrationRequest {

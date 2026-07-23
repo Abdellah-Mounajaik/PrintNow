@@ -36,20 +36,36 @@ const DEFAULT_REL_PRICES = {
 
 // ─── Initialise l'état des services depuis les produits existants ─────────────
 const initServicesFromProduits = (produits: any[]) => {
+  // Correspondance exacte (type + format + couleur) pour les produits déjà
+  // migrés vers le vrai champ couleur.
   const grouped: Record<string, any[]> = {};
+  // Repli pour les anciens produits créés avant l'ajout du champ couleur
+  // (couleur = null) : on les regroupe par type + format et on les départage
+  // par prix croissant, comme avant.
+  const groupedLegacy: Record<string, any[]> = {};
   for (const p of produits) {
-    const key = `${p.typeProduit}_${p.formatImpression}`;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(p);
+    const exactKey = `${p.typeProduit}_${p.formatImpression}_${!!p.couleur}`;
+    if (!grouped[exactKey]) grouped[exactKey] = [];
+    grouped[exactKey].push(p);
+
+    if (p.couleur == null) {
+      const legacyKey = `${p.typeProduit}_${p.formatImpression}`;
+      if (!groupedLegacy[legacyKey]) groupedLegacy[legacyKey] = [];
+      groupedLegacy[legacyKey].push(p);
+    }
   }
-  for (const k of Object.keys(grouped)) {
-    grouped[k].sort((a: any, b: any) => a.prixBase - b.prixBase);
+  for (const k of Object.keys(groupedLegacy)) {
+    groupedLegacy[k].sort((a: any, b: any) => a.prixBase - b.prixBase);
   }
   const claimedIds = new Set<number>();
 
   return Object.fromEntries(SERVICES.map((s) => {
-    const key = `${s.typeProduit}_${s.formatImpression}`;
-    const match = (grouped[key] || []).find((p: any) => !claimedIds.has(p.id));
+    const exactKey = `${s.typeProduit}_${s.formatImpression}_${!!s.couleur}`;
+    let match = (grouped[exactKey] || []).find((p: any) => !claimedIds.has(p.id));
+    if (!match) {
+      const legacyKey = `${s.typeProduit}_${s.formatImpression}`;
+      match = (groupedLegacy[legacyKey] || []).find((p: any) => !claimedIds.has(p.id));
+    }
     if (match) claimedIds.add(match.id);
 
     const prixParTypePlastification = { ...DEFAULT_PLAST_PRICES };
@@ -204,7 +220,7 @@ const DashboardImprimeur = () => {
           typeProduit: s.typeProduit,
           formatImpression: s.formatImpression,
           prixBase: parseFloat(state.price) || 0,
-          prixParPage: 0,
+          couleur: s.couleur,
           proposePlastification: canPlastify && state.proposePlastification && Object.keys(parsedPlastif).length > 0,
           prixParTypePlastification: Object.keys(parsedPlastif).length > 0 ? parsedPlastif : null,
           proposeReliure: isDocument && state.proposeReliure && Object.keys(parsedReliure).length > 0,
@@ -252,6 +268,7 @@ const DashboardImprimeur = () => {
     prixLivraison: shop?.prixLivraison,
     proposeTarifEtudiant: shop?.proposeTarifEtudiant,
     pourcentageRemiseEtudiant: shop?.pourcentageRemiseEtudiant,
+    pourcentageRemiseRectoVerso: shop?.pourcentageRemiseRectoVerso,
     ...overrides,
   });
 
@@ -303,6 +320,17 @@ const DashboardImprimeur = () => {
       const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ prixLivraison: prix }));
       setShop(updated);
       toast({ title: "Prix de livraison mis à jour" });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
+    }
+  };
+
+  const handleUpdatePourcentageRectoVerso = async (pourcentage: number) => {
+    if (!user || !shop || isNaN(pourcentage)) return;
+    try {
+      const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ pourcentageRemiseRectoVerso: pourcentage }));
+      setShop(updated);
+      toast({ title: "Remise recto-verso mise à jour" });
     } catch {
       toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
     }
@@ -1002,6 +1030,26 @@ const DashboardImprimeur = () => {
                       <span className="text-sm text-muted-foreground">€</span>
                     </div>
                   )}
+                </div>
+
+                <div className="p-4 border border-border rounded-lg bg-background space-y-3">
+                  <div>
+                    <Label className="font-semibold flex items-center gap-2"><Layers className="h-4 w-4 text-primary" /> Remise recto-verso</Label>
+                    <p className="text-sm text-muted-foreground mt-1">Réduction appliquée au coût d'impression quand le client choisit le recto-verso.</p>
+                  </div>
+                  <div className="flex items-center gap-2 pt-2 border-t border-border">
+                    <Label className="text-sm text-muted-foreground">Remise :</Label>
+                    <Input
+                      type="number"
+                      defaultValue={shop.pourcentageRemiseRectoVerso ?? 15}
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="w-24 h-8"
+                      onBlur={(e) => handleUpdatePourcentageRectoVerso(parseInt(e.target.value))}
+                    />
+                    <span className="text-sm text-muted-foreground">%</span>
+                  </div>
                 </div>
               </Card>
             </TabsContent>

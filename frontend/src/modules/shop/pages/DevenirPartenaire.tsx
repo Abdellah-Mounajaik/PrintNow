@@ -358,8 +358,8 @@ const DevenirPartenaire = () => {
           typeProduit: serviceInfo!.typeProduit,
           formatImpression: serviceInfo!.formatImpression,
           prixBase: parseFloat(state.price),
-          prixParPage: 0,
-          
+          couleur: serviceInfo!.couleur,
+
           proposePlastification: canBePlastified && state.proposePlastification && hasAnyPlastif,
           prixParTypePlastification: (canBePlastified && state.proposePlastification && hasAnyPlastif) ? parsedPlastif : null,
           

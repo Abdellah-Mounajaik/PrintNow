@@ -15,7 +15,7 @@ public class ProduitRequestDTO {
     private TypeProduit typeProduit;
     private FormatImpression formatImpression;
     private Double prixBase;
-    private Double prixParPage;
+    private Boolean couleur;
 
     // ==========================================
     // NOUVEAUX CHAMPS PLASTIFICATION

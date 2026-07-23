@@ -11,7 +11,8 @@ export interface Produit {
   typeProduit: string;
   formatImpression: string;
   prixBase: number;
-  prixParPage: number;
+  /** Uniquement pertinent pour les DOCUMENT (photocopies) : N&B ou Couleur */
+  couleur?: boolean;
   actif?: boolean;
   proposePlastification?: boolean;
   prixParTypePlastification?: Record<string, number>;
@@ -34,7 +35,8 @@ export interface ImprimerieDetail {
   proposeExpress2h: boolean;
   prixExpress2h?: number;
   accepteEtudiants: boolean;
-  pourcentageRemiseEtudiant?: number;  
+  pourcentageRemiseEtudiant?: number;
+  pourcentageRemiseRectoVerso?: number;
   livraisonActive: boolean;
   prixLivraison?: number;
   actif: boolean;

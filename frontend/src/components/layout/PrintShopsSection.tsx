@@ -218,7 +218,6 @@ const PrintShopsSection = () => {
               typeProduit: p.typeProduit,
               actif: !!p.actif,
               prixBase: p.prixBase ?? null,
-              prixParPage: p.prixParPage ?? null,
             })),
 
             hasExpressOption: !!shopApi.proposeExpress2h,

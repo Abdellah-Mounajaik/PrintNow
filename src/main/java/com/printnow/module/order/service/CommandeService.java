@@ -131,11 +131,19 @@ public class CommandeService {
                     .orElseThrow(() -> new RuntimeException("Produit non trouvé ID: " + item.getProduitId()));
             
             BigDecimal prixBase = BigDecimal.valueOf(produit.getPrixBase() != null ? produit.getPrixBase() : 0.0);
-            BigDecimal prixPage = BigDecimal.valueOf(produit.getPrixParPage() != null ? produit.getPrixParPage() : 0.0);
-            
-            // Calcul du prix unitaire : (Prix de base + Prix par page) * Nombre de pages
+
+            // Calcul du prix unitaire : Prix de base * Nombre de pages
             BigDecimal nbPages = BigDecimal.valueOf(item.getNbPages() != null && item.getNbPages() > 0 ? item.getNbPages() : 1);
-            BigDecimal prixU = prixBase.add(prixPage).multiply(nbPages);
+            BigDecimal prixU = prixBase.multiply(nbPages);
+
+            // Remise recto-verso (configurée par l'imprimerie, 15% par défaut) : ne
+            // s'applique qu'au coût d'impression, pas à la reliure/finition ci-dessous.
+            if (Boolean.TRUE.equals(item.getRectoVerso())) {
+                Integer pourcentageRV = produit.getImprimerie().getPourcentageRemiseRectoVerso();
+                BigDecimal tauxRV = BigDecimal.valueOf(pourcentageRV != null ? pourcentageRV : 15);
+                BigDecimal remiseRV = prixU.multiply(tauxRV).divide(new BigDecimal("100"));
+                prixU = prixU.subtract(remiseRV).max(BigDecimal.ZERO);
+            }
 
             // Ajout du prix de la Reliure
             if (item.getReliure() != null && !item.getReliure().equals("AUCUNE") && produit.getPrixParTypeReliure() != null) {

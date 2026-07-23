@@ -21,7 +21,6 @@ interface TabItem {
   label: string;
   format: string;
   prixBase: number;
-  prixParPage: number;
 }
 
 const PrintShopDetail = () => {
@@ -62,27 +61,27 @@ const PrintShopDetail = () => {
 
   // 1. DOCUMENTS
   const documentsItems: TabItem[] = [];
-  const nbA4 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A4" && p.prixBase <= 0.20);
-  const coulA4 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A4" && p.prixBase > 0.20);
-  const nbA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && p.prixBase <= 0.65);
-  const coulA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && p.prixBase > 0.65);
+  const nbA4 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A4" && !p.couleur);
+  const coulA4 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A4" && p.couleur);
+  const nbA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && !p.couleur);
+  const coulA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && p.couleur);
 
-  if (nbA4) documentsItems.push({ label: "N&B A4", format: "Papier 80g", prixBase: nbA4.prixBase, prixParPage: nbA4.prixParPage });
-  if (coulA4) documentsItems.push({ label: "Couleur A4", format: "Papier 80g", prixBase: coulA4.prixBase, prixParPage: coulA4.prixParPage });
-  if (nbA3) documentsItems.push({ label: "N&B A3", format: "Papier 80g", prixBase: nbA3.prixBase, prixParPage: nbA3.prixParPage });
-  if (coulA3) documentsItems.push({ label: "Couleur A3", format: "Papier 80g", prixBase: coulA3.prixBase, prixParPage: coulA3.prixParPage });
+  if (nbA4) documentsItems.push({ label: "N&B A4", format: "Papier 80g", prixBase: nbA4.prixBase });
+  if (coulA4) documentsItems.push({ label: "Couleur A4", format: "Papier 80g", prixBase: coulA4.prixBase });
+  if (nbA3) documentsItems.push({ label: "N&B A3", format: "Papier 80g", prixBase: nbA3.prixBase });
+  if (coulA3) documentsItems.push({ label: "Couleur A3", format: "Papier 80g", prixBase: coulA3.prixBase });
 
   // 2. FLYERS & AFFICHES
   const flyersItems: TabItem[] = [];
   const flyer = produitsActifs.find(p => p.typeProduit === "FLYER");
   const poster = produitsActifs.find(p => p.typeProduit === "POSTER");
-  if (flyer) flyersItems.push({ label: "Flyers / Dépliants", format: flyer.formatImpression, prixBase: flyer.prixBase, prixParPage: flyer.prixParPage });
-  if (poster) flyersItems.push({ label: "Affiches grand format", format: poster.formatImpression, prixBase: poster.prixBase, prixParPage: poster.prixParPage });
+  if (flyer) flyersItems.push({ label: "Flyers / Dépliants", format: flyer.formatImpression, prixBase: flyer.prixBase });
+  if (poster) flyersItems.push({ label: "Affiches grand format", format: poster.formatImpression, prixBase: poster.prixBase });
 
   // 3. CARTES DE VISITE
   const cartesItems: TabItem[] = [];
   const carte = produitsActifs.find(p => p.typeProduit === "CARTE_VISITE");
-  if (carte) cartesItems.push({ label: "Cartes de visite", format: "Standard", prixBase: carte.prixBase, prixParPage: carte.prixParPage });
+  if (carte) cartesItems.push({ label: "Cartes de visite", format: "Standard", prixBase: carte.prixBase });
 
   // 4. RELIURE ET PLASTIFICATION (ANTI-DOUBLONS)
   const reliureItems: TabItem[] = [];
@@ -92,7 +91,7 @@ const PrintShopDetail = () => {
         if (type !== "AUCUNE" && prix != null) {
           const labelStr = "Reliure " + formatEnumName(type);
           if (!reliureItems.some(item => item.label === labelStr)) {
-            reliureItems.push({ label: labelStr, format: "Par document", prixBase: Number(prix), prixParPage: 0 });
+            reliureItems.push({ label: labelStr, format: "Par document", prixBase: Number(prix) });
           }
         }
       });
@@ -102,7 +101,7 @@ const PrintShopDetail = () => {
         if (type !== "AUCUNE" && prix != null) {
           const labelStr = "Plastification " + formatEnumName(type);
           if (!reliureItems.some(item => item.label === labelStr)) {
-            reliureItems.push({ label: labelStr, format: "Par page", prixBase: Number(prix), prixParPage: 0 });
+            reliureItems.push({ label: labelStr, format: "Par page", prixBase: Number(prix) });
           }
         }
       });
@@ -206,13 +205,8 @@ const PrintShopDetail = () => {
                                   <div className="text-xs text-muted-foreground max-w-[200px]">{item.format}</div>
                                 </div>
                                 <div className="text-right font-bold text-primary whitespace-nowrap ml-2">
-                                  {item.prixBase.toFixed(2)}€ 
+                                  {item.prixBase.toFixed(2)}€
                                   <span className="text-[10px] font-normal text-muted-foreground block">/ unité</span>
-                                  {item.prixParPage > 0 && (
-                                    <span className="text-[10px] font-normal text-muted-foreground block text-xs">
-                                      + {item.prixParPage.toFixed(2)}€ / page
-                                    </span>
-                                  )}
                                 </div>
                               </div>
                             ))}

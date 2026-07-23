@@ -23,7 +23,6 @@ export interface PrintShopProduit {
   typeProduit: string;
   actif: boolean;
   prixBase: number | null;
-  prixParPage: number | null;
 }
 
 export interface PrintShop {

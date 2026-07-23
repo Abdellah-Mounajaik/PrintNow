@@ -34,8 +34,8 @@ public class Produit {
     @Column(name = "prix_base")
     private Double prixBase;
 
-    @Column(name = "prix_par_page")
-    private Double prixParPage;
+    // Uniquement pertinent pour les DOCUMENT (photocopies) : distingue N&B / Couleur
+    private Boolean couleur;
 
     // ==========================================
     // OPTIONS DE PLASTIFICATION (Map : Type -> Prix)

@@ -251,11 +251,9 @@ const Order = () => {
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   };
 
-  const getProductLabel = (p: { typeProduit: string; formatImpression: string; prixBase: number }): string => {
+  const getProductLabel = (p: { typeProduit: string; formatImpression: string; couleur?: boolean }): string => {
     if (p.typeProduit === "DOCUMENT") {
-      const nbThreshold: Record<string, number> = { A4: 0.20, A3: 0.65 };
-      const t = nbThreshold[p.formatImpression];
-      if (t !== undefined) return `${p.prixBase <= t ? "N&B" : "Couleur"} ${p.formatImpression}`;
+      return `${p.couleur ? "Couleur" : "N&B"} ${p.formatImpression}`;
     }
     if (p.typeProduit === "CARTE_VISITE") return "Cartes de visite";
     if (p.typeProduit === "FLYER") return "Flyers / Dépliants";
@@ -325,7 +323,11 @@ const Order = () => {
     const product = shop.produits.find(p => p.id === f.options.productId);
     if (!product) return 0;
 
-    let unitPrice = (product.prixBase + product.prixParPage) * f.pageCount;
+    let unitPrice = product.prixBase * f.pageCount;
+    if (f.options.recto === "rectoverso") {
+      const tauxRV = shop.pourcentageRemiseRectoVerso ?? 15;
+      unitPrice = Math.max(0, unitPrice - unitPrice * (tauxRV / 100));
+    }
     if (f.options.binding !== "AUCUNE" && product.prixParTypeReliure) {
       unitPrice += Number(product.prixParTypeReliure[f.options.binding] || 0);
     }
@@ -432,7 +434,7 @@ const Order = () => {
         produitId: f.options.productId,
         quantite: f.options.copies,
         nbPages: f.pageCount,
-        couleur: false,
+        couleur: !!shop?.produits?.find(p => p.id === f.options.productId)?.couleur,
         rectoVerso: f.options.recto === "rectoverso",
         reliure: f.options.binding || "AUCUNE",
         finition: f.options.finish || "AUCUNE",
@@ -583,7 +585,7 @@ const Order = () => {
                             {activeProducts.map((p) => (
                               <SelectItem key={p.id} value={p.id.toString()}>
                                 {getProductLabel(p)}{" "}
-                                <span className="text-muted-foreground ml-2">({(p.prixBase + p.prixParPage).toFixed(2)}€/page)</span>
+                                <span className="text-muted-foreground ml-2">({p.prixBase.toFixed(2)}€/page)</span>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -595,7 +597,7 @@ const Order = () => {
                           <Label className="text-sm">Mise en page</Label>
                           <RadioGroup value={uploadedFile.options.recto} onValueChange={(v) => updateFileOption(index, "recto", v as "recto" | "rectoverso")} className="flex gap-4">
                             <div className="flex items-center space-x-2"><RadioGroupItem value="recto" id={`recto-${index}`} /><Label htmlFor={`recto-${index}`} className="cursor-pointer">Recto</Label></div>
-                            <div className="flex items-center space-x-2"><RadioGroupItem value="rectoverso" id={`rv-${index}`} /><Label htmlFor={`rv-${index}`} className="cursor-pointer">Recto-Verso (-15%)</Label></div>
+                            <div className="flex items-center space-x-2"><RadioGroupItem value="rectoverso" id={`rv-${index}`} /><Label htmlFor={`rv-${index}`} className="cursor-pointer">Recto-Verso (-{shop?.pourcentageRemiseRectoVerso ?? 15}%)</Label></div>
                           </RadioGroup>
                         </div>
                         <div className="space-y-2">

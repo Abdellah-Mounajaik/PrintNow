@@ -68,6 +68,9 @@ public class Imprimerie {
     @Column(name = "pourcentage_remise_etudiant")
     private Integer pourcentageRemiseEtudiant;
 
+    @Column(name = "pourcentage_remise_recto_verso")
+    private Integer pourcentageRemiseRectoVerso;
+
     @Column(columnDefinition = "boolean default false")
     private Boolean actif = false;;
     @OneToMany(mappedBy = "imprimerie", fetch = FetchType.LAZY)
