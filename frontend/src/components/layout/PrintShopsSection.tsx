@@ -230,6 +230,9 @@ const PrintShopsSection = () => {
   });
 
   const sortedShops = [...shopsWithDistance].sort((a, b) => {
+    if (sortBy === "rating") {
+      return b.rating - a.rating;
+    }
     if (sortBy !== "distance") return 0;
     // Les imprimeries sans coordonnées connues passent en dernier plutôt que de casser le tri
     if (a.distanceKm == null && b.distanceKm == null) return 0;
