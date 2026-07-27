@@ -131,13 +131,14 @@ const PrintShopsSection = () => {
   // Remonte en haut du catalogue à chaque changement de page (pas au premier
   // rendu) : la hauteur de la grille varie selon le contenu des cartes, donc
   // rester à la même position de défilement ferait atterrir ailleurs qu'attendu.
+  // On compare à la valeur précédente (pas un simple booléen "premier rendu")
+  // car React StrictMode exécute cet effet deux fois au montage en dev, ce qui
+  // ferait déclencher le scroll dès le chargement initial avec un booléen.
   const catalogTopRef = useRef<HTMLDivElement>(null);
-  const isFirstPageRender = useRef(true);
+  const previousPageRef = useRef(page);
   useEffect(() => {
-    if (isFirstPageRender.current) {
-      isFirstPageRender.current = false;
-      return;
-    }
+    if (previousPageRef.current === page) return;
+    previousPageRef.current = page;
     catalogTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [page]);
 
@@ -419,7 +420,7 @@ const PrintShopsSection = () => {
   };
 
   return (
-    <section className="py-16 bg-background">
+    <section id="imprimeries" className="py-16 bg-background">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div ref={catalogTopRef} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">

@@ -45,12 +45,18 @@ const Header = () => {
   const isHome = location.pathname === "/";
 
   useEffect(() => {
+    // Sur l'accueil, la navbar ne devient opaque qu'une fois la bannière
+    // dépassée (pas après 50px), pour ne pas casser l'effet "transparente sur
+    // fond bleu" en plein milieu de la bannière.
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      const heroHeight = isHome ? document.getElementById("hero")?.offsetHeight ?? 0 : 0;
+      const threshold = isHome ? Math.max(heroHeight - 80, 50) : 50;
+      setIsScrolled(window.scrollY > threshold);
     };
+    handleScroll();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isHome]);
 
   const handleLogout = () => {
     logoutGlobal();
