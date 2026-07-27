@@ -312,6 +312,11 @@ const Order = () => {
         if (key === "productId") {
           updatedOptions.binding = "AUCUNE";
           updatedOptions.finish = "AUCUNE";
+          // Le recto-verso n'a aucun sens pour une affiche (personne ne voit le verso)
+          const newProduct = activeProducts.find((p) => p.id === value);
+          if (newProduct?.typeProduit === "POSTER") {
+            updatedOptions.recto = "recto";
+          }
         }
         return { ...f, options: updatedOptions };
       })
@@ -592,14 +597,16 @@ const Order = () => {
                         </Select>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                          <Label className="text-sm">Mise en page</Label>
-                          <RadioGroup value={uploadedFile.options.recto} onValueChange={(v) => updateFileOption(index, "recto", v as "recto" | "rectoverso")} className="flex gap-4">
-                            <div className="flex items-center space-x-2"><RadioGroupItem value="recto" id={`recto-${index}`} /><Label htmlFor={`recto-${index}`} className="cursor-pointer">Recto</Label></div>
-                            <div className="flex items-center space-x-2"><RadioGroupItem value="rectoverso" id={`rv-${index}`} /><Label htmlFor={`rv-${index}`} className="cursor-pointer">Recto-Verso (-{shop?.pourcentageRemiseRectoVerso ?? 15}%)</Label></div>
-                          </RadioGroup>
-                        </div>
+                      <div className={`grid gap-4 ${selectedProduct?.typeProduit === "POSTER" ? "grid-cols-1" : "grid-cols-2"}`}>
+                        {selectedProduct?.typeProduit !== "POSTER" && (
+                          <div className="space-y-3">
+                            <Label className="text-sm">Mise en page</Label>
+                            <RadioGroup value={uploadedFile.options.recto} onValueChange={(v) => updateFileOption(index, "recto", v as "recto" | "rectoverso")} className="flex gap-4">
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="recto" id={`recto-${index}`} /><Label htmlFor={`recto-${index}`} className="cursor-pointer">Recto</Label></div>
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="rectoverso" id={`rv-${index}`} /><Label htmlFor={`rv-${index}`} className="cursor-pointer">Recto-Verso (-{shop?.pourcentageRemiseRectoVerso ?? 15}%)</Label></div>
+                            </RadioGroup>
+                          </div>
+                        )}
                         <div className="space-y-2">
                           <Label className="text-sm">Copies du fichier</Label>
                           <Input type="number" min={1} value={uploadedFile.options.copies} onChange={(e) => updateFileOption(index, "copies", Math.max(1, parseInt(e.target.value) || 1))} />

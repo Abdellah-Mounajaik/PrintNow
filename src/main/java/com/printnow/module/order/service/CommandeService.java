@@ -16,6 +16,7 @@ import com.printnow.module.promo.model.CodePromo;
 import com.printnow.module.etudiant.enums.StatutEtudiant;
 import com.printnow.module.etudiant.repository.VerificationEtudiantRepository;
 import com.printnow.module.promo.service.CodePromoService;
+import com.printnow.module.shop.enums.TypeProduit;
 import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.model.Produit;
 import com.printnow.module.shop.repository.ProduitRepository;
@@ -136,9 +137,15 @@ public class CommandeService {
             BigDecimal nbPages = BigDecimal.valueOf(item.getNbPages() != null && item.getNbPages() > 0 ? item.getNbPages() : 1);
             BigDecimal prixU = prixBase.multiply(nbPages);
 
+            // Le recto-verso n'a aucun sens pour une affiche (personne ne voit le verso) :
+            // on l'ignore côté serveur quel que soit ce qu'envoie le client, pour ne pas
+            // dépendre uniquement de la restriction faite côté frontend.
+            boolean rectoVerso = Boolean.TRUE.equals(item.getRectoVerso())
+                    && produit.getTypeProduit() != TypeProduit.POSTER;
+
             // Remise recto-verso (configurée par l'imprimerie, 15% par défaut) : ne
             // s'applique qu'au coût d'impression, pas à la reliure/finition ci-dessous.
-            if (Boolean.TRUE.equals(item.getRectoVerso())) {
+            if (rectoVerso) {
                 Integer pourcentageRV = produit.getImprimerie().getPourcentageRemiseRectoVerso();
                 BigDecimal tauxRV = BigDecimal.valueOf(pourcentageRV != null ? pourcentageRV : 15);
                 BigDecimal remiseRV = prixU.multiply(tauxRV).divide(new BigDecimal("100"));
@@ -167,7 +174,7 @@ public class CommandeService {
                     .quantite(item.getQuantite())
                     .nbPages(item.getNbPages())
                     .couleur(item.getCouleur())
-                    .rectoVerso(item.getRectoVerso())
+                    .rectoVerso(rectoVerso)
                     .reliure(item.getReliure()) 
                     .finition(item.getFinition())
                     .prixUnitaire(prixU)

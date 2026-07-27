@@ -325,6 +325,17 @@ const DashboardImprimeur = () => {
     }
   };
 
+  const handleUpdatePourcentageRemiseEtudiant = async (pourcentage: number) => {
+    if (!user || !shop || isNaN(pourcentage)) return;
+    try {
+      const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ pourcentageRemiseEtudiant: pourcentage }));
+      setShop(updated);
+      toast({ title: "Remise étudiant mise à jour" });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
+    }
+  };
+
   const handleUpdatePourcentageRectoVerso = async (pourcentage: number) => {
     if (!user || !shop || isNaN(pourcentage)) return;
     try {
@@ -971,17 +982,29 @@ const DashboardImprimeur = () => {
               <Card className="p-6 space-y-6">
                 <h3 className="font-display font-semibold text-lg">Options proposées aux clients</h3>
 
-                <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background">
-                  <div>
-                    <Label className="font-semibold flex items-center gap-2"><GraduationCap className="h-4 w-4 text-primary" /> Tarif étudiant</Label>
-                    <p className="text-sm text-muted-foreground mt-1">Remise accordée aux étudiants sur présentation de carte.</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {shop.proposeTarifEtudiant && shop.pourcentageRemiseEtudiant ? (
-                      <span className="text-sm font-bold text-primary">-{shop.pourcentageRemiseEtudiant}%</span>
-                    ) : null}
+                <div className="p-4 border border-border rounded-lg bg-background space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-semibold flex items-center gap-2"><GraduationCap className="h-4 w-4 text-primary" /> Tarif étudiant</Label>
+                      <p className="text-sm text-muted-foreground mt-1">Remise accordée aux étudiants sur présentation de carte.</p>
+                    </div>
                     <Switch checked={!!shop.proposeTarifEtudiant} onCheckedChange={(v) => handleToggleOption("proposeTarifEtudiant", v)} />
                   </div>
+                  {shop.proposeTarifEtudiant && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                      <Label className="text-sm text-muted-foreground">Remise :</Label>
+                      <Input
+                        type="number"
+                        defaultValue={shop.pourcentageRemiseEtudiant ?? 10}
+                        min={0}
+                        max={100}
+                        step={1}
+                        className="w-24 h-8"
+                        onBlur={(e) => handleUpdatePourcentageRemiseEtudiant(parseInt(e.target.value))}
+                      />
+                      <span className="text-sm text-muted-foreground">%</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4 border border-border rounded-lg bg-background space-y-3">
