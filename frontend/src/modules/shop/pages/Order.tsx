@@ -31,10 +31,14 @@ import {
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import * as pdfjsLib from "pdfjs-dist";
+import pdfjsWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 import { imprimerieService } from "../services/imprimerieService.service";
 import type { ImprimerieDetail } from "../models/Imprimerie.model";
 import { useAuth } from "../../auth/context/AuthContext";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "");
 
@@ -49,8 +53,38 @@ interface FileOptions {
 interface UploadedFile {
   file: File;
   pageCount: number;
+  detectedFormatMm: { width: number; height: number } | null;
   options: FileOptions;
 }
+
+// Dimensions réelles (mm) des formats proposés — sert à détecter les
+// incohérences entre le fichier déposé et le produit choisi (ex: un CV en
+// format "Cartes de visite").
+const FORMAT_DIMENSIONS_MM: Record<string, { width: number; height: number }> = {
+  A6: { width: 105, height: 148 },
+  A5: { width: 148, height: 210 },
+  A4: { width: 210, height: 297 },
+  A3: { width: 297, height: 420 },
+  A2: { width: 420, height: 594 },
+  A1: { width: 594, height: 841 },
+  A0: { width: 841, height: 1189 },
+  DL_10x21: { width: 100, height: 210 },
+  CARTE_VISITE_85x55: { width: 85, height: 55 },
+};
+
+const FORMAT_TOLERANCE_MM = 5;
+
+const formatMatchesDimensions = (
+  formatKey: string,
+  fileDims: { width: number; height: number }
+): boolean => {
+  const dims = FORMAT_DIMENSIONS_MM[formatKey];
+  if (!dims) return true; // format inconnu : on ne bloque pas
+  const matches = (w: number, h: number) =>
+    Math.abs(fileDims.width - w) <= FORMAT_TOLERANCE_MM && Math.abs(fileDims.height - h) <= FORMAT_TOLERANCE_MM;
+  // Les deux orientations (portrait/paysage) sont acceptées
+  return matches(dims.width, dims.height) || matches(dims.height, dims.width);
+};
 
 
 interface DeliveryAddress {
@@ -261,7 +295,9 @@ const Order = () => {
     return `${formatEnumName(p.typeProduit)} ${p.formatImpression}`;
   };
 
-  const countPdfPages = async (file: File): Promise<number> => {
+  // Repli si PDF.js n'arrive pas du tout à ouvrir le fichier (corrompu,
+  // chiffré...) : compte grossièrement les pages par recherche de texte.
+  const countPdfPagesFallback = async (file: File): Promise<number> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -275,6 +311,29 @@ const Order = () => {
     });
   };
 
+  const PT_TO_MM = 25.4 / 72;
+
+  // Lit le vrai nombre de pages et les dimensions réelles (mm) de la première
+  // page via PDF.js, qui gère correctement les flux compressés (contrairement
+  // à une simple recherche de texte dans le fichier) — renvoie formatMm à
+  // null si la lecture échoue, pour ne rien bloquer dans ce cas.
+  const readPdfInfo = async (
+    file: File
+  ): Promise<{ pageCount: number; formatMm: { width: number; height: number } | null }> => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 1 });
+      return {
+        pageCount: pdf.numPages,
+        formatMm: { width: viewport.width * PT_TO_MM, height: viewport.height * PT_TO_MM },
+      };
+    } catch {
+      return { pageCount: await countPdfPagesFallback(file), formatMm: null };
+    }
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
     if (selectedFiles) {
@@ -282,11 +341,15 @@ const Order = () => {
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
         if (file.type === "application/pdf") {
-          const pageCount = await countPdfPages(file);
-          const defaultProduct = shop?.produits?.find(p => p.actif) || null;
+          const { pageCount, formatMm: detectedFormatMm } = await readPdfInfo(file);
+          const compatibleProduct = detectedFormatMm
+            ? activeProducts.find((p) => formatMatchesDimensions(p.formatImpression, detectedFormatMm))
+            : null;
+          const defaultProduct = compatibleProduct || shop?.produits?.find(p => p.actif) || null;
           newFiles.push({
             file,
             pageCount,
+            detectedFormatMm,
             options: {
               productId: defaultProduct ? defaultProduct.id : "",
               copies: 1,
@@ -478,16 +541,30 @@ const Order = () => {
         });
         if (!res.ok) {
           const txt = await res.text();
-          throw new Error(`Upload échoué (${res.status}): ${txt}`);
+          const message = (() => {
+            try {
+              return JSON.parse(txt).message as string;
+            } catch {
+              return null;
+            }
+          })();
+          throw new Error(message || `Upload échoué (${res.status})`);
         }
         return res.json();
       })
     );
 
-    const failed = uploadResults.filter(r => r.status === "rejected");
+    const failed = uploadResults.filter((r): r is PromiseRejectedResult => r.status === "rejected");
     if (failed.length > 0) {
       console.error("Erreurs upload PDF:", failed);
-      toast({ title: "Attention", description: "Certains fichiers PDF n'ont pas pu être envoyés.", variant: "destructive" });
+      const detail = failed
+        .map((r) => (r.reason instanceof Error ? r.reason.message : String(r.reason)))
+        .join(" ");
+      toast({
+        title: "Certains fichiers n'ont pas pu être envoyés",
+        description: detail || "Vérifiez vos fichiers et réessayez.",
+        variant: "destructive",
+      });
     }
 
     setConfirmation({
@@ -559,6 +636,11 @@ const Order = () => {
               {/* Per-file options */}
               {files.map((uploadedFile, index) => {
                 const selectedProduct = activeProducts.find(p => p.id === uploadedFile.options.productId);
+                const fileDims = uploadedFile.detectedFormatMm;
+                // On ne bloque que s'il existe au moins une option compatible avec le
+                // fichier déposé — sinon aucune ne serait sélectionnable, ce qui
+                // empêcherait de commander malgré un format non reconnu.
+                const anyCompatible = !fileDims || activeProducts.some((p) => formatMatchesDimensions(p.formatImpression, fileDims));
                 return (
                   <Card key={index} className="shadow-card overflow-visible">
                     <CardHeader>
@@ -587,14 +669,30 @@ const Order = () => {
                             <SelectValue placeholder="Sélectionnez un produit..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {activeProducts.map((p) => (
-                              <SelectItem key={p.id} value={p.id.toString()}>
-                                {getProductLabel(p)}{" "}
-                                <span className="text-muted-foreground ml-2">({p.prixBase.toFixed(2)}€/page)</span>
-                              </SelectItem>
-                            ))}
+                            {activeProducts.map((p) => {
+                              const dims = FORMAT_DIMENSIONS_MM[p.formatImpression];
+                              const compatible = !fileDims || !anyCompatible || formatMatchesDimensions(p.formatImpression, fileDims);
+                              return (
+                                <SelectItem key={p.id} value={p.id.toString()} disabled={!compatible}>
+                                  {getProductLabel(p)}{" "}
+                                  {dims && (
+                                    <span className="text-muted-foreground ml-1">({dims.width}×{dims.height} mm)</span>
+                                  )}{" "}
+                                  <span className="text-muted-foreground ml-2">({p.prixBase.toFixed(2)}€/page)</span>
+                                  {!compatible && (
+                                    <span className="text-destructive ml-2 text-xs">Format incompatible avec votre fichier</span>
+                                  )}
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
+                        {fileDims && selectedProduct && anyCompatible && !formatMatchesDimensions(selectedProduct.formatImpression, fileDims) && (
+                          <p className="flex items-center gap-1.5 text-xs text-destructive">
+                            <AlertCircle className="h-3.5 w-3.5" />
+                            Le format de ce produit ne correspond pas aux dimensions de votre fichier ({Math.round(fileDims.width)}×{Math.round(fileDims.height)} mm).
+                          </p>
+                        )}
                       </div>
 
                       <div className={`grid gap-4 ${selectedProduct?.typeProduit === "POSTER" ? "grid-cols-1" : "grid-cols-2"}`}>
