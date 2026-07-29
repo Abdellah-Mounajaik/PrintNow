@@ -1,3 +1,14 @@
+/** Profil complet de l'utilisateur connecté */
+export interface UserProfileDTO {
+  id: number;
+  email: string;
+  prenom: string;
+  nom: string;
+  telephone: string | null;
+  actif: boolean;
+  roleNom: string;
+}
+
 /** Vérification étudiante du client connecté */
 export interface VerifDTO {
   id: number;

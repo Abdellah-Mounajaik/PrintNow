@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../../../components/layout/Header";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import {
   Package,
@@ -13,6 +15,8 @@ import {
   TrendingUp,
   User,
   Mail,
+  Phone,
+  Lock,
   GraduationCap,
   Upload,
   CheckCircle2,
@@ -26,7 +30,7 @@ import { toast } from "../../../hooks/use-toast";
 import { useRef } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { userService } from "../services/user.service";
-import type { CommandeDTO, VerifDTO, SuiviDTO } from "../models/user.model";
+import type { CommandeDTO, VerifDTO, SuiviDTO, UserProfileDTO } from "../models/user.model";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
   EN_ATTENTE_PAIEMENT: { label: "En attente", variant: "outline" },
@@ -38,7 +42,8 @@ const STATUS_MAP: Record<string, { label: string; variant: "default"|"secondary"
 };
 
 const DashboardClient = () => {
-  const { user, token } = useAuth();
+  const { user, token, logoutGlobal } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<CommandeDTO[]>([]);
   const [suiviData, setSuiviData] = useState<Record<number, SuiviDTO>>({});
   const [suiviLoading, setSuiviLoading] = useState<number | null>(null);
@@ -47,6 +52,67 @@ const DashboardClient = () => {
   const [uploading, setUploading] = useState(false);
   const carteEtudianteRef = useRef<HTMLInputElement>(null);
   const carteIdentiteRef = useRef<HTMLInputElement>(null);
+
+  // --- Profil ---
+  const [profil, setProfil] = useState<UserProfileDTO | null>(null);
+  const [profileForm, setProfileForm] = useState({ prenom: "", nom: "", email: "", telephone: "" });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ ancien: "", nouveau: "", confirmation: "" });
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    userService.getMonProfil(token)
+      .then((data) => {
+        setProfil(data);
+        setProfileForm({
+          prenom: data.prenom ?? "",
+          nom: data.nom ?? "",
+          email: data.email ?? "",
+          telephone: data.telephone ?? "",
+        });
+      })
+      .catch(() => setProfil(null));
+  }, [token]);
+
+  const handleSaveProfile = async () => {
+    if (!token) return;
+    setSavingProfile(true);
+    try {
+      const emailChanged = profil?.email !== profileForm.email;
+      const updated = await userService.updateMonProfil(profileForm, token);
+      setProfil(updated);
+      if (emailChanged) {
+        toast({ title: "Profil mis à jour", description: "Votre email a changé, veuillez vous reconnecter." });
+        logoutGlobal();
+        navigate("/login?tab=connexion");
+        return;
+      }
+      toast({ title: "Profil mis à jour" });
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!token) return;
+    if (passwordForm.nouveau !== passwordForm.confirmation) {
+      toast({ title: "Erreur", description: "Les mots de passe ne correspondent pas.", variant: "destructive" });
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      await userService.changerMotDePasse(passwordForm.ancien, passwordForm.nouveau, token);
+      setPasswordForm({ ancien: "", nouveau: "", confirmation: "" });
+      toast({ title: "Mot de passe changé" });
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setSavingPassword(false);
+    }
+  };
 
   useEffect(() => {
     if (!token) return;
@@ -352,35 +418,108 @@ const DashboardClient = () => {
             </TabsContent>
 
             {/* PROFIL */}
-            <TabsContent value="profile">
+            <TabsContent value="profile" className="space-y-6">
               <Card className="p-6">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-20 h-20 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
                     <User className="h-10 w-10" />
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-xl">{displayName}</h3>
+                    <h3 className="font-display font-semibold text-xl">
+                      {profil ? `${profil.prenom} ${profil.nom}` : displayName}
+                    </h3>
                     <p className="text-muted-foreground text-sm">{user?.email}</p>
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 p-4 border border-border rounded-lg">
-                    <Mail className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="text-xs text-muted-foreground">Email</div>
-                      <div className="font-medium">{user?.email ?? "—"}</div>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="prenom">Prénom</Label>
+                    <Input
+                      id="prenom"
+                      value={profileForm.prenom}
+                      onChange={(e) => setProfileForm((f) => ({ ...f, prenom: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nom">Nom</Label>
+                    <Input
+                      id="nom"
+                      value={profileForm.nom}
+                      onChange={(e) => setProfileForm((f) => ({ ...f, nom: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5" /> Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={profileForm.email}
+                      onChange={(e) => setProfileForm((f) => ({ ...f, email: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="telephone" className="flex items-center gap-1.5">
+                      <Phone className="h-3.5 w-3.5" /> Téléphone
+                    </Label>
+                    <Input
+                      id="telephone"
+                      value={profileForm.telephone}
+                      onChange={(e) => setProfileForm((f) => ({ ...f, telephone: e.target.value }))}
+                      placeholder="+32 ..."
+                    />
                   </div>
                 </div>
 
                 <div className="mt-6 flex gap-3">
-                  <Button variant="default" disabled>Modifier le profil</Button>
-                  <Button variant="outline" disabled>Changer le mot de passe</Button>
+                  <Button onClick={handleSaveProfile} disabled={savingProfile}>
+                    {savingProfile ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    {savingProfile ? "Enregistrement..." : "Modifier le profil"}
+                  </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-3">
-                  La modification du profil sera disponible prochainement.
-                </p>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-muted-foreground" /> Changer le mot de passe
+                </h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ancien-mdp">Mot de passe actuel</Label>
+                    <Input
+                      id="ancien-mdp"
+                      type="password"
+                      value={passwordForm.ancien}
+                      onChange={(e) => setPasswordForm((f) => ({ ...f, ancien: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nouveau-mdp">Nouveau mot de passe</Label>
+                    <Input
+                      id="nouveau-mdp"
+                      type="password"
+                      value={passwordForm.nouveau}
+                      onChange={(e) => setPasswordForm((f) => ({ ...f, nouveau: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmation-mdp">Confirmer le nouveau mot de passe</Label>
+                    <Input
+                      id="confirmation-mdp"
+                      type="password"
+                      value={passwordForm.confirmation}
+                      onChange={(e) => setPasswordForm((f) => ({ ...f, confirmation: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <Button variant="outline" onClick={handleChangePassword} disabled={savingPassword}>
+                    {savingPassword ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    {savingPassword ? "Enregistrement..." : "Changer le mot de passe"}
+                  </Button>
+                </div>
               </Card>
             </TabsContent>
           </Tabs>

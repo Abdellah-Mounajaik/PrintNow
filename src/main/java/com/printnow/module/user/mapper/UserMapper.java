@@ -20,9 +20,13 @@ public interface UserMapper {
     @Mapping(target = "role", ignore = true) // Le rôle sera géré dans le service
     User toEntity(UserRequestDTO dto);
 
-    // Mise à jour d'une entité existante sans créer d'objet intermédiaire
+    // Mise à jour d'une entité existante sans créer d'objet intermédiaire.
+    // motDePasse est TOUJOURS ignoré ici : un changement de mot de passe doit
+    // passer par UserService.changePassword(), qui vérifie l'ancien mot de
+    // passe et hash le nouveau — jamais via cette mise à jour générique.
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "motDePasse", ignore = true)
     void updateEntityFromDto(UserRequestDTO dto, @MappingTarget User entity);
 
     @Mapping(target = "id", ignore = true)

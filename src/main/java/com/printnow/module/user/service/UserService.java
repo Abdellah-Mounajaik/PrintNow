@@ -3,9 +3,13 @@ package com.printnow.module.user.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.printnow.module.user.dto.ChangePasswordRequestDTO;
 import com.printnow.module.user.dto.SignupRequestDTO;
+import com.printnow.module.user.dto.UpdateProfileRequestDTO;
 import com.printnow.module.user.dto.UserRequestDTO;
 import com.printnow.module.user.dto.UserResponseDTO;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 import com.printnow.module.user.mapper.UserMapper;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.RoleRepository;
@@ -43,6 +47,13 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public UserResponseDTO getMonProfil(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé."));
+        return userMapper.toResponse(user);
+    }
+
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(userMapper::toResponse)
@@ -69,6 +80,45 @@ public class UserService {
             throw new RuntimeException("Impossible de supprimer : Utilisateur non trouvé avec l'id : " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    /**
+     * Modifie le profil (nom, prénom, téléphone, email) de l'utilisateur
+     * actuellement connecté — jamais le mot de passe (voir changePassword).
+     */
+    @Transactional
+    public UserResponseDTO updateProfile(String currentEmail, UpdateProfileRequestDTO dto) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé."));
+
+        boolean emailChange = !dto.getEmail().equalsIgnoreCase(user.getEmail());
+        if (emailChange && userRepository.existsByEmail(dto.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cet email est déjà utilisé par un autre compte.");
+        }
+
+        user.setPrenom(dto.getPrenom());
+        user.setNom(dto.getNom());
+        user.setTelephone(dto.getTelephone());
+        user.setEmail(dto.getEmail());
+
+        return userMapper.toResponse(userRepository.save(user));
+    }
+
+    /**
+     * Change le mot de passe de l'utilisateur connecté, après vérification de
+     * l'ancien mot de passe.
+     */
+    @Transactional
+    public void changePassword(String currentEmail, ChangePasswordRequestDTO dto) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé."));
+
+        if (!passwordEncoder.matches(dto.getAncienMotDePasse(), user.getMotDePasse())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'ancien mot de passe est incorrect.");
+        }
+
+        user.setMotDePasse(passwordEncoder.encode(dto.getNouveauMotDePasse()));
+        userRepository.save(user);
     }
     public UserResponseDTO registerClient(SignupRequestDTO dto) {
         // 1. Vérification que l'email n'est pas déjà pris
