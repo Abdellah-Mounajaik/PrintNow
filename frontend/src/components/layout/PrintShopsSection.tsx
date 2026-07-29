@@ -78,14 +78,21 @@ const PrintShopsSection = () => {
   const showOpenOnly = searchParams.get("open") === "1";
   const selectedFilters = searchParams.get("filters")?.split(",").filter(Boolean) ?? [];
 
-  const updateParam = (key: string, value: string | null) => {
+  // Applique plusieurs changements de paramètres en un seul appel à
+  // setSearchParams. Important : deux appels séparés (ex: updateParam("q", ..)
+  // puis updateParam("page", null)) se marchent dessus l'un l'autre — le
+  // second écrase le premier avant que le re-render n'ait eu lieu, ce qui
+  // annulait ce qu'on venait de taper dans la recherche.
+  const updateParams = (updates: Record<string, string | null>) => {
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
-        if (value === null || value === "") {
-          next.delete(key);
-        } else {
-          next.set(key, value);
+        for (const [key, value] of Object.entries(updates)) {
+          if (value === null || value === "") {
+            next.delete(key);
+          } else {
+            next.set(key, value);
+          }
         }
         return next;
       },
@@ -93,11 +100,13 @@ const PrintShopsSection = () => {
     );
   };
 
+  const updateParam = (key: string, value: string | null) => updateParams({ [key]: value });
+
   const page = Math.max(1, Number(searchParams.get("page") ?? "1") || 1);
   const setPage = (value: number) => updateParam("page", value > 1 ? String(value) : null);
 
-  const setSearchQuery = (value: string) => { updateParam("q", value); setPage(1); };
-  const setShowOpenOnly = (value: boolean) => { updateParam("open", value ? "1" : null); setPage(1); };
+  const setSearchQuery = (value: string) => updateParams({ q: value, page: null });
+  const setShowOpenOnly = (value: boolean) => updateParams({ open: value ? "1" : null, page: null });
 
   // Change le tri, et nettoie le paramètre "type" (spécifique au tri par prix)
   // si on quitte ce mode, pour ne pas le laisser traîner inutilement dans l'URL.
@@ -122,7 +131,7 @@ const PrintShopsSection = () => {
 
   // Type de produit utilisé pour estimer un prix par imprimerie (tri par prix)
   const priceProductType = searchParams.get("type") ?? "";
-  const setPriceProductType = (value: string) => { updateParam("type", value); setPage(1); };
+  const setPriceProductType = (value: string) => updateParams({ type: value, page: null });
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -402,8 +411,7 @@ const PrintShopsSection = () => {
     const next = selectedFilters.includes(filterId)
       ? selectedFilters.filter((f) => f !== filterId)
       : [...selectedFilters, filterId];
-    updateParam("filters", next.join(","));
-    setPage(1);
+    updateParams({ filters: next.join(","), page: null });
   };
 
   const clearFilters = () => {
