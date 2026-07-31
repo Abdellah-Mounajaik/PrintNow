@@ -60,8 +60,20 @@ public class Commande {
     @Column(precision = 10, scale = 2)
     private BigDecimal montantVerseImprimerie;
 
+    // Réduction liée au code promo (voir codePromo ci-dessous) — nom historique.
     @Column(precision = 10, scale = 2)
     private BigDecimal montantReduction;
+
+    // Montants figés au moment de la commande (indépendants d'un futur
+    // changement de tarif de l'imprimerie), pour un affichage fiable sur la facture.
+    @Column(precision = 10, scale = 2)
+    private BigDecimal fraisExpress;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal fraisLivraison;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal montantReductionEtudiant;
 
     // --- Relations Principales ---
     @ManyToOne(fetch = FetchType.LAZY)

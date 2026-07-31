@@ -192,6 +192,7 @@ public class CommandeService {
                     ? BigDecimal.valueOf(imp.getPrixExpress2h())
                     : new BigDecimal("5.00");
             totalHT = totalHT.add(prixExpress);
+            commande.setFraisExpress(prixExpress);
         }
 
         // 6. Frais de livraison (prix configuré par l'imprimeur, 4.99€ par défaut)
@@ -201,6 +202,7 @@ public class CommandeService {
                     ? BigDecimal.valueOf(imp.getPrixLivraison())
                     : new BigDecimal("4.99");
             totalHT = totalHT.add(prixLivraison);
+            commande.setFraisLivraison(prixLivraison);
         }
 
         // 7. Remise étudiant
@@ -220,6 +222,7 @@ public class CommandeService {
             BigDecimal remise = totalHT.multiply(
                     BigDecimal.valueOf(imp.getPourcentageRemiseEtudiant()).divide(new BigDecimal("100")));
             totalHT = totalHT.subtract(remise).max(BigDecimal.ZERO);
+            commande.setMontantReductionEtudiant(remise);
         }
 
         // 8. Application du code promo

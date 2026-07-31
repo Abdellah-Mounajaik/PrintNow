@@ -13,7 +13,7 @@ import {
   Package, Euro, Clock, Star,
   Store, Truck, Layers, Book, Printer,
   Zap, GraduationCap, ChevronDown, ChevronUp,
-  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin, Loader2
+  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin, Loader2, Upload
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -21,6 +21,7 @@ import {
 import { toast } from "../../../hooks/use-toast";
 
 import { imprimerieService } from "../../shop/services/imprimerieService.service";
+import { partnerService } from "../../shop/services/partner.service";
 import type { ImprimerieDetail } from "../../shop/models/Imprimerie.model";
 import { useAuth } from "../../auth/context/AuthContext";
 import { SERVICES } from "../../shop/models/partner.constants";
@@ -131,8 +132,10 @@ const DashboardImprimeur = () => {
   const [isSavingShop, setIsSavingShop] = useState(false);
   const [shopForm, setShopForm] = useState({
     nom: "", emailContact: "", telephoneContact: "",
-    adresse: "", ville: "", pays: "", numeroTva: "", description: "",
+    adresse: "", ville: "", pays: "", numeroTva: "", description: "", logoUrl: "",
   });
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [logoError, setLogoError] = useState("");
 
   // Horaires
   const [editingHoraireId, setEditingHoraireId] = useState<number | null>(null);
@@ -154,6 +157,7 @@ const DashboardImprimeur = () => {
           pays: (data as any).pays || "Belgique",
           numeroTva: (data as any).numeroTva || "",
           description: data.description || "",
+          logoUrl: data.logoUrl || "",
         });
         return token ? imprimeurService.getCommandes(data.id, token) : [];
       })
@@ -298,8 +302,25 @@ const DashboardImprimeur = () => {
       pays: (shop as any).pays || "Belgique",
       numeroTva: (shop as any).numeroTva || "",
       description: shop.description || "",
+      logoUrl: shop.logoUrl || "",
     });
+    setLogoError("");
     setIsEditingShop(false);
+  };
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fichier = e.target.files?.[0];
+    if (!fichier) return;
+    setIsUploadingLogo(true);
+    setLogoError("");
+    try {
+      const url = await partnerService.uploadLogo(fichier);
+      setShopForm(f => ({ ...f, logoUrl: url }));
+    } catch (err) {
+      setLogoError((err as Error).message || "Erreur lors de l'envoi du logo");
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   // ── Options ──────────────────────────────────────────────────────────────
@@ -1159,6 +1180,49 @@ const DashboardImprimeur = () => {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Logo de l'imprimerie</Label>
+                    {isEditingShop ? (
+                      <label
+                        htmlFor="shop-logo-upload"
+                        className="flex items-center gap-4 border-2 border-dashed border-border rounded-lg p-4 cursor-pointer hover:border-primary/50 transition-colors"
+                      >
+                        <input
+                          id="shop-logo-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleLogoChange}
+                        />
+                        {isUploadingLogo ? (
+                          <p className="text-sm text-muted-foreground">Envoi en cours…</p>
+                        ) : shopForm.logoUrl ? (
+                          <>
+                            <img
+                              src={`http://localhost:8080${shopForm.logoUrl}`}
+                              alt="Logo de l'imprimerie"
+                              className="h-16 w-16 object-contain rounded-md border border-border bg-background"
+                            />
+                            <p className="text-sm text-muted-foreground">Cliquez pour changer le logo</p>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-6 w-6 text-muted-foreground shrink-0" />
+                            <p className="text-sm text-muted-foreground">Cliquez pour téléverser un logo (PNG, JPG)</p>
+                          </>
+                        )}
+                      </label>
+                    ) : shopForm.logoUrl ? (
+                      <img
+                        src={`http://localhost:8080${shopForm.logoUrl}`}
+                        alt="Logo de l'imprimerie"
+                        className="h-16 w-16 object-contain rounded-md border border-border bg-muted/40"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Aucun logo</p>
+                    )}
+                    {logoError && <p className="text-sm text-destructive">{logoError}</p>}
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="shop-nom">Nom de l'imprimerie</Label>
                     <Input id="shop-nom" value={shopForm.nom} onChange={(e) => setShopForm(f => ({ ...f, nom: e.target.value }))}

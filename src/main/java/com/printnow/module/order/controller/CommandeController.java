@@ -3,9 +3,12 @@ package com.printnow.module.order.controller;
 import com.printnow.module.order.dto.CommandeRequestDTO;
 import com.printnow.module.order.dto.CommandeResponseDTO;
 import com.printnow.module.order.service.CommandeService;
+import com.printnow.module.order.service.FactureService;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +22,7 @@ import java.util.List;
 public class CommandeController {
 
     private final CommandeService commandeService;
+    private final FactureService factureService;
     private final UserRepository userRepository;
 
     /**
@@ -82,5 +86,25 @@ public class CommandeController {
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email : " + email));
         List<CommandeResponseDTO> commandes = commandeService.getCommandesForClient(client.getId());
         return ResponseEntity.ok(commandes);
+    }
+
+    /**
+     * GET /api/commandes/{id}/facture
+     * Télécharge la facture PDF d'une commande du client connecté (générée à
+     * la demande, uniquement s'il en est bien le propriétaire et qu'elle est payée).
+     */
+    @GetMapping("/{id}/facture")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<byte[]> telechargerFacture(@PathVariable Long id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User client = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email : " + email));
+
+        byte[] pdf = factureService.genererFacture(id, client.getId());
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"facture-" + id + ".pdf\"")
+                .body(pdf);
     }
 }

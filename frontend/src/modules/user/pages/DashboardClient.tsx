@@ -25,6 +25,7 @@ import {
   Loader2,
   Truck,
   ExternalLink,
+  Download,
 } from "lucide-react";
 import { toast } from "../../../hooks/use-toast";
 import { useRef } from "react";
@@ -40,6 +41,10 @@ const STATUS_MAP: Record<string, { label: string; variant: "default"|"secondary"
   LIVREE: { label: "Livrée", variant: "default" },
   ANNULEE: { label: "Annulée", variant: "destructive" },
 };
+
+// Une facture n'existe que pour une commande dont le paiement a bien été
+// confirmé (même condition que côté backend, FactureService.STATUTS_FACTURABLES).
+const STATUTS_FACTURABLES = new Set(["PAYEE", "EN_COURS_IMPRESSION", "PRETE", "LIVREE"]);
 
 const DashboardClient = () => {
   const { user, token, logoutGlobal } = useAuth();
@@ -126,6 +131,19 @@ const DashboardClient = () => {
       .catch(() => setVerif(null))
       .finally(() => setVerifLoaded(true));
   }, [token]);
+
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
+  const handleTelechargerFacture = async (commandeId: number, numeroCommande: string) => {
+    if (!token) return;
+    setDownloadingInvoiceId(commandeId);
+    try {
+      await userService.telechargerFacture(commandeId, numeroCommande, token);
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setDownloadingInvoiceId(null);
+    }
+  };
 
   const handleFetchSuivi = async (orderId: number) => {
     if (!token) return;
@@ -319,13 +337,58 @@ const DashboardClient = () => {
             <TabsContent value="invoices">
               <Card className="p-6">
                 <h3 className="font-display font-semibold text-lg mb-4">Mes factures</h3>
-                <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
-                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                  <h4 className="text-lg font-semibold mb-1">Aucune facture</h4>
-                  <p className="text-muted-foreground text-sm">
-                    Vos factures apparaîtront ici après votre première commande.
-                  </p>
-                </div>
+                {(() => {
+                  const facturables = orders.filter((o) => STATUTS_FACTURABLES.has(o.statut));
+                  if (facturables.length === 0) {
+                    return (
+                      <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
+                        <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                        <h4 className="text-lg font-semibold mb-1">Aucune facture</h4>
+                        <p className="text-muted-foreground text-sm">
+                          Une facture est disponible dès qu'une commande est payée.
+                        </p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="space-y-3">
+                      {facturables.map((order) => (
+                        <div
+                          key={order.id}
+                          className="flex items-center justify-between p-4 border border-border rounded-lg"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                              <FileText className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold truncate">{order.numeroCommande}</p>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {order.nomImprimerie} · {new Date(order.dateCreation).toLocaleDateString("fr-BE")}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 shrink-0">
+                            <span className="font-semibold">{Number(order.totalTTC).toFixed(2)}€</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleTelechargerFacture(order.id, order.numeroCommande)}
+                              disabled={downloadingInvoiceId === order.id}
+                            >
+                              {downloadingInvoiceId === order.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              ) : (
+                                <Download className="h-4 w-4 mr-2" />
+                              )}
+                              Télécharger
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </Card>
             </TabsContent>
 
@@ -491,6 +554,7 @@ const DashboardClient = () => {
                     <Input
                       id="ancien-mdp"
                       type="password"
+                      autoComplete="new-password"
                       value={passwordForm.ancien}
                       onChange={(e) => setPasswordForm((f) => ({ ...f, ancien: e.target.value }))}
                     />
@@ -500,6 +564,7 @@ const DashboardClient = () => {
                     <Input
                       id="nouveau-mdp"
                       type="password"
+                      autoComplete="new-password"
                       value={passwordForm.nouveau}
                       onChange={(e) => setPasswordForm((f) => ({ ...f, nouveau: e.target.value }))}
                     />
@@ -509,6 +574,7 @@ const DashboardClient = () => {
                     <Input
                       id="confirmation-mdp"
                       type="password"
+                      autoComplete="new-password"
                       value={passwordForm.confirmation}
                       onChange={(e) => setPasswordForm((f) => ({ ...f, confirmation: e.target.value }))}
                     />

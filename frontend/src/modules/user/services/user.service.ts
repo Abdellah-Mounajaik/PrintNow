@@ -57,6 +57,22 @@ export const userService = {
     return response.json();
   },
 
+  /** Télécharge la facture PDF d'une commande (déclenche le téléchargement dans le navigateur) */
+  telechargerFacture: async (commandeId: number, numeroCommande: string, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/commandes/${commandeId}/facture`, { headers: authHeaders(token) });
+    if (!response.ok) throw new Error(await readErrorMessage(response, "Impossible de télécharger la facture"));
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = `facture-${numeroCommande}.pdf`;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    URL.revokeObjectURL(url);
+  },
+
   /** Vérification étudiante du client — null s'il n'en a pas encore soumis (204) */
   getMaVerification: async (token: string): Promise<VerifDTO | null> => {
     const response = await fetch(`${API_URL}/verifications-etudiants/me`, { headers: authHeaders(token) });
