@@ -13,7 +13,7 @@ import {
   Package, Euro, Clock, Star,
   Store, Truck, Layers, Book, Printer,
   Zap, GraduationCap, ChevronDown, ChevronUp,
-  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin, Loader2, Upload
+  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin, Loader2, Upload, Download
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -122,6 +122,23 @@ const DashboardImprimeur = () => {
   const [updatingStatutId, setUpdatingStatutId] = useState<number | null>(null);
   const [suiviInputs, setSuiviInputs] = useState<Record<number, string>>({});
   const [suiviSaving, setSuiviSaving] = useState<number | null>(null);
+  const [downloadingCommissionId, setDownloadingCommissionId] = useState<number | null>(null);
+
+  // Un relevé de vente n'existe que pour une commande dont le paiement a
+  // bien été confirmé (même condition que côté backend, ReleveVenteService.STATUTS_FACTURABLES).
+  const STATUTS_FACTURABLES = new Set(["PAYEE", "EN_COURS_IMPRESSION", "PRETE", "LIVREE"]);
+
+  const handleTelechargerCommission = async (commandeId: number, numeroCommande: string) => {
+    if (!token) return;
+    setDownloadingCommissionId(commandeId);
+    try {
+      await imprimeurService.telechargerReleveVente(commandeId, numeroCommande, token);
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setDownloadingCommissionId(null);
+    }
+  };
 
   // Services
   const [servicesState, setServicesState] = useState<Record<string, any>>({});
@@ -779,10 +796,26 @@ const DashboardImprimeur = () => {
                               </div>
 
                               {/* Récapitulatif financier */}
-                              <div className="flex justify-between text-sm pt-2 border-t">
+                              <div className="flex items-center justify-between text-sm pt-2 border-t">
                                 <span className="text-muted-foreground">Total TTC</span>
                                 <span className="font-bold text-primary">{Number(order.totalTTC).toFixed(2)}€</span>
                               </div>
+                              {STATUTS_FACTURABLES.has(order.statut) && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full"
+                                  onClick={() => handleTelechargerCommission(order.id, order.numeroCommande)}
+                                  disabled={downloadingCommissionId === order.id}
+                                >
+                                  {downloadingCommissionId === order.id ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Download className="h-4 w-4 mr-2" />
+                                  )}
+                                  Relevé de vente
+                                </Button>
+                              )}
 
                               {/* Adresse de livraison */}
                               {order.modeRetrait === "LIVRAISON" && order.adresseLivraison && (

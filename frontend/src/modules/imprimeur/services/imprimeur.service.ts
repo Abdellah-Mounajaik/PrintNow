@@ -37,6 +37,23 @@ export const imprimeurService = {
     if (!response.ok) throw new Error("Impossible d'enregistrer le numéro de suivi");
   },
 
+  /** Télécharge le relevé de vente PDF d'une commande (montant vendu / commission déduite / net perçu) */
+  telechargerReleveVente: async (commandeId: number, numeroCommande: string, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/commandes/${commandeId}/releve-vente`, {
+      headers: authHeaders(token),
+    });
+    if (!response.ok) throw new Error("Impossible de télécharger le relevé de vente");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = `vente-${numeroCommande}.pdf`;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    URL.revokeObjectURL(url);
+  },
+
   // ── Fichiers PDF ───────────────────────────────────────────────────────────
   /** Télécharge un PDF protégé et renvoie une URL blob ouvrable */
   downloadFichierPdf: async (fichierId: number, token: string): Promise<string> => {

@@ -65,4 +65,21 @@ export const adminService = {
     const blob = await response.blob();
     return URL.createObjectURL(blob);
   },
+
+  /** Télécharge le relevé de commission PDF d'une commande (montant vendu / commission / net imprimerie) */
+  telechargerFactureCommission: async (commandeId: number, numeroCommande: string, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/commandes/${commandeId}/facture-commission`, {
+      headers: authHeaders(token),
+    });
+    if (!response.ok) throw new Error("Impossible de télécharger le relevé de commission");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = `commission-${numeroCommande}.pdf`;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    URL.revokeObjectURL(url);
+  },
 };

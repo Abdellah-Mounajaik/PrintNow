@@ -3,7 +3,9 @@ package com.printnow.module.order.controller;
 import com.printnow.module.order.dto.CommandeRequestDTO;
 import com.printnow.module.order.dto.CommandeResponseDTO;
 import com.printnow.module.order.service.CommandeService;
+import com.printnow.module.order.service.FactureCommissionService;
 import com.printnow.module.order.service.FactureService;
+import com.printnow.module.order.service.ReleveVenteService;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ public class CommandeController {
 
     private final CommandeService commandeService;
     private final FactureService factureService;
+    private final FactureCommissionService factureCommissionService;
+    private final ReleveVenteService releveVenteService;
     private final UserRepository userRepository;
 
     /**
@@ -105,6 +109,51 @@ public class CommandeController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"facture-" + id + ".pdf\"")
+                .body(pdf);
+    }
+
+    /**
+     * GET /api/commandes/{id}/facture-commission
+     * Télécharge la facture de commission PDF d'une commande — ce que PrintNow
+     * a gagné sur cette vente. Réservée à l'admin.
+     */
+    @GetMapping("/{id}/facture-commission")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> telechargerFactureCommission(@PathVariable Long id) {
+        byte[] pdf = factureCommissionService.genererFactureCommission(id);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"commission-" + id + ".pdf\"")
+                .body(pdf);
+    }
+
+    /**
+     * GET /api/commandes/{id}/releve-vente
+     * Télécharge le relevé de vente PDF d'une commande — ce que l'imprimerie a
+     * réellement perçu une fois la commission PrintNow déduite. Accessible à
+     * l'admin (n'importe quelle commande) ou à l'imprimeur propriétaire de la
+     * commande concernée.
+     */
+    @GetMapping("/{id}/releve-vente")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('IMPRIMERIE')")
+    public ResponseEntity<byte[]> telechargerReleveVente(@PathVariable Long id) {
+        boolean estAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        Long gerantId = null;
+        if (!estAdmin) {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            User imprimeur = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email : " + email));
+            gerantId = imprimeur.getId();
+        }
+
+        byte[] pdf = releveVenteService.genererReleveVente(id, gerantId);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"vente-" + id + ".pdf\"")
                 .body(pdf);
     }
 }

@@ -31,6 +31,7 @@ import {
   ShoppingCart,
   GraduationCap,
   XCircle,
+  Download,
 } from "lucide-react";
 import { toast } from "../../../hooks/use-toast";
 import { useAuth } from "../../auth/context/AuthContext";
@@ -82,6 +83,10 @@ const STATUT_LABELS: Record<string, string> = {
   ANNULEE: "Annulée",
 };
 
+// Un relevé de commission n'existe que pour une commande dont le paiement a
+// bien été confirmé (même condition que côté backend, FactureCommissionService.STATUTS_FACTURABLES).
+const STATUTS_FACTURABLES = new Set(["PAYEE", "EN_COURS_IMPRESSION", "PRETE", "LIVREE"]);
+
 const DashboardAdmin = () => {
   const { token } = useAuth();
   const [users, setUsers] = useState<UserDTO[]>([]);
@@ -91,6 +96,7 @@ const DashboardAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [selectedVerif, setSelectedVerif] = useState<VerificationDTO | null>(null);
   const [motifRefus, setMotifRefus] = useState("");
+  const [downloadingCommissionId, setDownloadingCommissionId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -128,6 +134,18 @@ const DashboardAdmin = () => {
       toast({ title: "Vérification refusée", variant: "destructive" });
     } catch {
       toast({ title: "Erreur", description: "Impossible de refuser.", variant: "destructive" });
+    }
+  };
+
+  const handleTelechargerCommission = async (commandeId: number, numeroCommande: string) => {
+    if (!token) return;
+    setDownloadingCommissionId(commandeId);
+    try {
+      await adminService.telechargerFactureCommission(commandeId, numeroCommande, token);
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setDownloadingCommissionId(null);
     }
   };
 
@@ -397,6 +415,7 @@ ue       </div>
                         <TableHead>Total TTC</TableHead>
                         <TableHead>Commission (10%)</TableHead>
                         <TableHead>Statut</TableHead>
+                        <TableHead>Relevé</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -417,6 +436,24 @@ ue       </div>
                             <Badge variant="outline">
                               {STATUT_LABELS[c.statut] ?? c.statut}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {STATUTS_FACTURABLES.has(c.statut) ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleTelechargerCommission(c.id, c.numeroCommande)}
+                                disabled={downloadingCommissionId === c.id}
+                              >
+                                {downloadingCommissionId === c.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Download className="h-4 w-4" />
+                                )}
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}

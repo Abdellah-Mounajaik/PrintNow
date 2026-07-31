@@ -1,15 +1,11 @@
 package com.printnow.module.order.service;
 
-import com.printnow.module.order.enums.ModeRetrait;
 import com.printnow.module.order.enums.StatutCommande;
-import com.printnow.module.order.model.AdresseLivraison;
 import com.printnow.module.order.model.Commande;
 import com.printnow.module.order.model.LigneCommande;
 import com.printnow.module.order.repository.CommandeRepository;
 import com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
-import com.printnow.module.promo.model.CodePromo;
 import com.printnow.module.shop.model.Imprimerie;
-import com.printnow.module.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -25,20 +21,20 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.math.BigDecimal;
 import java.util.EnumSet;
 import java.util.Set;
 
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.*;
 
 /**
- * Génère la facture PDF d'une commande, à la demande (pas de table "facture"
- * séparée en base : toutes les données nécessaires existent déjà sur la
- * Commande, ses lignes, l'imprimerie et le client).
+ * Génère le relevé de vente PDF d'une commande, côté imprimerie : le document
+ * qui montre ce que l'imprimerie a réellement perçu pour cette commande, une
+ * fois la commission PrintNow déduite. Consultable par l'admin (n'importe
+ * quelle commande) ou par l'imprimeur propriétaire de la commande.
  */
 @Service
 @RequiredArgsConstructor
-public class FactureService {
+public class ReleveVenteService {
 
     private static final Set<StatutCommande> STATUTS_FACTURABLES = EnumSet.of(
             StatutCommande.PAYEE, StatutCommande.EN_COURS_IMPRESSION,
@@ -49,17 +45,18 @@ public class FactureService {
 
     private final CommandeRepository commandeRepository;
 
+    /** gerantId == null signifie un appel admin (pas de vérification de propriété). */
     @Transactional(readOnly = true)
-    public byte[] genererFacture(Long commandeId, Long clientId) {
+    public byte[] genererReleveVente(Long commandeId, Long gerantId) {
         Commande commande = commandeRepository.findById(commandeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Commande non trouvée."));
 
-        if (!commande.getClient().getId().equals(clientId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cette commande ne vous appartient pas.");
+        if (gerantId != null && !commande.getImprimerie().getGerant().getId().equals(gerantId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cette commande ne concerne pas votre imprimerie.");
         }
         if (!STATUTS_FACTURABLES.contains(commande.getStatut())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Aucune facture disponible : cette commande n'est pas encore payée.");
+                    "Aucun relevé disponible : cette commande n'est pas encore payée.");
         }
 
         try (PDDocument document = new PDDocument()) {
@@ -78,7 +75,7 @@ public class FactureService {
             document.save(out);
             return out.toByteArray();
         } catch (IOException e) {
-            throw new UncheckedIOException("Erreur lors de la génération de la facture PDF", e);
+            throw new UncheckedIOException("Erreur lors de la génération du relevé de vente PDF", e);
         }
     }
 
@@ -89,53 +86,42 @@ public class FactureService {
         Cursor c = new Cursor(cs, page.getMediaBox().getHeight() - MARGE);
 
         Imprimerie imprimerie = commande.getImprimerie();
-        User client = commande.getClient();
 
-        // En-tête : logo de l'imprimerie à gauche, titre + n°/date à droite,
-        // hauteur réservée fixe que le logo soit présent ou non.
+        // En-tête : logo PrintNow bien visible à gauche (émetteur du document),
+        // titre + n°/date à droite.
         float hauteurEntete = 42f;
-        if (logoImprimerie != null) {
-            c.dessinerImage(logoImprimerie, MARGE, c.y - hauteurEntete, hauteurEntete);
+        if (logoPrintNow != null) {
+            c.dessinerImage(logoPrintNow, MARGE, c.y - hauteurEntete, hauteurEntete);
         }
-        c.texteDroiteA(FONT_BOLD, 20, MARGE + largeurUtile, c.y - 18, "FACTURE");
+        c.texteDroiteA(FONT_BOLD, 18, MARGE + largeurUtile, c.y - 18, "RELEVÉ DE VENTE");
         c.texteDroiteA(FONT, 10, MARGE + largeurUtile, c.y - 34,
-                "N° " + commande.getNumeroCommande() + "  ·  " + formatDateFacture(commande));
+                "Commande N° " + commande.getNumeroCommande() + "  ·  " + formatDateFacture(commande));
 
         c.y -= hauteurEntete;
         c.avancer(16);
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
         c.avancer(16);
 
-        // Bloc vendeur / client, sur deux colonnes de même hauteur (positions absolues)
+        // Bloc émetteur / destinataire, sur deux colonnes de même hauteur
         float colonneDroite = MARGE + largeurUtile / 2 + 20;
         float yBloc = c.y;
 
-        c.texteA(FONT_BOLD, 11, MARGE, yBloc, "Vendeur");
-        c.texteA(FONT, 10, MARGE, yBloc - 14, nonVide(imprimerie.getNom()));
-        c.texteA(FONT, 10, MARGE, yBloc - 27, nonVide(imprimerie.getAdresse()));
-        c.texteA(FONT, 10, MARGE, yBloc - 40, nonVide(imprimerie.getVille()) + ", " + nonVide(imprimerie.getPays()));
-        c.texteA(FONT, 10, MARGE, yBloc - 53,
+        c.texteA(FONT_BOLD, 11, MARGE, yBloc, "Émetteur");
+        c.texteA(FONT, 10, MARGE, yBloc - 14, "PrintNow");
+
+        c.texteA(FONT_BOLD, 11, colonneDroite, yBloc, "Destinataire");
+        c.texteA(FONT, 10, colonneDroite, yBloc - 14, nonVide(imprimerie.getNom()));
+        c.texteA(FONT, 10, colonneDroite, yBloc - 27, nonVide(imprimerie.getAdresse()));
+        c.texteA(FONT, 10, colonneDroite, yBloc - 40, nonVide(imprimerie.getVille()) + ", " + nonVide(imprimerie.getPays()));
+        c.texteA(FONT, 10, colonneDroite, yBloc - 53,
                 "TVA : " + (imprimerie.getNumeroTva() != null ? imprimerie.getNumeroTva() : "N/A"));
-
-        c.texteA(FONT_BOLD, 11, colonneDroite, yBloc, "Client");
-        c.texteA(FONT, 10, colonneDroite, yBloc - 14, nonVide(client.getPrenom()) + " " + nonVide(client.getNom()));
-        c.texteA(FONT, 10, colonneDroite, yBloc - 27, nonVide(client.getEmail()));
-
-        AdresseLivraison adresse = commande.getAdresseLivraison();
-        if (commande.getModeRetrait() == ModeRetrait.LIVRAISON && adresse != null) {
-            c.texteA(FONT, 10, colonneDroite, yBloc - 40, adresse.getNumero() + " " + adresse.getRue());
-            c.texteA(FONT, 10, colonneDroite, yBloc - 53,
-                    adresse.getCodePostal() + " " + adresse.getVille() + ", " + adresse.getPays());
-        } else {
-            c.texteA(FONT, 10, colonneDroite, yBloc - 40, "Retrait en magasin");
-        }
 
         c.y = yBloc - 53;
         c.avancer(24);
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
         c.avancer(20);
 
-        // En-tête du tableau des lignes
+        // Détail de la vente, pour justifier le montant perçu
         float xDesignation = MARGE;
         float xQuantite = MARGE + largeurUtile - 260;
         float xPrixUnitaire = MARGE + largeurUtile - 170;
@@ -156,9 +142,6 @@ public class FactureService {
             c.texte(FONT, 10, xTotal, formatMontant(ligne.getPrixTotal()));
             c.avancer(18);
         }
-
-        // Options de la commande (express, livraison) affichées comme des lignes
-        // à part, puisqu'elles ne sont pas rattachées à un produit précis.
         if (commande.getFraisExpress() != null) {
             c.texte(FONT, 10, xDesignation, "Impression express 2h");
             c.texte(FONT, 10, xTotal, formatMontant(commande.getFraisExpress()));
@@ -174,37 +157,27 @@ public class FactureService {
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
         c.avancer(20);
 
-        // Totaux, alignés à droite
-        float xLabelTotal = MARGE + largeurUtile - 200;
-        ligneTotal(c, xLabelTotal, xTotal, "Sous-total HT", commande.getTotalHT());
+        // Décompte : vente → commission retenue → net perçu (le gain de l'imprimerie)
+        float xLabelTotal = MARGE + largeurUtile - 220;
+        c.texte(FONT, 10, xLabelTotal, "Montant de la vente (TTC)");
+        c.texte(FONT, 10, xTotal, formatMontant(commande.getTotalTTC()));
+        c.avancer(15);
 
-        if (commande.getMontantReductionEtudiant() != null && commande.getMontantReductionEtudiant().signum() > 0) {
-            ligneTotal(c, xLabelTotal, xTotal, "Réduction étudiant", commande.getMontantReductionEtudiant().negate());
-        }
-        CodePromo promo = commande.getCodePromo();
-        if (promo != null && commande.getMontantReduction() != null && commande.getMontantReduction().signum() > 0) {
-            ligneTotal(c, xLabelTotal, xTotal, "Code promo (" + promo.getCode() + ")",
-                    commande.getMontantReduction().negate());
-        }
-        ligneTotal(c, xLabelTotal, xTotal, "TVA (20%)", commande.getTotalTVA());
-        c.avancer(4);
-        c.texte(FONT_BOLD, 11, xLabelTotal, "Total TTC");
-        c.texte(FONT_BOLD, 11, xTotal, formatMontant(commande.getTotalTTC()));
+        c.texte(FONT, 10, xLabelTotal, "Commission retenue (10%)");
+        c.texte(FONT, 10, xTotal, "-" + formatMontant(commande.getCommissionPlateforme()));
+        c.avancer(19);
+
+        c.texte(FONT_BOLD, 11, xLabelTotal, "Montant net perçu");
+        c.texte(FONT_BOLD, 11, xTotal, formatMontant(commande.getMontantVerseImprimerie()));
         c.avancer(40);
 
-        if (logoPrintNow != null) {
+        if (logoImprimerie != null) {
             float hauteurLogoFooter = 16f;
-            c.dessinerImage(logoPrintNow, MARGE, c.y - hauteurLogoFooter + 4, hauteurLogoFooter);
-            c.texteA(FONT, 8, MARGE + hauteurLogoFooter * c.ratio(logoPrintNow) + 8, c.y - 8,
-                    "Facture générée automatiquement.");
+            c.dessinerImage(logoImprimerie, MARGE, c.y - hauteurLogoFooter + 4, hauteurLogoFooter);
+            c.texteA(FONT, 8, MARGE + hauteurLogoFooter * c.ratio(logoImprimerie) + 8, c.y - 8,
+                    "Relevé généré automatiquement par PrintNow.");
         } else {
-            c.texte(FONT, 8, MARGE, "Facture générée automatiquement par PrintNow.");
+            c.texte(FONT, 8, MARGE, "Relevé généré automatiquement par PrintNow.");
         }
-    }
-
-    private void ligneTotal(Cursor c, float xLabel, float xValeur, String label, BigDecimal montant) throws IOException {
-        c.texte(FONT, 10, xLabel, label);
-        c.texte(FONT, 10, xValeur, formatMontant(montant));
-        c.avancer(15);
     }
 }
