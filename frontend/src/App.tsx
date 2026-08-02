@@ -12,6 +12,7 @@ import DashboardClient from './modules/user/pages/DashboardClient';
 import DashboardAdmin from './modules/admin/pages/DashboardAdmin';
 import PrintShopDetail from './modules/shop/pages/PrintShopDetail';
 import Order from './modules/shop/pages/Order';
+import MentionsLegales from './pages/MentionsLegales';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
@@ -30,6 +31,7 @@ function App() {
           <Route path="/devenir-partenaire" element={<DevenirPartenaire />} />
           <Route path='/imprimerie/:id' element={<PrintShopDetail />} />
           <Route path='/commander/:id' element={<Order />} />
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route 
             path="/dashboard-imprimeur" 
             element={

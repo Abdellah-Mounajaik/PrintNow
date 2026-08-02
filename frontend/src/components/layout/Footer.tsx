@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone } from "lucide-react";
 
-// lucide-react n'inclut plus les icônes de marque (Facebook, Twitter, Instagram,
-// Linkedin) : on les redessine ici en SVG, dans le même style (trait, sans remplissage).
 const iconProps = {
   viewBox: "0 0 24 24",
   fill: "none",
