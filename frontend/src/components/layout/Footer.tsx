@@ -164,7 +164,7 @@ const Footer = () => {
             <Link to="/mentions-legales" className="text-background/50 hover:text-background/80 transition-colors">
               Mentions légales
             </Link>
-            <Link to="/cgv" className="text-background/50 hover:text-background/80 transition-colors">
+            <Link to="/conditions-generales" className="text-background/50 hover:text-background/80 transition-colors">
               CGV
             </Link>
             <Link to="/confidentialite" className="text-background/50 hover:text-background/80 transition-colors">

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
 import { Scale, ArrowRight, Mail } from "lucide-react";
 
 const legalSections = [

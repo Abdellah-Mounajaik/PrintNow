@@ -13,6 +13,7 @@ import DashboardAdmin from './modules/admin/pages/DashboardAdmin';
 import PrintShopDetail from './modules/shop/pages/PrintShopDetail';
 import Order from './modules/shop/pages/Order';
 import MentionsLegales from './pages/MentionsLegales';
+import ConditionsGenerales from './pages/ConditionsGenerales';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
@@ -32,6 +33,7 @@ function App() {
           <Route path='/imprimerie/:id' element={<PrintShopDetail />} />
           <Route path='/commander/:id' element={<Order />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/conditions-generales" element={<ConditionsGenerales />} />
           <Route 
             path="/dashboard-imprimeur" 
             element={
