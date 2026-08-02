@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'; // On enlève Browse
 import { AuthProvider, useAuth } from './modules/auth/context/AuthContext';
 import Auth from './modules/auth/pages/Auth';
 import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
 import Home from './pages/Home'; 
 import DevenirPartenaire from './modules/shop/pages/DevenirPartenaire';
 import DashboardImprimeur from './modules/imprimeur/pages/DashboardImprimeur';
@@ -59,6 +60,7 @@ function App() {
           <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404 - Page introuvable</h1>} />
         </Routes>
       </div>
+      <Footer />
     </AuthProvider>
   );
 }
