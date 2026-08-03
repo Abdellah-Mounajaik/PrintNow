@@ -55,10 +55,10 @@ const CTASection = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-14 pt-10 border-t border-primary-foreground/10">
             <div className="text-center">
               <div className="font-display text-2xl font-bold text-primary-foreground mb-1">
-                0€
+                100€
               </div>
               <div className="text-sm text-primary-foreground/60">
-                Inscription gratuite
+                Frais d'inscription unique
               </div>
             </div>
             <div className="text-center">

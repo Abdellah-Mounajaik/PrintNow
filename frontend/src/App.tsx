@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './modules/auth/context/AuthContext';
 import Auth from './modules/auth/pages/Auth';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import ScrollToTop from './components/layout/ScrollToTop';
 import Home from './pages/Home'; 
 import DevenirPartenaire from './modules/shop/pages/DevenirPartenaire';
 import DashboardImprimeur from './modules/imprimeur/pages/DashboardImprimeur';
@@ -14,6 +15,7 @@ import PrintShopDetail from './modules/shop/pages/PrintShopDetail';
 import Order from './modules/shop/pages/Order';
 import MentionsLegales from './pages/MentionsLegales';
 import ConditionsGenerales from './pages/ConditionsGenerales';
+import Confidentialite from './pages/Confidentialite';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
@@ -24,6 +26,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 function App() {
   return (
     <AuthProvider>
+      <ScrollToTop />
       <Header />
       <div className="min-h-screen bg-background text-foreground">
         <Routes>
@@ -34,6 +37,7 @@ function App() {
           <Route path='/commander/:id' element={<Order />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/conditions-generales" element={<ConditionsGenerales />} />
+          <Route path="/confidentialite" element={<Confidentialite />} />
           <Route 
             path="/dashboard-imprimeur" 
             element={

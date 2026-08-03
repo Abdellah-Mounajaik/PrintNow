@@ -158,7 +158,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-background/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-background/50">
-            © 2024 PrintNow. Tous droits réservés.
+            © 2026 PrintNow. Tous droits réservés.
           </p>
           <div className="flex gap-6 text-sm">
             <Link to="/mentions-legales" className="text-background/50 hover:text-background/80 transition-colors">

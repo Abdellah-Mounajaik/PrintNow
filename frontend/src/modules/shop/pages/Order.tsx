@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import Header from "../../../components/layout/Header";
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
@@ -226,6 +226,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 const Order = () => {
   const { id } = useParams<{ id: string }>();
   const { token, user } = useAuth();
+  const navigate = useNavigate();
 
   if (!token) return <Navigate to="/login" replace />;
   if (user?.role === "ROLE_IMPRIMERIE") return <Navigate to="/dashboard-imprimeur" replace />;
@@ -575,6 +576,13 @@ const Order = () => {
       modeRetrait: fulfillment === "delivery" ? "LIVRAISON" : "RETRAIT_MAGASIN",
       total: Number(data.totalTTC),
     });
+  };
+
+  // La commande est déjà passée à ce stade : fermer la modale doit renvoyer
+  // le client vers son espace plutôt que de le laisser sur le formulaire de commande.
+  const handleFermerConfirmation = () => {
+    setConfirmation(null);
+    navigate("/dashboard");
   };
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-muted/30"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
@@ -1038,7 +1046,7 @@ const Order = () => {
       </main>
 
       {/* Confirmation modal */}
-      <Dialog open={!!confirmation} onOpenChange={(o) => !o && setConfirmation(null)}>
+      <Dialog open={!!confirmation} onOpenChange={(o) => !o && handleFermerConfirmation()}>
         <DialogContent>
           <DialogHeader>
             <div className="mx-auto w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mb-2">
@@ -1078,7 +1086,7 @@ const Order = () => {
           )}
 
           <DialogFooter className="sm:justify-center mt-4">
-            <Button variant="hero" className="w-full" onClick={() => setConfirmation(null)}>Fermer</Button>
+            <Button variant="hero" className="w-full" onClick={handleFermerConfirmation}>Fermer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

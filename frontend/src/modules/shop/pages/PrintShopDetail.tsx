@@ -66,10 +66,10 @@ const PrintShopDetail = () => {
   const nbA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && !p.couleur);
   const coulA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && p.couleur);
 
-  if (nbA4) documentsItems.push({ label: "N&B A4", format: "Papier 80g", prixBase: nbA4.prixBase });
-  if (coulA4) documentsItems.push({ label: "Couleur A4", format: "Papier 80g", prixBase: coulA4.prixBase });
-  if (nbA3) documentsItems.push({ label: "N&B A3", format: "Papier 80g", prixBase: nbA3.prixBase });
-  if (coulA3) documentsItems.push({ label: "Couleur A3", format: "Papier 80g", prixBase: coulA3.prixBase });
+  if (nbA4) documentsItems.push({ label: "N&B A4", format: "", prixBase: nbA4.prixBase });
+  if (coulA4) documentsItems.push({ label: "Couleur A4", format: "", prixBase: coulA4.prixBase });
+  if (nbA3) documentsItems.push({ label: "N&B A3", format: "", prixBase: nbA3.prixBase });
+  if (coulA3) documentsItems.push({ label: "Couleur A3", format: "", prixBase: coulA3.prixBase });
 
   // 2. FLYERS & AFFICHES
   const flyersItems: TabItem[] = [];
@@ -202,7 +202,9 @@ const PrintShopDetail = () => {
                               <div key={index} className="flex justify-between items-center p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors border">
                                 <div>
                                   <div className="font-semibold text-foreground">{item.label}</div>
-                                  <div className="text-xs text-muted-foreground max-w-[200px]">{item.format}</div>
+                                  {item.format && (
+                                    <div className="text-xs text-muted-foreground max-w-[200px]">{item.format}</div>
+                                  )}
                                 </div>
                                 <div className="text-right font-bold text-primary whitespace-nowrap ml-2">
                                   {item.prixBase.toFixed(2)}€
