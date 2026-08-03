@@ -3,6 +3,7 @@ package com.printnow.module.user.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.printnow.infrastructure.email.EmailService;
 import com.printnow.module.user.dto.ChangePasswordRequestDTO;
 import com.printnow.module.user.dto.SignupRequestDTO;
 import com.printnow.module.user.dto.UpdateProfileRequestDTO;
@@ -32,6 +33,7 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     public UserResponseDTO createUser(UserRequestDTO dto) {
         User user = userMapper.toEntity(dto);
@@ -143,8 +145,12 @@ public class UserService {
         user.setRole(clientRole);
 
         // 5. Sauvegarde et retour via le Mapper
-        return userMapper.toResponse(userRepository.save(user));
-    }
+        UserResponseDTO response = userMapper.toResponse(userRepository.save(user));
 
+        // 6. Mail de bienvenue (asynchrone, ne doit jamais faire échouer l'inscription)
+        emailService.envoyerBienvenue(user.getEmail(), user.getPrenom());
+
+        return response;
+    }
 
 }
