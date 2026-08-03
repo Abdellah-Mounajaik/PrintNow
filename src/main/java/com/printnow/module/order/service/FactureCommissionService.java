@@ -2,7 +2,6 @@ package com.printnow.module.order.service;
 
 import com.printnow.module.order.enums.StatutCommande;
 import com.printnow.module.order.model.Commande;
-import com.printnow.module.order.model.LigneCommande;
 import com.printnow.module.order.repository.CommandeRepository;
 import com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import com.printnow.module.shop.model.Imprimerie;
@@ -12,7 +11,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigDecimal;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -40,9 +39,6 @@ public class FactureCommissionService {
             StatutCommande.PAYEE, StatutCommande.EN_COURS_IMPRESSION,
             StatutCommande.PRETE, StatutCommande.LIVREE);
 
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
-
     private final CommandeRepository commandeRepository;
 
     @Transactional(readOnly = true)
@@ -59,12 +55,10 @@ public class FactureCommissionService {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
 
-            PDImageXObject logoImprimerie = chargerLogoDepuisDisque(
-                    document, commande.getImprimerie().getLogoUrl(), uploadDir, "logo-imprimerie");
             PDImageXObject logoPrintNow = chargerLogoPrintNow(document);
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
-                ecrire(cs, page, commande, logoImprimerie, logoPrintNow);
+                ecrire(cs, page, commande, logoPrintNow);
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -75,38 +69,41 @@ public class FactureCommissionService {
         }
     }
 
-    private void ecrire(PDPageContentStream cs, PDPage page, Commande commande,
-                         PDImageXObject logoImprimerie, PDImageXObject logoPrintNow) throws IOException {
+    private void ecrire(PDPageContentStream cs, PDPage page, Commande commande, PDImageXObject logoPrintNow) throws IOException {
         float largeurPage = page.getMediaBox().getWidth();
         float largeurUtile = largeurPage - 2 * MARGE;
         Cursor c = new Cursor(cs, page.getMediaBox().getHeight() - MARGE);
 
         Imprimerie imprimerie = commande.getImprimerie();
+        BigDecimal montantCommission = commande.getCommissionPlateforme() != null ? commande.getCommissionPlateforme() : BigDecimal.ZERO;
+        String numeroFacture = commande.getNumeroCommande().replaceFirst("^CMD-", "COM-");
 
-        // En-tête : logo PrintNow bien visible à gauche (émetteur — c'est SA facture),
-        // titre + n°/date à droite.
-        float hauteurEntete = 42f;
+        // En-tête : logo PrintNow à gauche (émetteur), titre + n°/date à droite.
+        float hauteurEntete = 32f;
         if (logoPrintNow != null) {
             c.dessinerImage(logoPrintNow, MARGE, c.y - hauteurEntete, hauteurEntete);
         }
-        c.texteDroiteA(FONT_BOLD, 18, MARGE + largeurUtile, c.y - 18, "FACTURE DE COMMISSION");
-        c.texteDroiteA(FONT, 10, MARGE + largeurUtile, c.y - 34,
-                "Commande N° " + commande.getNumeroCommande() + "  ·  " + formatDateFacture(commande));
+        c.texteCouleurDroiteA(FONT_BOLD, 18, MARGE + largeurUtile, c.y - 16, "FACTURE COMMISSION", NAVY);
+        c.texteCouleurDroiteA(FONT, 10, MARGE + largeurUtile, c.y - 32,
+                "N° " + numeroFacture + "  ·  " + formatDateFacture(commande), GRIS_TEXTE);
 
         c.y -= hauteurEntete;
         c.avancer(16);
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
-        c.avancer(16);
+        c.avancer(20);
 
         // Bloc émetteur / destinataire, sur deux colonnes de même hauteur
         float colonneDroite = MARGE + largeurUtile / 2 + 20;
         float yBloc = c.y;
 
-        c.texteA(FONT_BOLD, 11, MARGE, yBloc, "Émetteur");
-        c.texteA(FONT, 10, MARGE, yBloc - 14, "PrintNow");
+        c.texteCouleurA(FONT_BOLD, 10, MARGE, yBloc, "ÉMETTEUR", GRIS_TEXTE);
+        c.texteA(FONT_BOLD, 10, MARGE, yBloc - 14, "PrintNow");
+        c.texteA(FONT, 10, MARGE, yBloc - 27, "Plateforme de mise en relation");
+        c.texteA(FONT, 10, MARGE, yBloc - 40, "contact@printnow.be");
+        c.texteA(FONT, 10, MARGE, yBloc - 53, "Bruxelles, Belgique");
 
-        c.texteA(FONT_BOLD, 11, colonneDroite, yBloc, "Destinataire");
-        c.texteA(FONT, 10, colonneDroite, yBloc - 14, nonVide(imprimerie.getNom()));
+        c.texteCouleurA(FONT_BOLD, 10, colonneDroite, yBloc, "DESTINATAIRE (IMPRIMEUR)", GRIS_TEXTE);
+        c.texteA(FONT_BOLD, 10, colonneDroite, yBloc - 14, nonVide(imprimerie.getNom()));
         c.texteA(FONT, 10, colonneDroite, yBloc - 27, nonVide(imprimerie.getAdresse()));
         c.texteA(FONT, 10, colonneDroite, yBloc - 40, nonVide(imprimerie.getVille()) + ", " + nonVide(imprimerie.getPays()));
         c.texteA(FONT, 10, colonneDroite, yBloc - 53,
@@ -115,61 +112,51 @@ public class FactureCommissionService {
         c.y = yBloc - 53;
         c.avancer(24);
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
-        c.avancer(20);
+        c.avancer(24);
 
-        // Détail de la vente, pour justifier la base de calcul de la commission
+        // Tableau : une ligne unique, la commission elle-même (pas le détail des produits imprimés).
         float xDesignation = MARGE;
         float xQuantite = MARGE + largeurUtile - 260;
         float xPrixUnitaire = MARGE + largeurUtile - 170;
         float xTotal = MARGE + largeurUtile - 70;
 
-        c.texte(FONT_BOLD, 10, xDesignation, "Désignation");
-        c.texte(FONT_BOLD, 10, xQuantite, "Qté");
-        c.texte(FONT_BOLD, 10, xPrixUnitaire, "Prix unit.");
-        c.texte(FONT_BOLD, 10, xTotal, "Total");
-        c.avancer(6);
-        c.ligneHorizontale(MARGE, MARGE + largeurUtile);
-        c.avancer(16);
+        c.bandeau(MARGE, c.y - 6, largeurUtile, 20, GRIS_CLAIR);
+        c.texteCouleur(FONT_BOLD, 9, xDesignation, "DÉSIGNATION", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 9, xQuantite, "QTÉ", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 9, xPrixUnitaire, "PRIX UNIT.", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 9, xTotal, "TOTAL", GRIS_TEXTE);
+        c.avancer(26);
 
-        for (LigneCommande ligne : commande.getLignes()) {
-            c.texte(FONT, 10, xDesignation, libelleLigne(ligne));
-            c.texte(FONT, 10, xQuantite, String.valueOf(ligne.getQuantite()));
-            c.texte(FONT, 10, xPrixUnitaire, formatMontant(ligne.getPrixUnitaire()));
-            c.texte(FONT, 10, xTotal, formatMontant(ligne.getPrixTotal()));
-            c.avancer(18);
-        }
-        if (commande.getFraisExpress() != null) {
-            c.texte(FONT, 10, xDesignation, "Impression express 2h");
-            c.texte(FONT, 10, xTotal, formatMontant(commande.getFraisExpress()));
-            c.avancer(18);
-        }
-        if (commande.getFraisLivraison() != null) {
-            c.texte(FONT, 10, xDesignation, "Livraison à domicile");
-            c.texte(FONT, 10, xTotal, formatMontant(commande.getFraisLivraison()));
-            c.avancer(18);
-        }
+        c.texte(FONT, 10, xDesignation, "Commission sur vente");
+        c.texte(FONT, 10, xQuantite, "1");
+        c.texte(FONT, 10, xPrixUnitaire, formatMontant(montantCommission));
+        c.texte(FONT, 10, xTotal, formatMontant(montantCommission));
+        c.avancer(13);
+        c.texteCouleur(FONT, 8, xDesignation,
+                "Commande N° " + commande.getNumeroCommande() + "  ·  Taux : 10 %  ·  Base de calcul : " + formatMontant(commande.getTotalTTC()) + " (Vente TTC)",
+                GRIS_TEXTE);
+        c.avancer(24);
 
-        c.avancer(6);
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
         c.avancer(20);
 
-        // Décompte : vente → commission (le gain de PrintNow, ligne finale en gras)
+        // PrintNow est sous le régime de la franchise de la taxe (art. 56bis CTVA) :
+        // pas de TVA sur ses propres prestations, d'où l'absence de ligne TVA ici
+        // (à la différence de la facture client, où le vendeur est l'imprimerie).
         float xLabelTotal = MARGE + largeurUtile - 220;
-        c.texte(FONT, 10, xLabelTotal, "Base de calcul (vente TTC)");
-        c.texte(FONT, 10, xTotal, formatMontant(commande.getTotalTTC()));
-        c.avancer(19);
+        c.texteCouleur(FONT_BOLD, 12, xLabelTotal, "Total Commission", ORANGE);
+        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(montantCommission), ORANGE);
+        c.avancer(28);
 
-        c.texte(FONT_BOLD, 11, xLabelTotal, "Commission (10%)");
-        c.texte(FONT_BOLD, 11, xTotal, formatMontant(commande.getCommissionPlateforme()));
-        c.avancer(40);
+        c.texteCouleur(FONT, 8, MARGE, "Petite entreprise soumise au régime de la franchise de la taxe.", GRIS_TEXTE);
+        c.avancer(11);
+        c.texteCouleur(FONT, 8, MARGE, "TVA non applicable (art. 56bis, CTVA).", GRIS_TEXTE);
+        c.avancer(30);
 
-        if (logoImprimerie != null) {
-            float hauteurLogoFooter = 16f;
-            c.dessinerImage(logoImprimerie, MARGE, c.y - hauteurLogoFooter + 4, hauteurLogoFooter);
-            c.texteA(FONT, 8, MARGE + hauteurLogoFooter * c.ratio(logoImprimerie) + 8, c.y - 8,
-                    "Facture générée automatiquement par PrintNow.");
-        } else {
-            c.texte(FONT, 8, MARGE, "Facture générée automatiquement par PrintNow.");
-        }
+        c.ligneHorizontale(MARGE, MARGE + largeurUtile);
+        c.avancer(16);
+        float largeurNote = FONT.getStringWidth("Facture générée automatiquement par la plateforme PrintNow.") / 1000f * 8;
+        c.texteCouleurA(FONT, 8, MARGE + (largeurUtile - largeurNote) / 2, c.y,
+                "Facture générée automatiquement par la plateforme PrintNow.", GRIS_TEXTE);
     }
 }

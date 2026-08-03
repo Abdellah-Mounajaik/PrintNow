@@ -16,7 +16,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +33,9 @@ import static com.printnow.module.order.service.pdf.PdfFactureHelpers.*;
 /**
  * Génère la facture PDF d'une commande, à la demande (pas de table "facture"
  * séparée en base : toutes les données nécessaires existent déjà sur la
- * Commande, ses lignes, l'imprimerie et le client).
+ * Commande, ses lignes, l'imprimerie et le client). L'imprimerie reste le
+ * vendeur légal ; PrintNow n'apparaît qu'en tant que plateforme émettrice
+ * du document.
  */
 @Service
 @RequiredArgsConstructor
@@ -43,9 +44,6 @@ public class FactureService {
     private static final Set<StatutCommande> STATUTS_FACTURABLES = EnumSet.of(
             StatutCommande.PAYEE, StatutCommande.EN_COURS_IMPRESSION,
             StatutCommande.PRETE, StatutCommande.LIVREE);
-
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
 
     private final CommandeRepository commandeRepository;
 
@@ -66,12 +64,10 @@ public class FactureService {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
 
-            PDImageXObject logoImprimerie = chargerLogoDepuisDisque(
-                    document, commande.getImprimerie().getLogoUrl(), uploadDir, "logo-imprimerie");
             PDImageXObject logoPrintNow = chargerLogoPrintNow(document);
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
-                ecrire(cs, page, commande, logoImprimerie, logoPrintNow);
+                ecrire(cs, page, commande, logoPrintNow);
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -82,8 +78,7 @@ public class FactureService {
         }
     }
 
-    private void ecrire(PDPageContentStream cs, PDPage page, Commande commande,
-                         PDImageXObject logoImprimerie, PDImageXObject logoPrintNow) throws IOException {
+    private void ecrire(PDPageContentStream cs, PDPage page, Commande commande, PDImageXObject logoPrintNow) throws IOException {
         float largeurPage = page.getMediaBox().getWidth();
         float largeurUtile = largeurPage - 2 * MARGE;
         Cursor c = new Cursor(cs, page.getMediaBox().getHeight() - MARGE);
@@ -91,34 +86,34 @@ public class FactureService {
         Imprimerie imprimerie = commande.getImprimerie();
         User client = commande.getClient();
 
-        // En-tête : logo de l'imprimerie à gauche, titre + n°/date à droite,
-        // hauteur réservée fixe que le logo soit présent ou non.
-        float hauteurEntete = 42f;
-        if (logoImprimerie != null) {
-            c.dessinerImage(logoImprimerie, MARGE, c.y - hauteurEntete, hauteurEntete);
+        // En-tête : logo PrintNow à gauche (la plateforme émet le document),
+        // titre + n°/date à droite, hauteur réservée fixe que le logo soit présent ou non.
+        float hauteurEntete = 32f;
+        if (logoPrintNow != null) {
+            c.dessinerImage(logoPrintNow, MARGE, c.y - hauteurEntete, hauteurEntete);
         }
-        c.texteDroiteA(FONT_BOLD, 20, MARGE + largeurUtile, c.y - 18, "FACTURE");
-        c.texteDroiteA(FONT, 10, MARGE + largeurUtile, c.y - 34,
-                "N° " + commande.getNumeroCommande() + "  ·  " + formatDateFacture(commande));
+        c.texteCouleurDroiteA(FONT_BOLD, 20, MARGE + largeurUtile, c.y - 16, "FACTURE", NAVY);
+        c.texteCouleurDroiteA(FONT, 10, MARGE + largeurUtile, c.y - 32,
+                "N° " + commande.getNumeroCommande() + "  ·  " + formatDateFacture(commande), GRIS_TEXTE);
 
         c.y -= hauteurEntete;
         c.avancer(16);
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
-        c.avancer(16);
+        c.avancer(20);
 
         // Bloc vendeur / client, sur deux colonnes de même hauteur (positions absolues)
         float colonneDroite = MARGE + largeurUtile / 2 + 20;
         float yBloc = c.y;
 
-        c.texteA(FONT_BOLD, 11, MARGE, yBloc, "Vendeur");
-        c.texteA(FONT, 10, MARGE, yBloc - 14, nonVide(imprimerie.getNom()));
+        c.texteCouleurA(FONT_BOLD, 10, MARGE, yBloc, "VENDEUR", GRIS_TEXTE);
+        c.texteA(FONT_BOLD, 10, MARGE, yBloc - 14, nonVide(imprimerie.getNom()));
         c.texteA(FONT, 10, MARGE, yBloc - 27, nonVide(imprimerie.getAdresse()));
         c.texteA(FONT, 10, MARGE, yBloc - 40, nonVide(imprimerie.getVille()) + ", " + nonVide(imprimerie.getPays()));
         c.texteA(FONT, 10, MARGE, yBloc - 53,
                 "TVA : " + (imprimerie.getNumeroTva() != null ? imprimerie.getNumeroTva() : "N/A"));
 
-        c.texteA(FONT_BOLD, 11, colonneDroite, yBloc, "Client");
-        c.texteA(FONT, 10, colonneDroite, yBloc - 14, nonVide(client.getPrenom()) + " " + nonVide(client.getNom()));
+        c.texteCouleurA(FONT_BOLD, 10, colonneDroite, yBloc, "FACTURÉ À", GRIS_TEXTE);
+        c.texteA(FONT_BOLD, 10, colonneDroite, yBloc - 14, nonVide(client.getPrenom()) + " " + nonVide(client.getNom()));
         c.texteA(FONT, 10, colonneDroite, yBloc - 27, nonVide(client.getEmail()));
 
         AdresseLivraison adresse = commande.getAdresseLivraison();
@@ -133,21 +128,20 @@ public class FactureService {
         c.y = yBloc - 53;
         c.avancer(24);
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
-        c.avancer(20);
+        c.avancer(24);
 
-        // En-tête du tableau des lignes
+        // En-tête du tableau des lignes, sur un bandeau grisé
         float xDesignation = MARGE;
         float xQuantite = MARGE + largeurUtile - 260;
         float xPrixUnitaire = MARGE + largeurUtile - 170;
         float xTotal = MARGE + largeurUtile - 70;
 
-        c.texte(FONT_BOLD, 10, xDesignation, "Désignation");
-        c.texte(FONT_BOLD, 10, xQuantite, "Qté");
-        c.texte(FONT_BOLD, 10, xPrixUnitaire, "Prix unit.");
-        c.texte(FONT_BOLD, 10, xTotal, "Total");
-        c.avancer(6);
-        c.ligneHorizontale(MARGE, MARGE + largeurUtile);
-        c.avancer(16);
+        c.bandeau(MARGE, c.y - 6, largeurUtile, 20, GRIS_CLAIR);
+        c.texteCouleur(FONT_BOLD, 9, xDesignation, "DÉSIGNATION", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 9, xQuantite, "QTÉ", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 9, xPrixUnitaire, "PRIX UNIT.", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 9, xTotal, "TOTAL", GRIS_TEXTE);
+        c.avancer(26);
 
         for (LigneCommande ligne : commande.getLignes()) {
             c.texte(FONT, 10, xDesignation, libelleLigne(ligne));
@@ -186,20 +180,17 @@ public class FactureService {
             ligneTotal(c, xLabelTotal, xTotal, "Code promo (" + promo.getCode() + ")",
                     commande.getMontantReduction().negate());
         }
-        ligneTotal(c, xLabelTotal, xTotal, "TVA (20%)", commande.getTotalTVA());
-        c.avancer(4);
-        c.texte(FONT_BOLD, 11, xLabelTotal, "Total TTC");
-        c.texte(FONT_BOLD, 11, xTotal, formatMontant(commande.getTotalTTC()));
+        ligneTotal(c, xLabelTotal, xTotal, "TVA (21%)", commande.getTotalTVA());
+        c.avancer(6);
+        c.texteCouleur(FONT_BOLD, 12, xLabelTotal, "Total TTC", ORANGE);
+        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(commande.getTotalTTC()), ORANGE);
         c.avancer(40);
 
-        if (logoPrintNow != null) {
-            float hauteurLogoFooter = 16f;
-            c.dessinerImage(logoPrintNow, MARGE, c.y - hauteurLogoFooter + 4, hauteurLogoFooter);
-            c.texteA(FONT, 8, MARGE + hauteurLogoFooter * c.ratio(logoPrintNow) + 8, c.y - 8,
-                    "Facture générée automatiquement.");
-        } else {
-            c.texte(FONT, 8, MARGE, "Facture générée automatiquement par PrintNow.");
-        }
+        c.ligneHorizontale(MARGE, MARGE + largeurUtile);
+        c.avancer(16);
+        float largeurNote = FONT.getStringWidth("Facture générée automatiquement par la plateforme PrintNow.") / 1000f * 8;
+        c.texteCouleurA(FONT, 8, MARGE + (largeurUtile - largeurNote) / 2, c.y,
+                "Facture générée automatiquement par la plateforme PrintNow.", GRIS_TEXTE);
     }
 
     private void ligneTotal(Cursor c, float xLabel, float xValeur, String label, BigDecimal montant) throws IOException {

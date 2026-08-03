@@ -12,7 +12,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,9 +39,6 @@ public class ReleveVenteService {
             StatutCommande.PAYEE, StatutCommande.EN_COURS_IMPRESSION,
             StatutCommande.PRETE, StatutCommande.LIVREE);
 
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
-
     private final CommandeRepository commandeRepository;
 
     /** gerantId == null signifie un appel admin (pas de vérification de propriété). */
@@ -63,12 +59,10 @@ public class ReleveVenteService {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
 
-            PDImageXObject logoImprimerie = chargerLogoDepuisDisque(
-                    document, commande.getImprimerie().getLogoUrl(), uploadDir, "logo-imprimerie");
             PDImageXObject logoPrintNow = chargerLogoPrintNow(document);
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
-                ecrire(cs, page, commande, logoImprimerie, logoPrintNow);
+                ecrire(cs, page, commande, logoPrintNow);
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -79,38 +73,39 @@ public class ReleveVenteService {
         }
     }
 
-    private void ecrire(PDPageContentStream cs, PDPage page, Commande commande,
-                         PDImageXObject logoImprimerie, PDImageXObject logoPrintNow) throws IOException {
+    private void ecrire(PDPageContentStream cs, PDPage page, Commande commande, PDImageXObject logoPrintNow) throws IOException {
         float largeurPage = page.getMediaBox().getWidth();
         float largeurUtile = largeurPage - 2 * MARGE;
         Cursor c = new Cursor(cs, page.getMediaBox().getHeight() - MARGE);
 
         Imprimerie imprimerie = commande.getImprimerie();
 
-        // En-tête : logo PrintNow bien visible à gauche (émetteur du document),
-        // titre + n°/date à droite.
-        float hauteurEntete = 42f;
+        // En-tête : logo PrintNow à gauche (émetteur), titre + n°/date à droite.
+        float hauteurEntete = 32f;
         if (logoPrintNow != null) {
             c.dessinerImage(logoPrintNow, MARGE, c.y - hauteurEntete, hauteurEntete);
         }
-        c.texteDroiteA(FONT_BOLD, 18, MARGE + largeurUtile, c.y - 18, "RELEVÉ DE VENTE");
-        c.texteDroiteA(FONT, 10, MARGE + largeurUtile, c.y - 34,
-                "Commande N° " + commande.getNumeroCommande() + "  ·  " + formatDateFacture(commande));
+        c.texteCouleurDroiteA(FONT_BOLD, 18, MARGE + largeurUtile, c.y - 16, "RELEVÉ DE VENTE", NAVY);
+        c.texteCouleurDroiteA(FONT, 10, MARGE + largeurUtile, c.y - 32,
+                "N° " + commande.getNumeroCommande() + "  ·  " + formatDateFacture(commande), GRIS_TEXTE);
 
         c.y -= hauteurEntete;
         c.avancer(16);
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
-        c.avancer(16);
+        c.avancer(20);
 
-        // Bloc émetteur / destinataire, sur deux colonnes de même hauteur
+        // Bloc émetteur / partenaire, sur deux colonnes de même hauteur
         float colonneDroite = MARGE + largeurUtile / 2 + 20;
         float yBloc = c.y;
 
-        c.texteA(FONT_BOLD, 11, MARGE, yBloc, "Émetteur");
-        c.texteA(FONT, 10, MARGE, yBloc - 14, "PrintNow");
+        c.texteCouleurA(FONT_BOLD, 10, MARGE, yBloc, "ÉMETTEUR", GRIS_TEXTE);
+        c.texteA(FONT_BOLD, 10, MARGE, yBloc - 14, "PrintNow");
+        c.texteA(FONT, 10, MARGE, yBloc - 27, "Plateforme de mise en relation");
+        c.texteA(FONT, 10, MARGE, yBloc - 40, "contact@printnow.be");
+        c.texteA(FONT, 10, MARGE, yBloc - 53, "Bruxelles, Belgique");
 
-        c.texteA(FONT_BOLD, 11, colonneDroite, yBloc, "Destinataire");
-        c.texteA(FONT, 10, colonneDroite, yBloc - 14, nonVide(imprimerie.getNom()));
+        c.texteCouleurA(FONT_BOLD, 10, colonneDroite, yBloc, "PARTENAIRE IMPRIMEUR", GRIS_TEXTE);
+        c.texteA(FONT_BOLD, 10, colonneDroite, yBloc - 14, nonVide(imprimerie.getNom()));
         c.texteA(FONT, 10, colonneDroite, yBloc - 27, nonVide(imprimerie.getAdresse()));
         c.texteA(FONT, 10, colonneDroite, yBloc - 40, nonVide(imprimerie.getVille()) + ", " + nonVide(imprimerie.getPays()));
         c.texteA(FONT, 10, colonneDroite, yBloc - 53,
@@ -119,7 +114,7 @@ public class ReleveVenteService {
         c.y = yBloc - 53;
         c.avancer(24);
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
-        c.avancer(20);
+        c.avancer(24);
 
         // Détail de la vente, pour justifier le montant perçu
         float xDesignation = MARGE;
@@ -127,13 +122,12 @@ public class ReleveVenteService {
         float xPrixUnitaire = MARGE + largeurUtile - 170;
         float xTotal = MARGE + largeurUtile - 70;
 
-        c.texte(FONT_BOLD, 10, xDesignation, "Désignation");
-        c.texte(FONT_BOLD, 10, xQuantite, "Qté");
-        c.texte(FONT_BOLD, 10, xPrixUnitaire, "Prix unit.");
-        c.texte(FONT_BOLD, 10, xTotal, "Total");
-        c.avancer(6);
-        c.ligneHorizontale(MARGE, MARGE + largeurUtile);
-        c.avancer(16);
+        c.bandeau(MARGE, c.y - 6, largeurUtile, 20, GRIS_CLAIR);
+        c.texteCouleur(FONT_BOLD, 9, xDesignation, "DÉSIGNATION", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 9, xQuantite, "QTÉ", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 9, xPrixUnitaire, "PRIX UNIT.", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 9, xTotal, "TOTAL", GRIS_TEXTE);
+        c.avancer(26);
 
         for (LigneCommande ligne : commande.getLignes()) {
             c.texte(FONT, 10, xDesignation, libelleLigne(ligne));
@@ -164,20 +158,17 @@ public class ReleveVenteService {
         c.avancer(15);
 
         c.texte(FONT, 10, xLabelTotal, "Commission retenue (10%)");
-        c.texte(FONT, 10, xTotal, "-" + formatMontant(commande.getCommissionPlateforme()));
-        c.avancer(19);
+        c.texte(FONT, 10, xTotal, "- " + formatMontant(commande.getCommissionPlateforme()));
+        c.avancer(21);
 
-        c.texte(FONT_BOLD, 11, xLabelTotal, "Montant net perçu");
-        c.texte(FONT_BOLD, 11, xTotal, formatMontant(commande.getMontantVerseImprimerie()));
+        c.texteCouleur(FONT_BOLD, 12, xLabelTotal, "Montant net perçu", ORANGE);
+        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(commande.getMontantVerseImprimerie()), ORANGE);
         c.avancer(40);
 
-        if (logoImprimerie != null) {
-            float hauteurLogoFooter = 16f;
-            c.dessinerImage(logoImprimerie, MARGE, c.y - hauteurLogoFooter + 4, hauteurLogoFooter);
-            c.texteA(FONT, 8, MARGE + hauteurLogoFooter * c.ratio(logoImprimerie) + 8, c.y - 8,
-                    "Relevé généré automatiquement par PrintNow.");
-        } else {
-            c.texte(FONT, 8, MARGE, "Relevé généré automatiquement par PrintNow.");
-        }
+        c.ligneHorizontale(MARGE, MARGE + largeurUtile);
+        c.avancer(16);
+        float largeurNote = FONT.getStringWidth("Facture générée automatiquement par la plateforme PrintNow.") / 1000f * 8;
+        c.texteCouleurA(FONT, 8, MARGE + (largeurUtile - largeurNote) / 2, c.y,
+                "Facture générée automatiquement par la plateforme PrintNow.", GRIS_TEXTE);
     }
 }

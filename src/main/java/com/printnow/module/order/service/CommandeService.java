@@ -242,7 +242,7 @@ public class CommandeService {
 
         // 8. Calculs financiers finaux
         commande.setTotalHT(totalHT);
-        commande.setTotalTVA(totalHT.multiply(new BigDecimal("0.20"))); // TVA fixe à 20%
+        commande.setTotalTVA(totalHT.multiply(new BigDecimal("0.21"))); // TVA fixe à 21% (taux belge standard)
         commande.setTotalTTC(commande.getTotalHT().add(commande.getTotalTVA()));
         
         // Commission (10% du TTC)

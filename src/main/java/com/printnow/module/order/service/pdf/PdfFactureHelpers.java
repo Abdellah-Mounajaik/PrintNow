@@ -30,6 +30,12 @@ public final class PdfFactureHelpers {
     public static final PDType1Font FONT = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
     public static final PDType1Font FONT_BOLD = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
 
+    // Couleurs de la charte PrintNow (mêmes teintes que le logo / le site).
+    public static final int[] NAVY = {27, 41, 75};
+    public static final int[] ORANGE = {245, 159, 10};
+    public static final int[] GRIS_CLAIR = {245, 245, 247};
+    public static final int[] GRIS_TEXTE = {110, 110, 120};
+
     private PdfFactureHelpers() {
     }
 
@@ -129,11 +135,56 @@ public final class PdfFactureHelpers {
             texteA(font, taille, xDroite - largeurTexte, yAbsolu, valeur);
         }
 
+        /** setNonStrokingColor(int,int,int) attend des composantes 0..1, pas 0..255. */
+        private void definirCouleur(int[] rgb) throws IOException {
+            cs.setNonStrokingColor(rgb[0] / 255f, rgb[1] / 255f, rgb[2] / 255f);
+        }
+
+        private void reinitialiserCouleur() throws IOException {
+            cs.setNonStrokingColor(0f, 0f, 0f);
+        }
+
+        /** Écrit au curseur courant dans une couleur donnée, puis remet le noir par défaut. */
+        public void texteCouleur(PDType1Font font, float taille, float x, String valeur, int[] rgb) throws IOException {
+            definirCouleur(rgb);
+            texte(font, taille, x, valeur);
+            reinitialiserCouleur();
+        }
+
+        /** Écrit un texte aligné à droite dans une couleur donnée, puis remet le noir par défaut. */
+        public void texteCouleurDroite(PDType1Font font, float taille, float xDroite, String valeur, int[] rgb) throws IOException {
+            definirCouleur(rgb);
+            texteDroiteA(font, taille, xDroite, y, valeur);
+            reinitialiserCouleur();
+        }
+
+        /** Écrit à une position Y explicite dans une couleur donnée, puis remet le noir par défaut. */
+        public void texteCouleurA(PDType1Font font, float taille, float x, float yAbsolu, String valeur, int[] rgb) throws IOException {
+            definirCouleur(rgb);
+            texteA(font, taille, x, yAbsolu, valeur);
+            reinitialiserCouleur();
+        }
+
+        /** Écrit un texte aligné à droite à une position Y explicite dans une couleur donnée. */
+        public void texteCouleurDroiteA(PDType1Font font, float taille, float xDroite, float yAbsolu, String valeur, int[] rgb) throws IOException {
+            definirCouleur(rgb);
+            texteDroiteA(font, taille, xDroite, yAbsolu, valeur);
+            reinitialiserCouleur();
+        }
+
         public void ligneHorizontale(float xGauche, float xDroite) throws IOException {
             cs.moveTo(xGauche, y);
             cs.lineTo(xDroite, y);
             cs.setLineWidth(0.5f);
             cs.stroke();
+        }
+
+        /** Dessine un bandeau rempli d'une couleur (ex: en-tête de tableau grisé), sans toucher au curseur texte. */
+        public void bandeau(float xGauche, float yBas, float largeur, float hauteur, int[] rgb) throws IOException {
+            definirCouleur(rgb);
+            cs.addRect(xGauche, yBas, largeur, hauteur);
+            cs.fill();
+            reinitialiserCouleur();
         }
 
         public float ratio(PDImageXObject image) {

@@ -418,11 +418,11 @@ const Order = () => {
         : appliedPromo.valeurReduction)
     : 0;
   const totalHT = Math.max(0, totalAvantPromo - promoDiscountAmount);
-  const tva = totalHT * 0.20;
+  const tva = totalHT * 0.21;
   const total = totalHT + tva;
 
   useEffect(() => {
-    if (appliedPromo?.montantMinimum && totalAvantPromo * 1.20 < appliedPromo.montantMinimum) {
+    if (appliedPromo?.montantMinimum && totalAvantPromo * 1.21 < appliedPromo.montantMinimum) {
       setAppliedPromo(null);
       toast({ title: "Code promo retiré", description: `Montant minimum de ${appliedPromo.montantMinimum.toFixed(2)}€ requis.`, variant: "destructive" });
     }
@@ -434,7 +434,7 @@ const Order = () => {
     if (!code) return;
     setPromoError(null);
     try {
-      const totalTTCAvantPromo = totalAvantPromo * 1.20;
+      const totalTTCAvantPromo = totalAvantPromo * 1.21;
       const res = await fetch(`http://localhost:8080/api/promos/valider?code=${encodeURIComponent(code)}&montant=${totalTTCAvantPromo.toFixed(2)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1027,7 +1027,7 @@ const Order = () => {
                       <span>Total HT</span><span>{totalHT.toFixed(2)}€</span>
                     </div>
                     <div className="flex justify-between text-muted-foreground">
-                      <span>TVA (20%)</span><span>+{tva.toFixed(2)}€</span>
+                      <span>TVA (21%)</span><span>+{tva.toFixed(2)}€</span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t">
                       <span className="font-semibold text-lg">Total TTC</span>
