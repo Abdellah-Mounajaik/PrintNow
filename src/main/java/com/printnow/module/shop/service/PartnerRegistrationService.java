@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.printnow.infrastructure.email.EmailService;
 import com.printnow.module.shop.dto.HoraireOuvertureRequestDTO;
 import com.printnow.module.shop.dto.ImprimerieRequestDTO;
 import com.printnow.module.shop.dto.ImprimerieResponseDTO;
@@ -34,6 +35,7 @@ public class PartnerRegistrationService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     /**
      * Crée un nouveau partenaire (User + Imprimerie + Produits + Horaires), déjà actif.
@@ -86,6 +88,9 @@ public class PartnerRegistrationService {
                 horaireRepository.save(horaire);
             }
         }
+
+        // 6. Mail de bienvenue partenaire (asynchrone, ne doit jamais faire échouer l'inscription)
+        emailService.envoyerBienvenuePartenaire(newGerant.getEmail(), savedShop.getNom());
 
         return savedShop.getId();
     }
