@@ -31,6 +31,12 @@ import type { CommandeImprimeurDTO, PromoDTO } from "../models/imprimeur.model";
 // ─── Pagination de la liste des commandes ────────────────────────────────────
 const ORDERS_PER_PAGE = 6;
 
+// ─── Filtre par statut de la liste des commandes ─────────────────────────────
+const ORDER_STATUS_FILTERS: { key: string; label: string; statuts: string[] | null }[] = [
+  { key: "ALL", label: "Toutes", statuts: null },
+  { key: "A_TRAITER", label: "À traiter", statuts: ["PAYEE", "EN_COURS_IMPRESSION"] },
+];
+
 // ─── Constantes options de finition ──────────────────────────────────────────
 const DEFAULT_PLAST_PRICES = { MAT: "0.50", BRILLANT: "0.60", SOFT_TOUCH: "0.80" };
 const DEFAULT_REL_PRICES = {
@@ -120,6 +126,7 @@ const DashboardImprimeur = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [orders, setOrders] = useState<CommandeImprimeurDTO[]>([]);
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string>("ALL");
   const [ordersPage, setOrdersPage] = useState(1);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [promos, setPromos] = useState<PromoDTO[]>([]);
@@ -660,13 +667,18 @@ const DashboardImprimeur = () => {
   const pending = orders.filter((o) => o.statut === "PAYEE" || o.statut === "EN_COURS_IMPRESSION").length;
   const activeServicesCount = Object.values(servicesState).filter((s: any) => s.enabled).length;
 
+  const activeStatusFilter = ORDER_STATUS_FILTERS.find((f) => f.key === orderStatusFilter) ?? ORDER_STATUS_FILTERS[0];
+  const ordersInStatus = activeStatusFilter.statuts
+    ? orders.filter((o: any) => activeStatusFilter.statuts!.includes(o.statut))
+    : orders;
+
   const orderSearchNormalized = orderSearchQuery.trim().toLowerCase();
   const filteredOrders = orderSearchNormalized
-    ? orders.filter((o: any) =>
+    ? ordersInStatus.filter((o: any) =>
         o.numeroCommande?.toLowerCase().includes(orderSearchNormalized) ||
         o.nomClient?.toLowerCase().includes(orderSearchNormalized)
       )
-    : orders;
+    : ordersInStatus;
 
   // La page demandée est ramenée dans les bornes valides si la recherche a
   // réduit le nombre de résultats entre-temps.
@@ -756,6 +768,20 @@ const DashboardImprimeur = () => {
                     </div>
                   )}
                 </div>
+                {orders.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {ORDER_STATUS_FILTERS.map((f) => (
+                      <Button
+                        key={f.key}
+                        variant={orderStatusFilter === f.key ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => { setOrderStatusFilter(f.key); setOrdersPage(1); }}
+                      >
+                        {f.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
                 {orders.length === 0 ? (
                   <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                     <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
@@ -766,7 +792,11 @@ const DashboardImprimeur = () => {
                   <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                     <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
                     <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
-                    <p className="text-muted-foreground text-sm">Aucune commande ne correspond à "{orderSearchQuery}".</p>
+                    <p className="text-muted-foreground text-sm">
+                      {orderSearchNormalized
+                        ? `Aucune commande ne correspond à "${orderSearchQuery}".`
+                        : `Aucune commande dans "${activeStatusFilter.label}".`}
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
