@@ -33,11 +33,20 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { userService } from "../services/user.service";
 import type { CommandeDTO, VerifDTO, SuiviDTO, UserProfileDTO } from "../models/user.model";
 
-const STATUS_MAP: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
+const STATUS_MAP_RETRAIT: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
   EN_ATTENTE_PAIEMENT: { label: "En attente", variant: "outline" },
   PAYEE: { label: "Payée", variant: "secondary" },
   EN_COURS_IMPRESSION: { label: "En cours", variant: "default" },
   PRETE: { label: "Prêt à être retiré", variant: "default" },
+  LIVREE: { label: "Récupérée", variant: "default" },
+  ANNULEE: { label: "Annulée", variant: "destructive" },
+};
+
+const STATUS_MAP_LIVRAISON: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
+  EN_ATTENTE_PAIEMENT: { label: "En attente", variant: "outline" },
+  PAYEE: { label: "Payée", variant: "secondary" },
+  EN_COURS_IMPRESSION: { label: "En cours", variant: "default" },
+  PRETE: { label: "Expédiée", variant: "default" },
   LIVREE: { label: "Livrée", variant: "default" },
   ANNULEE: { label: "Annulée", variant: "destructive" },
 };
@@ -270,8 +279,8 @@ const DashboardClient = () => {
                 ) : (
                   <div className="space-y-3">
                     {orders.map((order: any) => {
-                      const status = STATUS_MAP[order.statut] ?? { label: order.statut, variant: "outline" };
                       const isLivraison = order.modeRetrait === "LIVRAISON";
+                      const status = (isLivraison ? STATUS_MAP_LIVRAISON : STATUS_MAP_RETRAIT)[order.statut] ?? { label: order.statut, variant: "outline" };
                       const suivi = suiviData[order.id];
                       return (
                         <div key={order.id} className="border rounded-lg bg-muted/10 overflow-hidden">

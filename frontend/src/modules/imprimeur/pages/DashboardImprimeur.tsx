@@ -575,7 +575,8 @@ const DashboardImprimeur = () => {
     try {
       const updated = await imprimeurService.updateStatutCommande(orderId, newStatut, token);
       setOrders(prev => prev.map(o => o.id === orderId ? updated : o));
-      toast({ title: "Statut mis à jour", description: `Commande passée à "${STATUT_LABELS[newStatut]?.label ?? newStatut}".` });
+      const labels = updated.modeRetrait === "LIVRAISON" ? STATUT_LABELS_LIVRAISON : STATUT_LABELS_RETRAIT;
+      toast({ title: "Statut mis à jour", description: `Commande passée à "${labels[newStatut]?.label ?? newStatut}".` });
     } catch {
       toast({ title: "Erreur", description: "Impossible de mettre à jour le statut.", variant: "destructive" });
     } finally {
@@ -598,7 +599,7 @@ const DashboardImprimeur = () => {
     }
   };
 
-  const STATUT_LABELS: Record<string, { label: string; color: string }> = {
+  const STATUT_LABELS_RETRAIT: Record<string, { label: string; color: string }> = {
     EN_ATTENTE_PAIEMENT: { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
     PAYEE:               { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
     PRETE:               { label: "Prêt à être retiré", color: "bg-green-100 text-green-800 border-green-200" },
@@ -606,10 +607,18 @@ const DashboardImprimeur = () => {
     ANNULEE:             { label: "Annulée", color: "bg-red-100 text-red-800 border-red-200" },
   };
 
+  const STATUT_LABELS_LIVRAISON: Record<string, { label: string; color: string }> = {
+    EN_ATTENTE_PAIEMENT: { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+    PAYEE:               { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+    EN_COURS_IMPRESSION: { label: "En cours d'impression", color: "bg-blue-100 text-blue-800 border-blue-200" },
+    PRETE:               { label: "Expédiée", color: "bg-green-100 text-green-800 border-green-200" },
+    LIVREE:              { label: "Livrée", color: "bg-gray-100 text-gray-600 border-gray-200" },
+    ANNULEE:             { label: "Annulée", color: "bg-red-100 text-red-800 border-red-200" },
+  };
+
   const NEXT_STATUT_RETRAIT: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {
-    EN_ATTENTE_PAIEMENT: { statut: "PRETE",            label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
-    PAYEE:               { statut: "PRETE",            label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
-    PRETE:               { statut: "LIVREE",           label: "Marquer comme récupéré",       icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    EN_ATTENTE_PAIEMENT: { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    PAYEE:               { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
   };
 
   const NEXT_STATUT_LIVRAISON: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {
@@ -750,8 +759,9 @@ const DashboardImprimeur = () => {
                   <div className="space-y-3">
                     {filteredOrders.map((order: any) => {
                       const isExpanded = expandedOrderId === order.id;
-                      const statutInfo = STATUT_LABELS[order.statut];
-                      const nextAction = order.modeRetrait === "LIVRAISON"
+                      const isLivraison = order.modeRetrait === "LIVRAISON";
+                      const statutInfo = (isLivraison ? STATUT_LABELS_LIVRAISON : STATUT_LABELS_RETRAIT)[order.statut];
+                      const nextAction = isLivraison
                         ? NEXT_STATUT_LIVRAISON[order.statut]
                         : NEXT_STATUT_RETRAIT[order.statut];
                       const isUpdating = updatingStatutId === order.id;
