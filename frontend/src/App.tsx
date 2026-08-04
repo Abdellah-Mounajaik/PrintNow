@@ -6,7 +6,8 @@ import Auth from './modules/auth/pages/Auth';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ScrollToTop from './components/layout/ScrollToTop';
-import Home from './pages/Home'; 
+import Home from './pages/Home';
+import Imprimeries from './pages/Imprimeries';
 import DevenirPartenaire from './modules/shop/pages/DevenirPartenaire';
 import DashboardImprimeur from './modules/imprimeur/pages/DashboardImprimeur';
 import DashboardClient from './modules/user/pages/DashboardClient';
@@ -31,6 +32,7 @@ function App() {
       <div className="min-h-screen bg-background text-foreground">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/imprimeries" element={<Imprimeries />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/devenir-partenaire" element={<DevenirPartenaire />} />
           <Route path='/imprimerie/:id' element={<PrintShopDetail />} />

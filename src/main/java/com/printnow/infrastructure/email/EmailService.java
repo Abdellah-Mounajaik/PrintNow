@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private static final String EXPEDITEUR = "no-reply@printnow.be";
-    private static final String URL_CATALOGUE = "http://localhost:5173/#imprimeries";
+    private static final String URL_CATALOGUE = "http://localhost:5173/imprimeries";
     private static final String URL_DASHBOARD_PARTENAIRE = "http://localhost:5173/dashboard-imprimeur";
     private static final String URL_DASHBOARD_CLIENT = "http://localhost:5173/dashboard";
 

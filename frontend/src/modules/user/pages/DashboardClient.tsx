@@ -264,7 +264,7 @@ const DashboardClient = () => {
                       Vous n'avez pas encore passé de commande.
                     </p>
                     <Button asChild>
-                      <Link to="/">Trouver une imprimerie</Link>
+                      <Link to="/imprimeries">Trouver une imprimerie</Link>
                     </Button>
                   </div>
                 ) : (
@@ -592,7 +592,7 @@ const DashboardClient = () => {
 
           <div className="mt-8 text-center">
             <Button variant="hero" size="lg" asChild>
-              <Link to="/">Passer une nouvelle commande</Link>
+              <Link to="/imprimeries">Passer une nouvelle commande</Link>
             </Button>
           </div>
         </div>

@@ -13,7 +13,7 @@ import {
   Package, Euro, Clock, Star,
   Store, Truck, Layers, Book, Printer,
   Zap, GraduationCap, ChevronDown, ChevronUp,
-  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin, Loader2, Upload, Download
+  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin, Loader2, Upload, Download, Search
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -116,6 +116,7 @@ const DashboardImprimeur = () => {
   const [shop, setShop] = useState<ImprimerieDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [orders, setOrders] = useState<CommandeImprimeurDTO[]>([]);
+  const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [promos, setPromos] = useState<PromoDTO[]>([]);
   const [promoForm, setPromoForm] = useState({ code: "", typeReduction: "POURCENTAGE", valeurReduction: "", dateFin: "", utilisationMax: "", montantMinimumCommande: "" });
@@ -646,6 +647,14 @@ const DashboardImprimeur = () => {
   const pending = orders.filter((o) => o.statut === "PAYEE" || o.statut === "EN_COURS_IMPRESSION").length;
   const activeServicesCount = Object.values(servicesState).filter((s: any) => s.enabled).length;
 
+  const orderSearchNormalized = orderSearchQuery.trim().toLowerCase();
+  const filteredOrders = orderSearchNormalized
+    ? orders.filter((o: any) =>
+        o.numeroCommande?.toLowerCase().includes(orderSearchNormalized) ||
+        o.nomClient?.toLowerCase().includes(orderSearchNormalized)
+      )
+    : orders;
+
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Header />
@@ -670,7 +679,7 @@ const DashboardImprimeur = () => {
             <Card className="p-6">
               <Package className="h-8 w-8 text-primary mb-3" />
               <div className="font-display text-3xl font-bold">{orders.length}</div>
-              <div className="text-sm text-muted-foreground">Commandes du mois</div>
+              <div className="text-sm text-muted-foreground">Commandes totales</div>
             </Card>
             <Card className="p-6">
               <Clock className="h-8 w-8 text-warning mb-3" />
@@ -710,16 +719,36 @@ const DashboardImprimeur = () => {
             {/* COMMANDES */}
             <TabsContent value="orders">
               <Card className="p-6">
-                <h3 className="font-display font-semibold text-lg mb-4">Commandes reçues</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <h3 className="font-display font-semibold text-lg">Commandes reçues</h3>
+                  {orders.length > 0 && (
+                    <div className="relative sm:w-80">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Rechercher par n° de commande ou client..."
+                        value={orderSearchQuery}
+                        onChange={(e) => setOrderSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  )}
+                </div>
                 {orders.length === 0 ? (
                   <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                     <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
                     <h4 className="text-lg font-semibold mb-1">Aucune commande</h4>
                     <p className="text-muted-foreground text-sm">Vos commandes apparaîtront ici dès qu'un client passera commande.</p>
                   </div>
+                ) : filteredOrders.length === 0 ? (
+                  <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
+                    <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
+                    <p className="text-muted-foreground text-sm">Aucune commande ne correspond à "{orderSearchQuery}".</p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
-                    {orders.map((order: any) => {
+                    {filteredOrders.map((order: any) => {
                       const isExpanded = expandedOrderId === order.id;
                       const statutInfo = STATUT_LABELS[order.statut];
                       const nextAction = order.modeRetrait === "LIVRAISON"

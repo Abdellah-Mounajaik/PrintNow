@@ -1,14 +1,6 @@
+import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { FileText, Megaphone, CreditCard, Star, ArrowRight } from "lucide-react";
-
-// Défilement en douceur vers le catalogue sans ajouter #imprimeries à l'URL
-// (un lien classique le laisserait dans la barre d'adresse, ce qui ferait
-// systématiquement atterrir sur le catalogue plutôt qu'en haut de page à
-// chaque actualisation).
-const scrollToCatalog = (e: React.MouseEvent) => {
-  e.preventDefault();
-  document.getElementById("imprimeries")?.scrollIntoView({ behavior: "smooth" });
-};
 
 const HeroSection = () => {
   return (
@@ -52,10 +44,10 @@ const HeroSection = () => {
             style={{ animationDelay: "0.2s" }}
           >
             <Button variant="secondary" size="lg" asChild className="h-14 px-10 text-lg shadow-glow">
-              <a href="#imprimeries" onClick={scrollToCatalog}>
+              <Link to="/imprimeries">
                 Voir les imprimeries
                 <ArrowRight className="h-5 w-5 ml-2" />
-              </a>
+              </Link>
             </Button>
           </div>
 
@@ -64,9 +56,8 @@ const HeroSection = () => {
             className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-20 animate-slide-up"
             style={{ animationDelay: "0.3s" }}
           >
-            <a
-              href="#imprimeries"
-              onClick={scrollToCatalog}
+            <Link
+              to="/imprimeries"
               className="group p-6 rounded-2xl bg-primary-foreground/[0.03] border border-primary-foreground/10 hover:border-secondary/50 transition-all duration-300 hover:-translate-y-1 text-left"
             >
               <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-primary transition-colors duration-300">
@@ -78,11 +69,10 @@ const HeroSection = () => {
               <p className="text-sm text-primary-foreground/50">
                 Dossiers, rapports, mémoires
               </p>
-            </a>
+            </Link>
 
-            <a
-              href="#imprimeries"
-              onClick={scrollToCatalog}
+            <Link
+              to="/imprimeries"
               className="group p-6 rounded-2xl bg-primary-foreground/[0.03] border border-primary-foreground/10 hover:border-secondary/50 transition-all duration-300 hover:-translate-y-1 text-left"
             >
               <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-primary transition-colors duration-300">
@@ -94,11 +84,10 @@ const HeroSection = () => {
               <p className="text-sm text-primary-foreground/50">
                 Événements et marketing
               </p>
-            </a>
+            </Link>
 
-            <a
-              href="#imprimeries"
-              onClick={scrollToCatalog}
+            <Link
+              to="/imprimeries"
               className="group p-6 rounded-2xl bg-primary-foreground/[0.03] border border-primary-foreground/10 hover:border-secondary/50 transition-all duration-300 hover:-translate-y-1 text-left"
             >
               <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-primary transition-colors duration-300">
@@ -110,7 +99,7 @@ const HeroSection = () => {
               <p className="text-sm text-primary-foreground/50">
                 Standard, luxe, texturé
               </p>
-            </a>
+            </Link>
           </div>
 
           {/* Stats */}
