@@ -1,5 +1,6 @@
 package com.printnow.module.etudiant.service;
 
+import com.printnow.infrastructure.email.EmailService;
 import com.printnow.module.etudiant.dto.VerificationEtudiantResponseDTO;
 import com.printnow.module.etudiant.enums.StatutEtudiant;
 import com.printnow.module.etudiant.mapper.VerificationEtudiantMapper;
@@ -38,6 +39,7 @@ public class VerificationEtudiantService {
 
     private final VerificationEtudiantRepository repository;
     private final VerificationEtudiantMapper mapper;
+    private final EmailService emailService;
 
     @Transactional
     public VerificationEtudiantResponseDTO soumettre(User user, MultipartFile carteEtudiante, MultipartFile carteIdentite) {
@@ -104,7 +106,11 @@ public class VerificationEtudiantService {
         v.setStatut(StatutEtudiant.ACCEPTE);
         v.setDateValidation(LocalDateTime.now());
         v.setValableJusquA(calculerExpiration());
-        return mapper.toDto(repository.save(v));
+        VerificationEtudiantResponseDTO dto = mapper.toDto(repository.save(v));
+
+        emailService.envoyerVerificationAcceptee(v.getUser().getEmail(), v.getUser().getPrenom());
+
+        return dto;
     }
 
     @Transactional
@@ -117,7 +123,11 @@ public class VerificationEtudiantService {
         v.setStatut(StatutEtudiant.REFUSE);
         v.setDateValidation(LocalDateTime.now());
         v.setMotifRefus(motifRefus);
-        return mapper.toDto(repository.save(v));
+        VerificationEtudiantResponseDTO dto = mapper.toDto(repository.save(v));
+
+        emailService.envoyerVerificationRefusee(v.getUser().getEmail(), v.getUser().getPrenom(), motifRefus);
+
+        return dto;
     }
 
     public ResponseEntity<Resource> getImage(Long id, String type) {
