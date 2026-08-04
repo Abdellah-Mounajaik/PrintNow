@@ -28,6 +28,9 @@ import { SERVICES } from "../../shop/models/partner.constants";
 import { imprimeurService } from "../services/imprimeur.service";
 import type { CommandeImprimeurDTO, PromoDTO } from "../models/imprimeur.model";
 
+// ─── Pagination de la liste des commandes ────────────────────────────────────
+const ORDERS_PER_PAGE = 6;
+
 // ─── Constantes options de finition ──────────────────────────────────────────
 const DEFAULT_PLAST_PRICES = { MAT: "0.50", BRILLANT: "0.60", SOFT_TOUCH: "0.80" };
 const DEFAULT_REL_PRICES = {
@@ -117,6 +120,7 @@ const DashboardImprimeur = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [orders, setOrders] = useState<CommandeImprimeurDTO[]>([]);
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
+  const [ordersPage, setOrdersPage] = useState(1);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [promos, setPromos] = useState<PromoDTO[]>([]);
   const [promoForm, setPromoForm] = useState({ code: "", typeReduction: "POURCENTAGE", valeurReduction: "", dateFin: "", utilisationMax: "", montantMinimumCommande: "" });
@@ -664,6 +668,15 @@ const DashboardImprimeur = () => {
       )
     : orders;
 
+  // La page demandée est ramenée dans les bornes valides si la recherche a
+  // réduit le nombre de résultats entre-temps.
+  const ordersTotalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PER_PAGE));
+  const ordersCurrentPage = Math.min(ordersPage, ordersTotalPages);
+  const paginatedOrders = filteredOrders.slice(
+    (ordersCurrentPage - 1) * ORDERS_PER_PAGE,
+    ordersCurrentPage * ORDERS_PER_PAGE
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Header />
@@ -737,7 +750,7 @@ const DashboardImprimeur = () => {
                         type="text"
                         placeholder="Rechercher par n° de commande ou client..."
                         value={orderSearchQuery}
-                        onChange={(e) => setOrderSearchQuery(e.target.value)}
+                        onChange={(e) => { setOrderSearchQuery(e.target.value); setOrdersPage(1); }}
                         className="pl-9"
                       />
                     </div>
@@ -757,7 +770,7 @@ const DashboardImprimeur = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {filteredOrders.map((order: any) => {
+                    {paginatedOrders.map((order: any) => {
                       const isExpanded = expandedOrderId === order.id;
                       const isLivraison = order.modeRetrait === "LIVRAISON";
                       const statutInfo = (isLivraison ? STATUT_LABELS_LIVRAISON : STATUT_LABELS_RETRAIT)[order.statut];
@@ -926,6 +939,38 @@ const DashboardImprimeur = () => {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+
+                {ordersTotalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={ordersCurrentPage === 1}
+                      onClick={() => setOrdersPage(ordersCurrentPage - 1)}
+                    >
+                      Précédent
+                    </Button>
+                    {Array.from({ length: ordersTotalPages }, (_, i) => i + 1).map((n) => (
+                      <Button
+                        key={n}
+                        variant={n === ordersCurrentPage ? "default" : "outline"}
+                        size="sm"
+                        className="w-9"
+                        onClick={() => setOrdersPage(n)}
+                      >
+                        {n}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={ordersCurrentPage === ordersTotalPages}
+                      onClick={() => setOrdersPage(ordersCurrentPage + 1)}
+                    >
+                      Suivant
+                    </Button>
                   </div>
                 )}
               </Card>
