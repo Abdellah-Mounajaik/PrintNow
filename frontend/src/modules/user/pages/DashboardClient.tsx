@@ -26,6 +26,7 @@ import {
   Truck,
   ExternalLink,
   Download,
+  Search,
 } from "lucide-react";
 import { toast } from "../../../hooks/use-toast";
 import { useRef } from "react";
@@ -71,6 +72,7 @@ const DashboardClient = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("ALL");
   const [ordersPage, setOrdersPage] = useState(1);
   const [invoicesPage, setInvoicesPage] = useState(1);
+  const [invoiceSearchQuery, setInvoiceSearchQuery] = useState("");
   const [suiviData, setSuiviData] = useState<Record<number, SuiviDTO>>({});
   const [suiviLoading, setSuiviLoading] = useState<number | null>(null);
   const [verif, setVerif] = useState<VerifDTO | null>(null);
@@ -435,11 +437,44 @@ const DashboardClient = () => {
             {/* FACTURES */}
             <TabsContent value="invoices">
               <Card className="p-6">
-                <h3 className="font-display font-semibold text-lg mb-4">Mes factures</h3>
                 {(() => {
                   const facturables = orders.filter((o) => STATUTS_FACTURABLES.has(o.statut));
-                  if (facturables.length === 0) {
-                    return (
+                  const searchNormalized = invoiceSearchQuery.trim().toLowerCase();
+                  const filteredFactures = searchNormalized
+                    ? facturables.filter((o: any) =>
+                        o.numeroCommande?.toLowerCase().includes(searchNormalized) ||
+                        o.nomImprimerie?.toLowerCase().includes(searchNormalized)
+                      )
+                    : facturables;
+
+                  // La page demandée est ramenée dans les bornes valides si la
+                  // recherche a réduit le nombre de résultats entre-temps.
+                  const totalPages = Math.max(1, Math.ceil(filteredFactures.length / ORDERS_PER_PAGE));
+                  const currentPage = Math.min(invoicesPage, totalPages);
+                  const paginatedFactures = filteredFactures.slice(
+                    (currentPage - 1) * ORDERS_PER_PAGE,
+                    currentPage * ORDERS_PER_PAGE
+                  );
+
+                  return (
+                    <>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                      <h3 className="font-display font-semibold text-lg">Mes factures</h3>
+                      {facturables.length > 0 && (
+                        <div className="relative sm:w-[22rem]">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="text"
+                            placeholder="Rechercher par n° de commande ou imprimerie..."
+                            value={invoiceSearchQuery}
+                            onChange={(e) => { setInvoiceSearchQuery(e.target.value); setInvoicesPage(1); }}
+                            className="pl-9"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {facturables.length === 0 ? (
                       <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                         <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
                         <h4 className="text-lg font-semibold mb-1">Aucune facture</h4>
@@ -447,16 +482,13 @@ const DashboardClient = () => {
                           Une facture est disponible dès qu'une commande est payée.
                         </p>
                       </div>
-                    );
-                  }
-                  const totalPages = Math.max(1, Math.ceil(facturables.length / ORDERS_PER_PAGE));
-                  const currentPage = Math.min(invoicesPage, totalPages);
-                  const paginatedFactures = facturables.slice(
-                    (currentPage - 1) * ORDERS_PER_PAGE,
-                    currentPage * ORDERS_PER_PAGE
-                  );
-
-                  return (
+                    ) : filteredFactures.length === 0 ? (
+                      <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
+                        <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                        <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
+                        <p className="text-muted-foreground text-sm">Aucune facture ne correspond à "{invoiceSearchQuery}".</p>
+                      </div>
+                    ) : (
                     <>
                     <div className="space-y-3">
                       {paginatedFactures.map((order) => (
@@ -525,6 +557,8 @@ const DashboardClient = () => {
                           Suivant
                         </Button>
                       </div>
+                    )}
+                    </>
                     )}
                     </>
                   );
