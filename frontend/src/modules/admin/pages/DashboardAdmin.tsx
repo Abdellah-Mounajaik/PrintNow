@@ -103,6 +103,7 @@ const DashboardAdmin = () => {
   const [shopsPage, setShopsPage] = useState(1);
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [usersPage, setUsersPage] = useState(1);
+  const [commandeSearchQuery, setCommandeSearchQuery] = useState("");
   const [commandes, setCommandes] = useState<CommandeDTO[]>([]);
   const [verifications, setVerifications] = useState<VerificationDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -200,6 +201,15 @@ const DashboardAdmin = () => {
     (usersCurrentPage - 1) * USERS_PER_PAGE,
     usersCurrentPage * USERS_PER_PAGE
   );
+
+  const commandeSearchNormalized = commandeSearchQuery.trim().toLowerCase();
+  const filteredCommandes = commandeSearchNormalized
+    ? commandes.filter((c) =>
+        c.numeroCommande?.toLowerCase().includes(commandeSearchNormalized) ||
+        c.nomClient?.toLowerCase().includes(commandeSearchNormalized) ||
+        c.nomImprimerie?.toLowerCase().includes(commandeSearchNormalized)
+      )
+    : commandes;
 
   if (loading) {
     return (
@@ -543,19 +553,39 @@ const DashboardAdmin = () => {
             {/* Commandes */}
             <TabsContent value="commandes">
               <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
                   <h3 className="font-display font-semibold text-lg">
                     Toutes les commandes
                   </h3>
-                  <div className="text-sm text-muted-foreground">
-                    Commission totale :{" "}
-                    <span className="font-semibold text-success">
-                      {commissionTotale.toFixed(2)}€
-                    </span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    {commandes.length > 0 && (
+                      <div className="relative sm:w-80">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="text"
+                          placeholder="Rechercher par n°, client ou imprimerie..."
+                          value={commandeSearchQuery}
+                          onChange={(e) => setCommandeSearchQuery(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                    )}
+                    <div className="text-sm text-muted-foreground whitespace-nowrap">
+                      Commission totale :{" "}
+                      <span className="font-semibold text-success">
+                        {commissionTotale.toFixed(2)}€
+                      </span>
+                    </div>
                   </div>
                 </div>
                 {commandes.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Aucune commande.</p>
+                ) : filteredCommandes.length === 0 ? (
+                  <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
+                    <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
+                    <p className="text-muted-foreground text-sm">Aucune commande ne correspond à "{commandeSearchQuery}".</p>
+                  </div>
                 ) : (
                   <Table>
                     <TableHeader>
@@ -570,7 +600,7 @@ const DashboardAdmin = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {commandes.map((c) => (
+                      {filteredCommandes.map((c) => (
                         <TableRow key={c.id}>
                           <TableCell className="font-mono text-xs">
                             {c.numeroCommande}
