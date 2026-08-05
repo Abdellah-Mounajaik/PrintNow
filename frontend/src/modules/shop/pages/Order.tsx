@@ -484,8 +484,9 @@ const Order = () => {
   };
 
   // Called after Stripe payment is confirmed — creates the commande and uploads PDFs
-  const handleCreateOrder = async (_paymentIntentId: string) => {
+  const handleCreateOrder = async (paymentIntentId: string) => {
     const payload = {
+      paymentIntentId,
       modeRetrait: fulfillment === "pickup" ? "RETRAIT_MAGASIN" : "LIVRAISON",
       express2h: expressOption,
       tarifEtudiant: studentDiscount && studentVerified,

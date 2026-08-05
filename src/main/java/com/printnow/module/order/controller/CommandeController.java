@@ -8,6 +8,8 @@ import com.printnow.module.order.service.FactureService;
 import com.printnow.module.order.service.ReleveVenteService;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -38,14 +40,29 @@ public class CommandeController {
     public ResponseEntity<CommandeResponseDTO> passerCommande(@RequestBody CommandeRequestDTO request) {
         // 1. On récupère l'email de l'utilisateur actuellement connecté via le Token JWT
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        
+
         // 2. On cherche cet utilisateur dans la base de données
         User client = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email : " + email));
-        
-        // 3. On crée la commande via le service et on retourne le DTO généré
-        CommandeResponseDTO nouvelleCommande = commandeService.createCommande(request, client);
-        
+
+        // 3. Le paiement est confirmé côté navigateur avant l'appel, mais on le
+        // revérifie directement auprès de Stripe (jamais confiance au seul client).
+        boolean paiementConfirme = false;
+        if (request.getPaymentIntentId() != null && !request.getPaymentIntentId().isBlank()) {
+            try {
+                PaymentIntent intent = PaymentIntent.retrieve(request.getPaymentIntentId());
+                if (!"succeeded".equals(intent.getStatus())) {
+                    return ResponseEntity.badRequest().build();
+                }
+                paiementConfirme = true;
+            } catch (StripeException e) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+
+        // 4. On crée la commande via le service et on retourne le DTO généré
+        CommandeResponseDTO nouvelleCommande = commandeService.createCommande(request, client, paiementConfirme);
+
         return ResponseEntity.ok(nouvelleCommande);
     }
 

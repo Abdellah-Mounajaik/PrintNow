@@ -12,4 +12,6 @@ public class CommandeRequestDTO {
     private String codePromo;
     private List<LigneCommandeRequestDTO> lignes;
     private AdresseLivraisonRequestDTO adresseLivraison;
+    /** Identifiant du PaymentIntent Stripe déjà confirmé côté navigateur. */
+    private String paymentIntentId;
 }

@@ -50,12 +50,20 @@ public class CommandeService {
      * Crée une nouvelle commande avec calcul des prix, taxes, livraison et commissions
      */
     @Transactional
-    public CommandeResponseDTO createCommande(CommandeRequestDTO request, User client) {
+    public CommandeResponseDTO createCommande(CommandeRequestDTO request, User client, boolean paiementConfirme) {
         Commande commande = new Commande();
         commande.setNumeroCommande(generateOrderNumber());
-        commande.setStatut(StatutCommande.EN_ATTENTE_PAIEMENT);
         commande.setDateCreation(LocalDateTime.now());
         commande.setClient(client);
+
+        // Le paiement Stripe a déjà été vérifié par le contrôleur : la commande
+        // part directement en PAYEE, sinon elle attend son règlement.
+        if (paiementConfirme) {
+            commande.setStatut(StatutCommande.PAYEE);
+            commande.setDatePaiement(LocalDateTime.now());
+        } else {
+            commande.setStatut(StatutCommande.EN_ATTENTE_PAIEMENT);
+        }
         
         // 1. Gestion du mode de retrait et de la livraison
         boolean isLivraison = false;

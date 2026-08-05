@@ -34,18 +34,18 @@ import { userService } from "../services/user.service";
 import type { CommandeDTO, VerifDTO, SuiviDTO, UserProfileDTO } from "../models/user.model";
 
 const STATUS_MAP_RETRAIT: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
-  EN_ATTENTE_PAIEMENT: { label: "En attente", variant: "outline" },
-  PAYEE: { label: "Payée", variant: "secondary" },
-  EN_COURS_IMPRESSION: { label: "En cours", variant: "default" },
+  EN_ATTENTE_PAIEMENT: { label: "En attente de paiement", variant: "outline" },
+  PAYEE: { label: "Confirmée", variant: "secondary" },
+  EN_COURS_IMPRESSION: { label: "En cours d'impression", variant: "default" },
   PRETE: { label: "Prêt à être retiré", variant: "default" },
   LIVREE: { label: "Récupérée", variant: "default" },
   ANNULEE: { label: "Annulée", variant: "destructive" },
 };
 
 const STATUS_MAP_LIVRAISON: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
-  EN_ATTENTE_PAIEMENT: { label: "En attente", variant: "outline" },
-  PAYEE: { label: "Payée", variant: "secondary" },
-  EN_COURS_IMPRESSION: { label: "En cours", variant: "default" },
+  EN_ATTENTE_PAIEMENT: { label: "En attente de paiement", variant: "outline" },
+  PAYEE: { label: "Confirmée", variant: "secondary" },
+  EN_COURS_IMPRESSION: { label: "En cours d'impression", variant: "default" },
   PRETE: { label: "Expédiée", variant: "default" },
   LIVREE: { label: "Livrée", variant: "default" },
   ANNULEE: { label: "Annulée", variant: "destructive" },
@@ -55,10 +55,17 @@ const STATUS_MAP_LIVRAISON: Record<string, { label: string; variant: "default"|"
 // confirmé (même condition que côté backend, FactureService.STATUTS_FACTURABLES).
 const STATUTS_FACTURABLES = new Set(["PAYEE", "EN_COURS_IMPRESSION", "PRETE", "LIVREE"]);
 
+// ─── Filtre par statut de la liste des commandes (même logique que la stat "En cours") ──
+const ORDER_STATUS_FILTERS: { key: string; label: string; statuts: string[] | null }[] = [
+  { key: "ALL", label: "Toutes", statuts: null },
+  { key: "EN_COURS", label: "En cours", statuts: ["PAYEE", "EN_COURS_IMPRESSION"] },
+];
+
 const DashboardClient = () => {
   const { user, token, logoutGlobal } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<CommandeDTO[]>([]);
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string>("ALL");
   const [suiviData, setSuiviData] = useState<Record<number, SuiviDTO>>({});
   const [suiviLoading, setSuiviLoading] = useState<number | null>(null);
   const [verif, setVerif] = useState<VerifDTO | null>(null);
@@ -265,20 +272,54 @@ const DashboardClient = () => {
             <TabsContent value="orders">
               <Card className="p-6">
                 <h3 className="font-display font-semibold text-lg mb-4">Mes commandes</h3>
-                {orders.length === 0 ? (
-                  <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
-                    <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                    <h4 className="text-lg font-semibold mb-1">Aucune commande</h4>
-                    <p className="text-muted-foreground text-sm mb-4">
-                      Vous n'avez pas encore passé de commande.
-                    </p>
-                    <Button asChild>
-                      <Link to="/imprimeries">Trouver une imprimerie</Link>
-                    </Button>
+                {orders.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {ORDER_STATUS_FILTERS.map((f) => (
+                      <Button
+                        key={f.key}
+                        variant={orderStatusFilter === f.key ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setOrderStatusFilter(f.key)}
+                      >
+                        {f.label}
+                      </Button>
+                    ))}
                   </div>
-                ) : (
+                )}
+                {(() => {
+                  const activeStatusFilter = ORDER_STATUS_FILTERS.find((f) => f.key === orderStatusFilter) ?? ORDER_STATUS_FILTERS[0];
+                  const filteredOrders = activeStatusFilter.statuts
+                    ? orders.filter((o: any) => activeStatusFilter.statuts!.includes(o.statut))
+                    : orders;
+
+                  if (orders.length === 0) {
+                    return (
+                      <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
+                        <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                        <h4 className="text-lg font-semibold mb-1">Aucune commande</h4>
+                        <p className="text-muted-foreground text-sm mb-4">
+                          Vous n'avez pas encore passé de commande.
+                        </p>
+                        <Button asChild>
+                          <Link to="/imprimeries">Trouver une imprimerie</Link>
+                        </Button>
+                      </div>
+                    );
+                  }
+
+                  if (filteredOrders.length === 0) {
+                    return (
+                      <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
+                        <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                        <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
+                        <p className="text-muted-foreground text-sm">Aucune commande dans "{activeStatusFilter.label}".</p>
+                      </div>
+                    );
+                  }
+
+                  return (
                   <div className="space-y-3">
-                    {orders.map((order: any) => {
+                    {filteredOrders.map((order: any) => {
                       const isLivraison = order.modeRetrait === "LIVRAISON";
                       const status = (isLivraison ? STATUS_MAP_LIVRAISON : STATUS_MAP_RETRAIT)[order.statut] ?? { label: order.statut, variant: "outline" };
                       const suivi = suiviData[order.id];
@@ -338,7 +379,8 @@ const DashboardClient = () => {
                       );
                     })}
                   </div>
-                )}
+                  );
+                })()}
               </Card>
             </TabsContent>
 
