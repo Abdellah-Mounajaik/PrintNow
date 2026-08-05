@@ -70,6 +70,7 @@ const DashboardClient = () => {
   const [orders, setOrders] = useState<CommandeDTO[]>([]);
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("ALL");
   const [ordersPage, setOrdersPage] = useState(1);
+  const [invoicesPage, setInvoicesPage] = useState(1);
   const [suiviData, setSuiviData] = useState<Record<number, SuiviDTO>>({});
   const [suiviLoading, setSuiviLoading] = useState<number | null>(null);
   const [verif, setVerif] = useState<VerifDTO | null>(null);
@@ -448,9 +449,17 @@ const DashboardClient = () => {
                       </div>
                     );
                   }
+                  const totalPages = Math.max(1, Math.ceil(facturables.length / ORDERS_PER_PAGE));
+                  const currentPage = Math.min(invoicesPage, totalPages);
+                  const paginatedFactures = facturables.slice(
+                    (currentPage - 1) * ORDERS_PER_PAGE,
+                    currentPage * ORDERS_PER_PAGE
+                  );
+
                   return (
+                    <>
                     <div className="space-y-3">
-                      {facturables.map((order) => (
+                      {paginatedFactures.map((order) => (
                         <div
                           key={order.id}
                           className="flex items-center justify-between p-4 border border-border rounded-lg"
@@ -485,6 +494,39 @@ const DashboardClient = () => {
                         </div>
                       ))}
                     </div>
+
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-center gap-2 mt-6">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === 1}
+                          onClick={() => setInvoicesPage(currentPage - 1)}
+                        >
+                          Précédent
+                        </Button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                          <Button
+                            key={n}
+                            variant={n === currentPage ? "default" : "outline"}
+                            size="sm"
+                            className="w-9"
+                            onClick={() => setInvoicesPage(n)}
+                          >
+                            {n}
+                          </Button>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === totalPages}
+                          onClick={() => setInvoicesPage(currentPage + 1)}
+                        >
+                          Suivant
+                        </Button>
+                      </div>
+                    )}
+                    </>
                   );
                 })()}
               </Card>
