@@ -61,11 +61,15 @@ const ORDER_STATUS_FILTERS: { key: string; label: string; statuts: string[] | nu
   { key: "EN_COURS", label: "En cours", statuts: ["PAYEE", "EN_COURS_IMPRESSION"] },
 ];
 
+// ─── Pagination de la liste des commandes ────────────────────────────────────
+const ORDERS_PER_PAGE = 6;
+
 const DashboardClient = () => {
   const { user, token, logoutGlobal } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<CommandeDTO[]>([]);
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("ALL");
+  const [ordersPage, setOrdersPage] = useState(1);
   const [suiviData, setSuiviData] = useState<Record<number, SuiviDTO>>({});
   const [suiviLoading, setSuiviLoading] = useState<number | null>(null);
   const [verif, setVerif] = useState<VerifDTO | null>(null);
@@ -279,7 +283,7 @@ const DashboardClient = () => {
                         key={f.key}
                         variant={orderStatusFilter === f.key ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setOrderStatusFilter(f.key)}
+                        onClick={() => { setOrderStatusFilter(f.key); setOrdersPage(1); }}
                       >
                         {f.label}
                       </Button>
@@ -291,6 +295,15 @@ const DashboardClient = () => {
                   const filteredOrders = activeStatusFilter.statuts
                     ? orders.filter((o: any) => activeStatusFilter.statuts!.includes(o.statut))
                     : orders;
+
+                  // La page demandée est ramenée dans les bornes valides si le
+                  // filtre a réduit le nombre de résultats entre-temps.
+                  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PER_PAGE));
+                  const currentPage = Math.min(ordersPage, totalPages);
+                  const paginatedOrders = filteredOrders.slice(
+                    (currentPage - 1) * ORDERS_PER_PAGE,
+                    currentPage * ORDERS_PER_PAGE
+                  );
 
                   if (orders.length === 0) {
                     return (
@@ -318,8 +331,9 @@ const DashboardClient = () => {
                   }
 
                   return (
+                  <>
                   <div className="space-y-3">
-                    {filteredOrders.map((order: any) => {
+                    {paginatedOrders.map((order: any) => {
                       const isLivraison = order.modeRetrait === "LIVRAISON";
                       const status = (isLivraison ? STATUS_MAP_LIVRAISON : STATUS_MAP_RETRAIT)[order.statut] ?? { label: order.statut, variant: "outline" };
                       const suivi = suiviData[order.id];
@@ -379,6 +393,39 @@ const DashboardClient = () => {
                       );
                     })}
                   </div>
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-6">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1}
+                        onClick={() => setOrdersPage(currentPage - 1)}
+                      >
+                        Précédent
+                      </Button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                        <Button
+                          key={n}
+                          variant={n === currentPage ? "default" : "outline"}
+                          size="sm"
+                          className="w-9"
+                          onClick={() => setOrdersPage(n)}
+                        >
+                          {n}
+                        </Button>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setOrdersPage(currentPage + 1)}
+                      >
+                        Suivant
+                      </Button>
+                    </div>
+                  )}
+                  </>
                   );
                 })()}
               </Card>
