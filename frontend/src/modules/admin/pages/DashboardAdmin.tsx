@@ -92,6 +92,9 @@ const STATUTS_FACTURABLES = new Set(["PAYEE", "EN_COURS_IMPRESSION", "PRETE", "L
 // ─── Pagination de la liste des imprimeries ──────────────────────────────────
 const SHOPS_PER_PAGE = 9;
 
+// ─── Pagination de la liste des utilisateurs ─────────────────────────────────
+const USERS_PER_PAGE = 9;
+
 const DashboardAdmin = () => {
   const { token } = useAuth();
   const [users, setUsers] = useState<UserDTO[]>([]);
@@ -99,6 +102,7 @@ const DashboardAdmin = () => {
   const [shopSearchQuery, setShopSearchQuery] = useState("");
   const [shopsPage, setShopsPage] = useState(1);
   const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [usersPage, setUsersPage] = useState(1);
   const [commandes, setCommandes] = useState<CommandeDTO[]>([]);
   const [verifications, setVerifications] = useState<VerificationDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -187,6 +191,15 @@ const DashboardAdmin = () => {
         u.email?.toLowerCase().includes(userSearchNormalized)
       )
     : users;
+
+  // La page demandée est ramenée dans les bornes valides si la recherche a
+  // réduit le nombre de résultats entre-temps.
+  const usersTotalPages = Math.max(1, Math.ceil(filteredUsers.length / USERS_PER_PAGE));
+  const usersCurrentPage = Math.min(usersPage, usersTotalPages);
+  const paginatedUsers = filteredUsers.slice(
+    (usersCurrentPage - 1) * USERS_PER_PAGE,
+    usersCurrentPage * USERS_PER_PAGE
+  );
 
   if (loading) {
     return (
@@ -440,7 +453,7 @@ const DashboardAdmin = () => {
                         type="text"
                         placeholder="Rechercher par nom ou email..."
                         value={userSearchQuery}
-                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                        onChange={(e) => { setUserSearchQuery(e.target.value); setUsersPage(1); }}
                         className="pl-9"
                       />
                     </div>
@@ -466,7 +479,7 @@ const DashboardAdmin = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredUsers.map((user) => (
+                      {paginatedUsers.map((user) => (
                         <TableRow key={user.id}>
                           <TableCell className="font-medium">
                             {user.prenom} {user.nom}
@@ -491,6 +504,38 @@ const DashboardAdmin = () => {
                       ))}
                     </TableBody>
                   </Table>
+                )}
+
+                {usersTotalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={usersCurrentPage === 1}
+                      onClick={() => setUsersPage(usersCurrentPage - 1)}
+                    >
+                      Précédent
+                    </Button>
+                    {Array.from({ length: usersTotalPages }, (_, i) => i + 1).map((n) => (
+                      <Button
+                        key={n}
+                        variant={n === usersCurrentPage ? "default" : "outline"}
+                        size="sm"
+                        className="w-9"
+                        onClick={() => setUsersPage(n)}
+                      >
+                        {n}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={usersCurrentPage === usersTotalPages}
+                      onClick={() => setUsersPage(usersCurrentPage + 1)}
+                    >
+                      Suivant
+                    </Button>
+                  </div>
                 )}
               </Card>
             </TabsContent>
