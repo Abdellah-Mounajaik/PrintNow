@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private static final String EXPEDITEUR = "no-reply@printnow.be";
+    private static final String CONTACT_DESTINATAIRE = "contact@printnow.be";
     private static final String URL_CATALOGUE = "http://localhost:5173/imprimeries";
     private static final String URL_DASHBOARD_PARTENAIRE = "http://localhost:5173/dashboard-imprimeur";
     private static final String URL_DASHBOARD_CLIENT = "http://localhost:5173/dashboard";
@@ -84,6 +85,23 @@ public class EmailService {
         } catch (MessagingException | RuntimeException e) {
             log.warn("Échec de l'envoi du mail de vérification refusée à {}", destinataire, e);
         }
+    }
+
+    /**
+     * Envoi du formulaire de contact public. Contrairement aux autres emails
+     * transactionnels, l'envoi est ici l'action principale demandée par
+     * l'utilisateur : on ne l'exécute donc pas en asynchrone et on laisse
+     * l'exception remonter pour que le contrôleur puisse signaler l'échec.
+     */
+    public void envoyerMessageContact(String nom, String emailExpediteur, String sujet, String message) throws MessagingException {
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
+        helper.setTo(CONTACT_DESTINATAIRE);
+        helper.setFrom(EXPEDITEUR);
+        helper.setReplyTo(emailExpediteur);
+        helper.setSubject("[Contact] " + sujet);
+        helper.setText(corpsMessageContact(nom, emailExpediteur, sujet, message), true);
+        mailSender.send(mimeMessage);
     }
 
     private String echapperHtml(String texte) {
@@ -311,5 +329,58 @@ public class EmailService {
                 </body>
                 </html>
                 """.formatted(prenom, echapperHtml(motifRefus), URL_DASHBOARD_CLIENT);
+    }
+
+    private String corpsMessageContact(String nom, String emailExpediteur, String sujet, String message) {
+        String messageHtml = echapperHtml(message).replace("\n", "<br>");
+        return """
+                <!DOCTYPE html>
+                <html lang="fr">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f6; color: #334155; }
+                        .email-wrapper { width: 100%%; background-color: #f8fafc; padding: 40px 15px; box-sizing: border-box; }
+                        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+                        .email-header { background-color: #1e293b; padding: 35px 20px; text-align: center; }
+                        .logo { font-size: 32px; font-weight: 800; color: #ffffff; margin: 0; letter-spacing: 0.5px; }
+                        .logo span { color: #f59e0b; }
+                        .email-body { padding: 40px 35px; }
+                        h1 { color: #1e293b; font-size: 22px; margin-top: 0; font-weight: 700; margin-bottom: 25px;}
+                        p { font-size: 16px; line-height: 1.6; margin-bottom: 12px; color: #475569; }
+                        .info-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px 20px; margin-bottom: 25px; }
+                        .info-box p { margin: 4px 0; }
+                        .message-box { background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px 20px; border-radius: 0 8px 8px 0; }
+                        .message-box p { margin: 0; color: #334155; }
+                        .email-footer { background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #e2e8f0; }
+                        .email-footer p { font-size: 12px; color: #94a3b8; margin: 5px 0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="email-wrapper">
+                        <div class="email-container">
+                            <div class="email-header">
+                                <p class="logo">PRINT<span>NOW</span></p>
+                            </div>
+                            <div class="email-body">
+                                <h1>Nouveau message de contact</h1>
+                                <div class="info-box">
+                                    <p><strong>Nom :</strong> %s</p>
+                                    <p><strong>Email :</strong> %s</p>
+                                    <p><strong>Sujet :</strong> %s</p>
+                                </div>
+                                <div class="message-box">
+                                    <p>%s</p>
+                                </div>
+                            </div>
+                            <div class="email-footer">
+                                <p>Répondez directement à cet email pour contacter %s.</p>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(echapperHtml(nom), echapperHtml(emailExpediteur), echapperHtml(sujet), messageHtml, echapperHtml(nom));
     }
 }

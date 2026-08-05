@@ -72,28 +72,18 @@ const Footer = () => {
             <h4 className="font-display font-semibold text-lg mb-4">Services</h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link to="/services/documents" className="text-background/70 hover:text-background transition-colors">
+                <Link to="/imprimeries" className="text-background/70 hover:text-background transition-colors">
                   Documents & CV
                 </Link>
               </li>
               <li>
-                <Link to="/services/flyers" className="text-background/70 hover:text-background transition-colors">
+                <Link to="/imprimeries" className="text-background/70 hover:text-background transition-colors">
                   Flyers & Affiches
                 </Link>
               </li>
               <li>
-                <Link to="/services/cartes" className="text-background/70 hover:text-background transition-colors">
+                <Link to="/imprimeries" className="text-background/70 hover:text-background transition-colors">
                   Cartes de visite
-                </Link>
-              </li>
-              <li>
-                <Link to="/services/photos" className="text-background/70 hover:text-background transition-colors">
-                  Impression photo
-                </Link>
-              </li>
-              <li>
-                <Link to="/services/grand-format" className="text-background/70 hover:text-background transition-colors">
-                  Grand format
                 </Link>
               </li>
             </ul>
@@ -104,8 +94,8 @@ const Footer = () => {
             <h4 className="font-display font-semibold text-lg mb-4">Entreprise</h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link to="/a-propos" className="text-background/70 hover:text-background transition-colors">
-                  À propos
+                <Link to="/imprimeries" className="text-background/70 hover:text-background transition-colors">
+                  Imprimeries
                 </Link>
               </li>
               <li>
@@ -116,11 +106,6 @@ const Footer = () => {
               <li>
                 <Link to="/faq" className="text-background/70 hover:text-background transition-colors">
                   FAQ
-                </Link>
-              </li>
-              <li>
-                <Link to="/blog" className="text-background/70 hover:text-background transition-colors">
-                  Blog
                 </Link>
               </li>
               <li>
