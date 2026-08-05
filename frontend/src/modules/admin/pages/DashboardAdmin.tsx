@@ -95,6 +95,9 @@ const SHOPS_PER_PAGE = 9;
 // ─── Pagination de la liste des utilisateurs ─────────────────────────────────
 const USERS_PER_PAGE = 9;
 
+// ─── Pagination de la liste des commandes ────────────────────────────────────
+const COMMANDES_PER_PAGE = 9;
+
 const DashboardAdmin = () => {
   const { token } = useAuth();
   const [users, setUsers] = useState<UserDTO[]>([]);
@@ -104,6 +107,7 @@ const DashboardAdmin = () => {
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [usersPage, setUsersPage] = useState(1);
   const [commandeSearchQuery, setCommandeSearchQuery] = useState("");
+  const [commandesPage, setCommandesPage] = useState(1);
   const [commandes, setCommandes] = useState<CommandeDTO[]>([]);
   const [verifications, setVerifications] = useState<VerificationDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -210,6 +214,15 @@ const DashboardAdmin = () => {
         c.nomImprimerie?.toLowerCase().includes(commandeSearchNormalized)
       )
     : commandes;
+
+  // La page demandée est ramenée dans les bornes valides si la recherche a
+  // réduit le nombre de résultats entre-temps.
+  const commandesTotalPages = Math.max(1, Math.ceil(filteredCommandes.length / COMMANDES_PER_PAGE));
+  const commandesCurrentPage = Math.min(commandesPage, commandesTotalPages);
+  const paginatedCommandes = filteredCommandes.slice(
+    (commandesCurrentPage - 1) * COMMANDES_PER_PAGE,
+    commandesCurrentPage * COMMANDES_PER_PAGE
+  );
 
   if (loading) {
     return (
@@ -565,7 +578,7 @@ const DashboardAdmin = () => {
                           type="text"
                           placeholder="Rechercher par n°, client ou imprimerie..."
                           value={commandeSearchQuery}
-                          onChange={(e) => setCommandeSearchQuery(e.target.value)}
+                          onChange={(e) => { setCommandeSearchQuery(e.target.value); setCommandesPage(1); }}
                           className="pl-9"
                         />
                       </div>
@@ -600,7 +613,7 @@ const DashboardAdmin = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredCommandes.map((c) => (
+                      {paginatedCommandes.map((c) => (
                         <TableRow key={c.id}>
                           <TableCell className="font-mono text-xs">
                             {c.numeroCommande}
@@ -640,6 +653,38 @@ const DashboardAdmin = () => {
                       ))}
                     </TableBody>
                   </Table>
+                )}
+
+                {commandesTotalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={commandesCurrentPage === 1}
+                      onClick={() => setCommandesPage(commandesCurrentPage - 1)}
+                    >
+                      Précédent
+                    </Button>
+                    {Array.from({ length: commandesTotalPages }, (_, i) => i + 1).map((n) => (
+                      <Button
+                        key={n}
+                        variant={n === commandesCurrentPage ? "default" : "outline"}
+                        size="sm"
+                        className="w-9"
+                        onClick={() => setCommandesPage(n)}
+                      >
+                        {n}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={commandesCurrentPage === commandesTotalPages}
+                      onClick={() => setCommandesPage(commandesCurrentPage + 1)}
+                    >
+                      Suivant
+                    </Button>
+                  </div>
                 )}
                 {commandes.length > 0 && (
                   <div className="mt-6 p-4 rounded-lg bg-success/5 border border-success/20 flex items-center justify-between">
