@@ -3,6 +3,7 @@ import Header from "../../../components/layout/Header";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
+import { Input } from "../../../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import {
   Table,
@@ -32,6 +33,7 @@ import {
   GraduationCap,
   XCircle,
   Download,
+  Search,
 } from "lucide-react";
 import { toast } from "../../../hooks/use-toast";
 import { useAuth } from "../../auth/context/AuthContext";
@@ -91,6 +93,7 @@ const DashboardAdmin = () => {
   const { token } = useAuth();
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [imprimeries, setImprimeries] = useState<ImprimerieDTO[]>([]);
+  const [shopSearchQuery, setShopSearchQuery] = useState("");
   const [commandes, setCommandes] = useState<CommandeDTO[]>([]);
   const [verifications, setVerifications] = useState<VerificationDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,6 +156,15 @@ const DashboardAdmin = () => {
   const caTotal = commandes.reduce((s, c) => s + Number(c.totalTTC ?? 0), 0);
   const commissionTotale = caTotal * 0.1;
   const recentesImprimeries = [...imprimeries].sort((a, b) => b.id - a.id).slice(0, 5);
+
+  const shopSearchNormalized = shopSearchQuery.trim().toLowerCase();
+  const filteredImprimeries = shopSearchNormalized
+    ? imprimeries.filter((shop) =>
+        shop.nom?.toLowerCase().includes(shopSearchNormalized) ||
+        shop.ville?.toLowerCase().includes(shopSearchNormalized) ||
+        shop.emailContact?.toLowerCase().includes(shopSearchNormalized)
+      )
+    : imprimeries;
 
   if (loading) {
     return (
@@ -296,11 +308,31 @@ ue       </div>
             {/* Imprimeries */}
             <TabsContent value="shops">
               <Card className="p-6">
-                <h3 className="font-display font-semibold text-lg mb-4">
-                  Imprimeries partenaires
-                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <h3 className="font-display font-semibold text-lg">
+                    Imprimeries partenaires
+                  </h3>
+                  {imprimeries.length > 0 && (
+                    <div className="relative sm:w-80">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Rechercher par nom, ville ou email..."
+                        value={shopSearchQuery}
+                        onChange={(e) => setShopSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  )}
+                </div>
                 {imprimeries.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Aucune imprimerie.</p>
+                ) : filteredImprimeries.length === 0 ? (
+                  <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
+                    <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
+                    <p className="text-muted-foreground text-sm">Aucune imprimerie ne correspond à "{shopSearchQuery}".</p>
+                  </div>
                 ) : (
                   <Table>
                     <TableHeader>
@@ -313,7 +345,7 @@ ue       </div>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {imprimeries.map((shop) => (
+                      {filteredImprimeries.map((shop) => (
                         <TableRow key={shop.id}>
                           <TableCell className="font-medium">{shop.nom}</TableCell>
                           <TableCell>{shop.ville ?? "—"}</TableCell>
