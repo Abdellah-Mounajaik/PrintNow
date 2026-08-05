@@ -89,11 +89,16 @@ const STATUT_LABELS: Record<string, string> = {
 // bien été confirmé (même condition que côté backend, FactureCommissionService.STATUTS_FACTURABLES).
 const STATUTS_FACTURABLES = new Set(["PAYEE", "EN_COURS_IMPRESSION", "PRETE", "LIVREE"]);
 
+// ─── Pagination de la liste des imprimeries ──────────────────────────────────
+const SHOPS_PER_PAGE = 9;
+
 const DashboardAdmin = () => {
   const { token } = useAuth();
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [imprimeries, setImprimeries] = useState<ImprimerieDTO[]>([]);
   const [shopSearchQuery, setShopSearchQuery] = useState("");
+  const [shopsPage, setShopsPage] = useState(1);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
   const [commandes, setCommandes] = useState<CommandeDTO[]>([]);
   const [verifications, setVerifications] = useState<VerificationDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -166,6 +171,23 @@ const DashboardAdmin = () => {
       )
     : imprimeries;
 
+  // La page demandée est ramenée dans les bornes valides si la recherche a
+  // réduit le nombre de résultats entre-temps.
+  const shopsTotalPages = Math.max(1, Math.ceil(filteredImprimeries.length / SHOPS_PER_PAGE));
+  const shopsCurrentPage = Math.min(shopsPage, shopsTotalPages);
+  const paginatedImprimeries = filteredImprimeries.slice(
+    (shopsCurrentPage - 1) * SHOPS_PER_PAGE,
+    shopsCurrentPage * SHOPS_PER_PAGE
+  );
+
+  const userSearchNormalized = userSearchQuery.trim().toLowerCase();
+  const filteredUsers = userSearchNormalized
+    ? users.filter((u) =>
+        `${u.prenom ?? ""} ${u.nom ?? ""}`.toLowerCase().includes(userSearchNormalized) ||
+        u.email?.toLowerCase().includes(userSearchNormalized)
+      )
+    : users;
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-muted/30">
@@ -173,7 +195,7 @@ const DashboardAdmin = () => {
         <main className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
-ue       </div>
+      </div>
     );
   }
 
@@ -319,7 +341,7 @@ ue       </div>
                         type="text"
                         placeholder="Rechercher par nom, ville ou email..."
                         value={shopSearchQuery}
-                        onChange={(e) => setShopSearchQuery(e.target.value)}
+                        onChange={(e) => { setShopSearchQuery(e.target.value); setShopsPage(1); }}
                         className="pl-9"
                       />
                     </div>
@@ -345,7 +367,7 @@ ue       </div>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredImprimeries.map((shop) => (
+                      {paginatedImprimeries.map((shop) => (
                         <TableRow key={shop.id}>
                           <TableCell className="font-medium">{shop.nom}</TableCell>
                           <TableCell>{shop.ville ?? "—"}</TableCell>
@@ -369,17 +391,69 @@ ue       </div>
                     </TableBody>
                   </Table>
                 )}
+
+                {shopsTotalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={shopsCurrentPage === 1}
+                      onClick={() => setShopsPage(shopsCurrentPage - 1)}
+                    >
+                      Précédent
+                    </Button>
+                    {Array.from({ length: shopsTotalPages }, (_, i) => i + 1).map((n) => (
+                      <Button
+                        key={n}
+                        variant={n === shopsCurrentPage ? "default" : "outline"}
+                        size="sm"
+                        className="w-9"
+                        onClick={() => setShopsPage(n)}
+                      >
+                        {n}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={shopsCurrentPage === shopsTotalPages}
+                      onClick={() => setShopsPage(shopsCurrentPage + 1)}
+                    >
+                      Suivant
+                    </Button>
+                  </div>
+                )}
               </Card>
             </TabsContent>
 
             {/* Utilisateurs */}
             <TabsContent value="users">
               <Card className="p-6">
-                <h3 className="font-display font-semibold text-lg mb-4">
-                  Gestion des utilisateurs
-                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <h3 className="font-display font-semibold text-lg">
+                    Gestion des utilisateurs
+                  </h3>
+                  {users.length > 0 && (
+                    <div className="relative sm:w-80">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Rechercher par nom ou email..."
+                        value={userSearchQuery}
+                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  )}
+                </div>
                 {users.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Aucun utilisateur.</p>
+                ) : filteredUsers.length === 0 ? (
+                  <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
+                    <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
+                    <p className="text-muted-foreground text-sm">Aucun utilisateur ne correspond à "{userSearchQuery}".</p>
+                  </div>
                 ) : (
                   <Table>
                     <TableHeader>
@@ -392,7 +466,7 @@ ue       </div>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.map((user) => (
+                      {filteredUsers.map((user) => (
                         <TableRow key={user.id}>
                           <TableCell className="font-medium">
                             {user.prenom} {user.nom}
