@@ -76,6 +76,7 @@ public class SecurityConfig {
                 .requestMatchers("/uploads/**").permitAll() // Fichiers publics servis statiquement (logos)
                 .requestMatchers("/api/payments/**").permitAll()
                 .requestMatchers("/api/contact").permitAll() // Le formulaire de contact est public
+                .requestMatchers("/api/chat").permitAll() // L'assistant de la FAQ est public
                 .requestMatchers("/api/promos/**").authenticated()
                 .requestMatchers("/api/partners/**").permitAll()
                 .requestMatchers("/api/fichiers-pdf/**").authenticated()

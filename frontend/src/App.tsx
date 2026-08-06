@@ -18,6 +18,7 @@ import MentionsLegales from './pages/MentionsLegales';
 import ConditionsGenerales from './pages/ConditionsGenerales';
 import Confidentialite from './pages/Confidentialite';
 import Contact from './pages/Contact';
+import FAQ from './pages/FAQ';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
@@ -42,6 +43,7 @@ function App() {
           <Route path="/conditions-generales" element={<ConditionsGenerales />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<FAQ />} />
           <Route 
             path="/dashboard-imprimeur" 
             element={
