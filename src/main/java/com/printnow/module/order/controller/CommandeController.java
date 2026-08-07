@@ -1,5 +1,6 @@
 package com.printnow.module.order.controller;
 
+import com.printnow.module.correction.service.CorrectionCommandeService;
 import com.printnow.module.order.dto.CommandeRequestDTO;
 import com.printnow.module.order.dto.CommandeResponseDTO;
 import com.printnow.module.order.service.CommandeService;
@@ -26,6 +27,7 @@ import java.util.List;
 public class CommandeController {
 
     private final CommandeService commandeService;
+    private final CorrectionCommandeService correctionCommandeService;
     private final FactureService factureService;
     private final FactureCommissionService factureCommissionService;
     private final ReleveVenteService releveVenteService;
@@ -48,6 +50,7 @@ public class CommandeController {
         // 3. Le paiement est confirmé côté navigateur avant l'appel, mais on le
         // revérifie directement auprès de Stripe (jamais confiance au seul client).
         boolean paiementConfirme = false;
+        Long montantRegle = null;
         if (request.getPaymentIntentId() != null && !request.getPaymentIntentId().isBlank()) {
             try {
                 PaymentIntent intent = PaymentIntent.retrieve(request.getPaymentIntentId());
@@ -55,6 +58,7 @@ public class CommandeController {
                     return ResponseEntity.badRequest().build();
                 }
                 paiementConfirme = true;
+                montantRegle = intent.getAmount();
             } catch (StripeException e) {
                 return ResponseEntity.badRequest().build();
             }
@@ -62,6 +66,12 @@ public class CommandeController {
 
         // 4. On crée la commande via le service et on retourne le DTO généré
         CommandeResponseDTO nouvelleCommande = commandeService.createCommande(request, client, paiementConfirme);
+
+        // 5. Les corrections orthographiques sont réglées avec la commande : on
+        // vérifie que le paiement couvre bien l'impression ET leur montant cumulé,
+        // puis on génère les PDF corrigés.
+        correctionCommandeService.appliquerCorrections(
+                request.getCorrections(), client, nouvelleCommande.getTotalTTC(), montantRegle);
 
         return ResponseEntity.ok(nouvelleCommande);
     }

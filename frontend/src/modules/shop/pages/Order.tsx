@@ -27,7 +27,7 @@ import {
 import {
   ChevronLeft, Upload, FileText, Zap, GraduationCap, Truck,
   Store, CreditCard, AlertCircle, Tag, Check, MapPin,
-  Lock, Loader2, Layers, Book
+  Lock, Loader2, Layers, Book, SpellCheck2
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
@@ -37,6 +37,7 @@ import pdfjsWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { imprimerieService } from "../services/imprimerieService.service";
 import type { ImprimerieDetail } from "../models/Imprimerie.model";
 import { useAuth } from "../../auth/context/AuthContext";
+import CorrectionOrthographe, { type EtatCorrection } from "../components/CorrectionOrthographe";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
@@ -368,6 +369,24 @@ const Order = () => {
 
   const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
 
+  /**
+   * Vérification orthographique de chaque fichier, indexée comme `files`.
+   * L'analyse est gratuite ; seule la production du PDF corrigé est facturée,
+   * en même temps que la commande.
+   */
+  const [corrections, setCorrections] = useState<Record<number, EtatCorrection | null>>({});
+
+  const majCorrection = (index: number, etat: EtatCorrection | null) => {
+    setCorrections((prev) => ({ ...prev, [index]: etat }));
+  };
+
+  /** Corrections effectivement retenues par le client, avec leur position de fichier. */
+  const correctionsActives = Object.entries(corrections)
+    .filter(([, etat]) => etat?.active)
+    .map(([index, etat]) => ({ index: Number(index), etat: etat as EtatCorrection }));
+
+  const totalCorrections = correctionsActives.reduce((s, c) => s + c.etat.verification.prix, 0);
+
   const updateFileOption = <K extends keyof FileOptions>(index: number, key: K, value: FileOptions[K]) => {
     setFiles((prev) =>
       prev.map((f, i) => {
@@ -420,6 +439,10 @@ const Order = () => {
   const totalHT = Math.max(0, totalAvantPromo - promoDiscountAmount);
   const tva = totalHT * 0.21;
   const total = totalHT + tva;
+  // Les corrections orthographiques sont un service PrintNow : elles s'ajoutent
+  // au règlement mais restent hors du total de la commande (et donc hors de la
+  // part imprimeur et de l'assiette de commission).
+  const totalAPayer = total + totalCorrections;
 
   useEffect(() => {
     if (appliedPromo?.montantMinimum && totalAvantPromo * 1.21 < appliedPromo.montantMinimum) {
@@ -509,6 +532,11 @@ const Order = () => {
         reliure: f.options.binding || "AUCUNE",
         finition: f.options.finish || "AUCUNE",
       })),
+      corrections: correctionsActives.map(({ etat }) => ({
+        verificationId: etat.verification.id,
+        fautesIgnorees: etat.fautesIgnorees,
+        remplacementsChoisis: etat.remplacementsChoisis,
+      })),
     };
 
     const response = await fetch("http://localhost:8080/api/commandes", {
@@ -532,8 +560,28 @@ const Order = () => {
       files.map(async (uploadedFile, i) => {
         const ligneId = lignes[i]?.id;
         if (!ligneId) throw new Error(`Ligne ${i} introuvable`);
+
+        // Si une correction a été réglée pour ce fichier, c'est la version
+        // corrigée — générée par le serveur au moment du paiement — qui est
+        // transmise à l'imprimerie.
+        let aEnvoyer = uploadedFile.file;
+        const correction = corrections[i];
+        if (correction?.active) {
+          try {
+            const pdfRes = await fetch(
+              `http://localhost:8080/api/corrections/${correction.verification.id}/pdf`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (pdfRes.ok) {
+              aEnvoyer = new File([await pdfRes.blob()], uploadedFile.file.name, { type: "application/pdf" });
+            }
+          } catch {
+            // En cas d'échec, on imprime l'original plutôt que de bloquer la commande.
+          }
+        }
+
         const formData = new FormData();
-        formData.append("file", uploadedFile.file);
+        formData.append("file", aEnvoyer);
         formData.append("ligneCommandeId", ligneId.toString());
         formData.append("nbPages", uploadedFile.pageCount.toString());
         const res = await fetch("http://localhost:8080/api/fichiers-pdf", {
@@ -755,6 +803,16 @@ const Order = () => {
                         </div>
                       )}
 
+                      {/* Vérification orthographique : réservée aux documents, les fautes
+                          pouvant être volontaires sur une affiche ou une carte de visite. */}
+                      {selectedProduct?.typeProduit === "DOCUMENT" && (
+                        <CorrectionOrthographe
+                          file={uploadedFile.file}
+                          etat={corrections[index] ?? null}
+                          onChange={(etat) => majCorrection(index, etat)}
+                        />
+                      )}
+
                       <div className="flex items-center justify-between pt-4 border-t mt-4">
                         <span className="text-sm text-muted-foreground">Sous-total fichier</span>
                         <span className="font-semibold text-primary">{computeFilePrice(uploadedFile).toFixed(2)}€</span>
@@ -966,7 +1024,7 @@ const Order = () => {
                 <CardContent>
                   <Elements stripe={stripePromise}>
                     <CheckoutForm
-                      total={total}
+                      total={totalAPayer}
                       canPay={files.length > 0}
                       addressValid={isAddressValid()}
                       fulfillment={fulfillment}
@@ -1030,9 +1088,18 @@ const Order = () => {
                     <div className="flex justify-between text-muted-foreground">
                       <span>TVA (21%)</span><span>+{tva.toFixed(2)}€</span>
                     </div>
+                    {totalCorrections > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <SpellCheck2 className="h-3.5 w-3.5" />
+                          Correction orthographique
+                        </span>
+                        <span>+{totalCorrections.toFixed(2)}€</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center pt-2 border-t">
-                      <span className="font-semibold text-lg">Total TTC</span>
-                      <span className="font-display font-bold text-2xl text-primary">{total.toFixed(2)}€</span>
+                      <span className="font-semibold text-lg">Total à payer</span>
+                      <span className="font-display font-bold text-2xl text-primary">{totalAPayer.toFixed(2)}€</span>
                     </div>
                   </div>
 

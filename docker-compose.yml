@@ -15,6 +15,28 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  # --- Correcteur orthographique (vérification des PDF avant impression) ---
+  # Auto-hébergé : les documents des clients ne sortent jamais de l'infrastructure.
+  languagetool:
+    image: erikvl87/languagetool:latest
+    container_name: printnow_languagetool
+    environment:
+      Java_Xms: 1g
+      Java_Xmx: 3g
+      # Données n-grammes : statistiques d'usage qui permettent de repérer les
+      # mots corrects mais employés à tort (« une immense foret » au lieu de
+      # « forêt »). Sans elles, ces fautes passent inaperçues.
+      langtool_languageModel: /ngrams
+    volumes:
+      # Stockées hors du dossier du projet : plusieurs gigaoctets qu'il ne faut
+      # ni versionner, ni laisser synchroniser par OneDrive.
+      - C:/languagetool-ngrams/data:/ngrams:ro
+      # LanguageTool ne livre que 28 paires de confusion pour le français ; on
+      # substitue notre liste enrichie au fichier d'origine.
+      - ./languagetool/confusion_sets_fr.txt:/LanguageTool/org/languagetool/resource/fr/confusion_sets.txt:ro
+    ports:
+      - "8010:8010"
+
   # --- L'interface pour voir les tables ---
   phpmyadmin:
     image: phpmyadmin:latest
