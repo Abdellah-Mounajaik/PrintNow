@@ -340,7 +340,7 @@ public class CorrectionService {
         List<LanguageToolClient.Epreuve> epreuves = new ArrayList<>();
 
         for (FauteDTO faute : fautes) {
-            String phrase = phraseContenant(texteComplet, faute.getMotFautif());
+            String phrase = phraseDeLaFaute(texteComplet, faute);
             if (phrase == null) continue; // dans le doute, on conserve le signalement
 
             String assainie = appliquerEnMemoire(phrase, fautes.stream().filter(f -> f != faute).toList());
@@ -375,7 +375,7 @@ public class CorrectionService {
     private void validerEnContexte(List<FauteDTO> fautes, String textePage) {
         List<Epreuve> encours = new ArrayList<>();
         for (FauteDTO faute : fautes) {
-            String phrase = phraseContenant(textePage, faute.getMotFautif());
+            String phrase = phraseDeLaFaute(textePage, faute);
             if (phrase == null) continue;
 
             List<String> candidats = candidats(faute);
@@ -660,18 +660,61 @@ public class CorrectionService {
         return candidats.stream().limit(MAX_CANDIDATS).toList();
     }
 
+    /**
+     * Phrase du document où juger la faute.
+     *
+     * Un même mot peut figurer plusieurs fois, correct ici et fautif là :
+     * « nous sommes sortis visiter le centre-ville », puis « nous avons visiter
+     * un château ». Se fier à la première occurrence venue conclurait que le mot
+     * est bien employé, et la faute serait corrigée par elle-même. On retient
+     * donc la phrase qui correspond à l'extrait rapporté par le correcteur.
+     */
+    private String phraseDeLaFaute(String texte, FauteDTO faute) {
+        List<String> phrases = phrasesContenant(texte, faute.getMotFautif());
+        if (phrases.isEmpty()) return null;
+        if (phrases.size() == 1) return phrases.get(0);
+
+        String extrait = faute.getContexte();
+        if (extrait == null || extrait.isBlank()) return phrases.get(0);
+
+        // La phrase qui partage le plus de mots avec l'extrait est la bonne.
+        return phrases.stream()
+                .max(Comparator.comparingLong(phrase -> motsCommuns(phrase, extrait)))
+                .orElse(phrases.get(0));
+    }
+
+    /** Nombre de mots un peu significatifs que la phrase et l'extrait ont en commun. */
+    private long motsCommuns(String phrase, String extrait) {
+        Set<String> motsExtrait = new HashSet<>(List.of(extrait.toLowerCase().split("\\W+")));
+        return List.of(phrase.toLowerCase().split("\\W+")).stream()
+                .filter(mot -> mot.length() > 3)
+                .distinct()
+                .filter(motsExtrait::contains)
+                .count();
+    }
+
     /** Extrait la phrase du texte contenant le mot, pour valider dans son contexte réel. */
     private String phraseContenant(String texte, String mot) {
+        List<String> phrases = phrasesContenant(texte, mot);
+        return phrases.isEmpty() ? null : phrases.get(0);
+    }
+
+    /** Toutes les phrases du texte où le mot apparaît. */
+    private List<String> phrasesContenant(String texte, String mot) {
+        List<String> phrases = new ArrayList<>();
         Matcher position = Pattern.compile("\\b" + Pattern.quote(mot) + "\\b", Pattern.UNICODE_CHARACTER_CLASS)
                 .matcher(texte);
-        if (!position.find()) return null;
 
-        int debut = texte.lastIndexOf('.', position.start());
-        int fin = texte.indexOf('.', position.end());
-        debut = debut < 0 ? 0 : debut + 1;
-        fin = fin < 0 ? texte.length() : fin + 1;
+        while (position.find()) {
+            int debut = texte.lastIndexOf('.', position.start());
+            int fin = texte.indexOf('.', position.end());
+            debut = debut < 0 ? 0 : debut + 1;
+            fin = fin < 0 ? texte.length() : fin + 1;
 
-        return texte.substring(debut, fin).replaceAll("\\s+", " ").trim();
+            String phrase = texte.substring(debut, fin).replaceAll("\\s+", " ").trim();
+            if (!phrase.isBlank() && !phrases.contains(phrase)) phrases.add(phrase);
+        }
+        return phrases;
     }
 
     private String remplacerMot(String phrase, String mot, String remplacement) {
