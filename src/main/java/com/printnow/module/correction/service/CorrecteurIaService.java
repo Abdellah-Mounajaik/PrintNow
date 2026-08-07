@@ -44,12 +44,18 @@ public class CorrecteurIaService {
     /** Garde-fou : un document ne peut pas produire un nombre aberrant de corrections. */
     private static final int MAX_CORRECTIONS = 300;
 
+    /**
+     * Consigne donnée au modèle. Elle reste rédigée en français quelle que soit
+     * la langue du document : le modèle la comprend, et une consigne unique évite
+     * qu'une traduction approximative n'en modifie le sens.
+     */
     private static final String PROMPT = """
-        Tu corriges les fautes d'orthographe et d'accord d'un texte français.
+        Tu corriges les fautes d'orthographe et d'accord d'un texte rédigé en %s.
 
         Règles impératives :
         - Ne corrige QUE les fautes d'orthographe, de conjugaison et d'accord.
         - Ne reformule rien, ne change aucun mot correct, ne touche pas au style.
+        - Ne traduis rien : la correction doit rester dans la langue du texte.
         - Ne corrige jamais un nom propre.
         - Réponds uniquement par des lignes « mot_fautif -> correction », une par faute.
         - N'écris pas de ligne si le mot est déjà correct.
@@ -95,7 +101,7 @@ public class CorrecteurIaService {
      * @return mot fautif → correction proposée
      * @throws RelectureIndisponible si le modèle n'a pas pu être consulté
      */
-    public Map<String, String> proposer(String texte) {
+    public Map<String, String> proposer(String texte, String langue) {
         Map<String, String> corrections = new LinkedHashMap<>();
         if (texte == null || texte.isBlank()) return corrections;
         if (!estActif()) {
@@ -104,7 +110,7 @@ public class CorrecteurIaService {
 
         for (String morceau : decouper(texte)) {
             try {
-                lireReponse(interroger(morceau), corrections);
+                lireReponse(interroger(morceau, langue), corrections);
             } catch (Exception e) {
                 throw new RelectureIndisponible("Le modèle de langue n'a pas répondu", e);
             }
@@ -113,13 +119,15 @@ public class CorrecteurIaService {
     }
 
     @SuppressWarnings("unchecked")
-    private String interroger(String texte) {
+    private String interroger(String texte, String langue) {
         Map<String, Object> body = Map.of(
                 "model", model,
                 "temperature", 0,
                 "max_tokens", 2000,
                 "messages", List.of(
-                        Map.of("role", "system", "content", PROMPT),
+                        Map.of("role", "system", "content",
+                                PROMPT.formatted(LanguageToolClient.LANGUES_PRISES_EN_CHARGE
+                                        .getOrDefault(langue, "français"))),
                         Map.of("role", "user", "content", texte)
                 )
         );

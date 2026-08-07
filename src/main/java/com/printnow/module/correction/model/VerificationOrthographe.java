@@ -40,6 +40,13 @@ public class VerificationOrthographe {
 
     private Integer nbFautes;
 
+    /**
+     * Langue reconnue dans le document, au format LanguageTool (« fr », « nl »,
+     * « en-US »). Conservée pour que le client sache dans quelle langue son
+     * document a été relu.
+     */
+    private String langue;
+
     /** Nombre de fautes réellement corrigées dans le PDF (les autres sont annotées). */
     private Integer nbCorrigees;
 

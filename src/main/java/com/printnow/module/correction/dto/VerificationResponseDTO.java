@@ -17,6 +17,8 @@ public class VerificationResponseDTO {
     private String nomFichier;
     private Integer nbPages;
     private Integer nbFautes;
+    /** Langue dans laquelle le document a été relu (« français », « anglais »…). */
+    private String langue;
     private BigDecimal prix;
     private Boolean payee;
     /** Nombre de fautes réécrites dans le PDF (null tant que non payé). */

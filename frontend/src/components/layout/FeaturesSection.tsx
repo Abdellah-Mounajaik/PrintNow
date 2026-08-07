@@ -4,9 +4,7 @@ import {
   Truck, 
   Shield, 
   Clock, 
-  CreditCard,
-  FileCheck,
-  Headphones
+  FileCheck
 } from "lucide-react";
 
 const features = [

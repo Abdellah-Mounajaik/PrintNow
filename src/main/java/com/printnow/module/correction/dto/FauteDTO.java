@@ -35,6 +35,17 @@ public class FauteDTO {
     /** Extrait de la phrase, pour situer la faute. */
     private String contexte;
 
+    /**
+     * Rang de l'occurrence visée dans la page, à partir de 1.
+     *
+     * Un même mot peut être correct à un endroit et fautif à un autre — « nous
+     * sommes sortis visiter le centre-ville », puis « nous avons visiter un
+     * château ». Sans ce rang, la réécriture toucherait les deux et abîmerait la
+     * phrase correcte. Vaut null quand le rang n'a pas pu être établi : toutes
+     * les occurrences sont alors corrigées, comme avant.
+     */
+    private Integer occurrence;
+
     /** true si la faute a pu être corrigée directement dans le PDF. */
     private Boolean corrigeeDansPdf;
 }

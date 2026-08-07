@@ -1,5 +1,4 @@
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import {
   MapPin,
@@ -8,9 +7,6 @@ import {
   Zap,
   GraduationCap,
   Truck,
-  FileText,
-  Image,
-  CreditCard,
   Footprints,
   Car,
   Loader2

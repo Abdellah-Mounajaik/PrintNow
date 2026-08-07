@@ -7,6 +7,7 @@ import com.printnow.module.correction.model.VerificationOrthographe;
 import com.printnow.module.correction.repository.VerificationOrthographeRepository;
 import com.printnow.module.correction.service.ApercuCorrectionService;
 import com.printnow.module.correction.service.CorrectionService;
+import com.printnow.module.correction.service.LanguageToolClient;
 import com.printnow.module.correction.service.ProgressionAnalyse;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
@@ -162,6 +163,7 @@ public class CorrectionController {
                 verification.getNomFichier(),
                 verification.getNbPages(),
                 verification.getNbFautes(),
+                LanguageToolClient.LANGUES_PRISES_EN_CHARGE.get(verification.getLangue()),
                 verification.getPrix(),
                 verification.getPayee(),
                 verification.getNbCorrigees(),

@@ -127,6 +127,21 @@ public class CorrectionService {
                         "Ce PDF ne contient pas de texte analysable (document scanné ou composé d'images).");
             }
 
+            String texteComplet = String.join("\n", textes);
+
+            // Corriger un texte dans la mauvaise langue le détruirait : on refuse
+            // plutôt que de facturer un massacre. Le contrôle passe avant le
+            // quota : reconnaître une langue ne coûte qu'un extrait de 600
+            // caractères, et un document refusé ne doit pas être retenu contre
+            // le client.
+            String langue = languageTool.detecterLangue(texteComplet);
+            if (langue == null) {
+                supprimerSilencieusement(chemin);
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        "La vérification orthographique n'est disponible qu'en français, néerlandais et "
+                        + "anglais. Vous pouvez commander l'impression sans elle.");
+            }
+
             // Le quota n'est décompté qu'ici : un document refusé plus haut n'a
             // rien coûté, il serait injuste de le retenir contre le client.
             if (!quota.autoriser(client.getId())) {
@@ -135,45 +150,43 @@ public class CorrectionService {
                         "Vous avez lancé trop d'analyses coup sur coup. Patientez une heure avant de réessayer.");
             }
 
-            String texteComplet = String.join("\n", textes);
-
             // Le modèle n'a besoin que du texte brut, disponible dès maintenant :
             // on le consulte pendant que LanguageTool travaille au lieu de
             // l'attendre à la fin. Les deux lectures sont indépendantes jusqu'à
             // leur fusion.
             CompletableFuture<Map<String, String>> relecture =
-                    CompletableFuture.supplyAsync(() -> correcteurIa.proposer(texteComplet));
+                    CompletableFuture.supplyAsync(() -> correcteurIa.proposer(texteComplet, langue));
 
             // Première lecture, toutes pages groupées en un minimum de requêtes.
             progression.publier(suivi, 10, "Recherche des fautes");
-            List<FauteDTO> fautes = new ArrayList<>(languageTool.analyserPages(textes));
+            List<FauteDTO> fautes = new ArrayList<>(languageTool.analyserPages(textes, langue));
 
             // La validation s'appuie sur le texte complet : une phrase peut
             // enjamber deux pages, et la juger sur une seule priverait le
             // correcteur des mots dont il a besoin (« nous avons » en fin de
             // page, « netoyer » au début de la suivante).
             progression.publier(suivi, 45, "Vérification de chaque correction");
-            validerEnContexte(fautes, texteComplet);
+            validerEnContexte(fautes, texteComplet, langue);
 
             // Seconde lecture, sur le texte une fois les corrections validées
             // appliquées. Elle doit impérativement venir après la validation :
             // menée sur des corrections encore approximatives, elle signalerait
             // des fautes provoquées par ces approximations.
             progression.publier(suivi, 62, "Seconde lecture");
-            fautes.addAll(secondePasse(fautes, textes, texteComplet));
+            fautes.addAll(secondePasse(fautes, textes, texteComplet, langue));
 
             // Contre-épreuve : certains signalements ne tiennent que tant que
             // leurs voisins sont fautifs. Elle précède la relecture du modèle,
             // dont les propositions portent justement sur ce que les règles ne
             // savent pas juger et ne survivraient pas à cette épreuve.
             progression.publier(suivi, 75, "Contre-épreuve des signalements");
-            confirmerEnContexte(fautes, texteComplet);
+            confirmerEnContexte(fautes, texteComplet, langue);
 
             // Relecture par le modèle de langue, qui repère les fautes portant
             // sur des mots corrects et tranche les accords que les règles ne
             // savent pas résoudre. Ses propositions sont filtrées ci-dessous.
             progression.publier(suivi, 82, "Relecture approfondie");
-            fusionnerRelectureIa(fautes, textes, texteComplet, attendre(relecture));
+            fusionnerRelectureIa(fautes, textes, texteComplet, langue, attendre(relecture));
 
             // Toutes les sources ont contribué : on peut enfin savoir quels mots
             // sont mal orthographiés, et écarter les accords bâtis sur eux.
@@ -186,6 +199,7 @@ public class CorrectionService {
                     .cheminOriginal(chemin.toString())
                     .nbPages(nbPages)
                     .nbFautes(fautes.size())
+                    .langue(langue)
                     .prix(calculerPrix(nbPages))
                     .payee(false)
                     .resultatAnalyse(serialiser(fautes))
@@ -295,7 +309,7 @@ public class CorrectionService {
      *
      * @return les fautes nouvellement découvertes, à traiter après les premières
      */
-    private List<FauteDTO> secondePasse(List<FauteDTO> premieres, List<String> textes, String texteComplet) {
+    private List<FauteDTO> secondePasse(List<FauteDTO> premieres, List<String> textes, String texteComplet, String langue) {
         List<FauteDTO> nouvelles = new ArrayList<>();
         Set<String> dejaSignalees = premieres.stream().map(FauteDTO::getMotFautif).collect(Collectors.toSet());
 
@@ -307,7 +321,7 @@ public class CorrectionService {
             corriges.add(corrige.equals(texte) ? "" : corrige);
         }
 
-        for (FauteDTO faute : languageTool.analyserPages(corriges)) {
+        for (FauteDTO faute : languageTool.analyserPages(corriges, langue)) {
             // On ne retient que les fautes présentes dans le document d'origine :
             // les autres portent sur du texte issu de la première passe, et les
             // corriger reviendrait à corriger une correction.
@@ -317,7 +331,7 @@ public class CorrectionService {
             nouvelles.add(faute);
         }
 
-        validerEnContexte(nouvelles, texteComplet);
+        validerEnContexte(nouvelles, texteComplet, langue);
         return nouvelles;
     }
 
@@ -335,7 +349,7 @@ public class CorrectionService {
      * Les fautes seules dans leur phrase ne sont pas réexaminées : rien
      * n'aurait changé autour d'elles.
      */
-    private void confirmerEnContexte(List<FauteDTO> fautes, String texteComplet) {
+    private void confirmerEnContexte(List<FauteDTO> fautes, String texteComplet, String langue) {
         List<FauteDTO> aReexaminer = new ArrayList<>();
         List<LanguageToolClient.Epreuve> epreuves = new ArrayList<>();
 
@@ -354,7 +368,7 @@ public class CorrectionService {
         // On éprouve avec les mêmes filtres que l'analyse : le contrôle
         // d'orthographe pure ne verrait pas les règles d'accord, qui sont
         // précisément celles dont le verdict est ici remis en question.
-        List<LanguageToolClient.Verdict> verdicts = languageTool.eprouverEnLot(epreuves);
+        List<LanguageToolClient.Verdict> verdicts = languageTool.eprouverEnLot(epreuves, langue);
 
         List<FauteDTO> infirmees = new ArrayList<>();
         for (int i = 0; i < aReexaminer.size(); i++) {
@@ -372,7 +386,7 @@ public class CorrectionService {
      * On essaie donc les candidats dans l'ordre jusqu'à en trouver un que le
      * correcteur ne signale plus.
      */
-    private void validerEnContexte(List<FauteDTO> fautes, String textePage) {
+    private void validerEnContexte(List<FauteDTO> fautes, String textePage, String langue) {
         List<Epreuve> encours = new ArrayList<>();
         for (FauteDTO faute : fautes) {
             String phrase = phraseDeLaFaute(textePage, faute);
@@ -401,7 +415,7 @@ public class CorrectionService {
             }
             if (aTester.isEmpty()) break;
 
-            List<LanguageToolClient.Verdict> verdicts = languageTool.eprouverEnLot(requetes);
+            List<LanguageToolClient.Verdict> verdicts = languageTool.eprouverEnLot(requetes, langue);
 
             List<Epreuve> indecises = new ArrayList<>();
             for (int i = 0; i < aTester.size(); i++) {
@@ -498,7 +512,7 @@ public class CorrectionService {
      * correction est un mot correctement orthographié — ce dernier point étant
      * vérifié par LanguageTool, qui l'empêche d'inventer.
      */
-    private void fusionnerRelectureIa(List<FauteDTO> fautes, List<String> textes, String texteComplet,
+    private void fusionnerRelectureIa(List<FauteDTO> fautes, List<String> textes, String texteComplet, String langue,
                                       Map<String, String> propositions) {
         if (propositions.isEmpty()) return;
 
@@ -531,7 +545,7 @@ public class CorrectionService {
         }
         if (aEprouver.isEmpty()) return;
 
-        Set<String> retenues = eprouverPropositions(texteComplet, aEprouver);
+        Set<String> retenues = eprouverPropositions(texteComplet, langue, aEprouver);
 
         for (Map.Entry<String, String> proposition : aEprouver.entrySet()) {
             String mot = proposition.getKey();
@@ -553,8 +567,10 @@ public class CorrectionService {
 
             int page = pageContenant(textes, mot);
             String phrase = phraseContenant(texteComplet, mot);
+            // Le modèle ne situe pas sa trouvaille : sans rang, toutes les
+            // occurrences du mot seront corrigées, comme avant.
             fautes.add(new FauteDTO(page, mot, correction, List.of(correction),
-                    "Faute repérée à la relecture.", phrase == null ? "" : phrase, false));
+                    "Faute repérée à la relecture.", phrase == null ? "" : phrase, null, false));
         }
     }
 
@@ -568,7 +584,7 @@ public class CorrectionService {
      *
      * @return les mots dont la correction proposée tient dans sa phrase
      */
-    private Set<String> eprouverPropositions(String texteComplet, Map<String, String> propositions) {
+    private Set<String> eprouverPropositions(String texteComplet, String langue, Map<String, String> propositions) {
         List<String> mots = new ArrayList<>();
         List<LanguageToolClient.Epreuve> epreuves = new ArrayList<>();
         Set<String> retenues = new HashSet<>();
@@ -580,7 +596,7 @@ public class CorrectionService {
 
             if (phrase == null) {
                 // Sans phrase exploitable, on se contente de vérifier que le mot existe.
-                if (!languageTool.estMalOrthographie(correction + ".", correction)) retenues.add(mot);
+                if (!languageTool.estMalOrthographie(correction + ".", correction, langue)) retenues.add(mot);
                 continue;
             }
             mots.add(mot);
@@ -588,7 +604,7 @@ public class CorrectionService {
                     remplacerMot(phrase, mot, correction), dernierMot(correction)));
         }
 
-        List<LanguageToolClient.Verdict> verdicts = languageTool.eprouverEnLot(epreuves);
+        List<LanguageToolClient.Verdict> verdicts = languageTool.eprouverEnLot(epreuves, langue);
         for (int i = 0; i < mots.size(); i++) {
             if (verdicts.get(i).accepte()) retenues.add(mots.get(i));
         }

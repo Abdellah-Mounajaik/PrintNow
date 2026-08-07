@@ -10,6 +10,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationHighlight;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -24,6 +25,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,10 +67,16 @@ public class ApercuCorrectionService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page inexistante.");
             }
 
+            // Emplacement des mots fautifs avant toute réécriture : c'est là, et
+            // nulle part ailleurs, que le texte va changer. Sans ce relevé, un mot
+            // déjà correct ailleurs dans la page serait surligné lui aussi.
+            Map<String, List<ExtracteurTextePdf.PositionMot>> avantCorrection =
+                    ExtracteurTextePdf.positionsDesMots(document, page);
+
             // Les corrections sont appliquées à une copie en mémoire : rien n'est
             // écrit sur disque tant que la commande n'est pas réglée.
             correcteurPdf.corriger(document, fautes);
-            surlignerCorrections(document, page, fautes);
+            surlignerCorrections(document, page, fautes, avantCorrection);
 
             PDFRenderer moteur = new PDFRenderer(document);
             BufferedImage image = moteur.renderImageWithDPI(page - 1, DPI_APERCU, ImageType.RGB);
@@ -101,30 +109,57 @@ public class ApercuCorrectionService {
      * Le surlignage n'existe que dans l'aperçu : il est appliqué à la copie en
      * mémoire, jamais au document livré après paiement.
      */
-    private void surlignerCorrections(PDDocument document, int page, List<FauteDTO> fautes) {
-        List<String> motsCorriges = new ArrayList<>();
-        for (FauteDTO faute : fautes) {
-            if (!Boolean.TRUE.equals(faute.getCorrigeeDansPdf())) continue;
-            if (faute.getPage() == null || faute.getPage() != page) continue;
-            motsCorriges.addAll(motsModifies(faute.getMotFautif(), faute.getCorrection()));
-        }
-        if (motsCorriges.isEmpty()) return;
-
+    private void surlignerCorrections(PDDocument document, int page, List<FauteDTO> fautes,
+                                      Map<String, List<ExtracteurTextePdf.PositionMot>> avantCorrection) {
         try {
             PDPage pdPage = document.getPage(page - 1);
+            List<PDAnnotation> annotations = pdPage.getAnnotations();
             Map<String, List<ExtracteurTextePdf.PositionMot>> positions =
                     ExtracteurTextePdf.positionsDesMots(document, page);
 
-            for (String mot : motsCorriges) {
-                List<ExtracteurTextePdf.PositionMot> occurrences = positions.get(mot);
-                if (occurrences == null) continue;
-                for (ExtracteurTextePdf.PositionMot position : occurrences) {
-                    pdPage.getAnnotations().add(construireSurlignageVert(position));
+            for (FauteDTO faute : fautes) {
+                if (!Boolean.TRUE.equals(faute.getCorrigeeDansPdf())) continue;
+                if (faute.getPage() == null || faute.getPage() != page) continue;
+
+                List<ExtracteurTextePdf.PositionMot> origines =
+                        avantCorrection.getOrDefault(faute.getMotFautif(), List.of());
+
+                for (String mot : motsModifies(faute.getMotFautif(), faute.getCorrection())) {
+                    List<ExtracteurTextePdf.PositionMot> candidats = positions.getOrDefault(mot, List.of());
+
+                    // Faute de repère — l'extraction n'a pas isolé le mot fautif de
+                    // la même façon —, on signale toutes les occurrences plutôt que
+                    // de laisser la correction passer inaperçue.
+                    if (origines.isEmpty()) {
+                        candidats.forEach(p -> annotations.add(construireSurlignageVert(p)));
+                        continue;
+                    }
+                    for (ExtracteurTextePdf.PositionMot origine : origines) {
+                        surlignerRemplacant(annotations, origine, candidats);
+                    }
                 }
             }
         } catch (Exception e) {
             log.debug("Surlignage de l'aperçu impossible (page {})", page, e);
         }
+    }
+
+    /**
+     * Surligne, parmi les occurrences du mot corrigé, celle qui a pris la place
+     * du mot fautif.
+     *
+     * On se repère sur la ligne, et non sur l'abscisse exacte : la compensation
+     * d'échelle s'applique à tout le passage réécrit, si bien qu'un mot situé au
+     * milieu d'une ligne glisse de quelques points — jusqu'à 6,6 mesurés. La
+     * hauteur, elle, ne bouge pas d'un dixième. Sur une même ligne, l'occurrence
+     * la plus proche est retenue.
+     */
+    private void surlignerRemplacant(List<PDAnnotation> annotations, ExtracteurTextePdf.PositionMot origine,
+                                     List<ExtracteurTextePdf.PositionMot> candidats) {
+        candidats.stream()
+                .filter(candidat -> Math.abs(candidat.y() - origine.y()) < 2f)
+                .min(Comparator.comparingDouble(candidat -> Math.abs(candidat.x() - origine.x())))
+                .ifPresent(candidat -> annotations.add(construireSurlignageVert(candidat)));
     }
 
     /**

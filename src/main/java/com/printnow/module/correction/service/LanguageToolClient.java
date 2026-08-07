@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.IntFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Client de l'instance LanguageTool auto-hébergée (voir docker-compose.yml).
@@ -31,8 +33,31 @@ public class LanguageToolClient {
     @Value("${languagetool.base.url}")
     private String baseUrl;
 
-    @Value("${languagetool.langue}")
-    private String langue;
+    /**
+     * Instance dépourvue de modèle de langue, pour les langues dont nous n'avons
+     * pas les n-grammes.
+     *
+     * Mesuré : lorsque « languageModel » désigne un dossier sans sous-dossier
+     * pour la langue demandée, LanguageTool désactive silencieusement toutes ses
+     * règles. Sur « This is a beatiful and realy intresting documment »,
+     * l'instance française ne signalait rien ; celle-ci relève les cinq fautes.
+     */
+    @Value("${languagetool.base.url.sans.modele}")
+    private String baseUrlSansModele;
+
+    /**
+     * Langues pour lesquelles les n-grammes sont installés, et qui passent donc
+     * par l'instance principale — la seule à faire jouer les paires de confusion
+     * (« une grande foret » → « forêt »).
+     */
+    @Value("${languagetool.langues.avec.modele}")
+    private String languesAvecModele;
+
+    /** Langues proposées au client, du code LanguageTool vers son nom lisible. */
+    public static final Map<String, String> LANGUES_PRISES_EN_CHARGE = Map.of(
+            "fr", "français",
+            "nl", "néerlandais",
+            "en-US", "anglais");
 
     /**
      * LanguageTool refuse les textes trop volumineux en une requête : on découpe
@@ -54,14 +79,74 @@ public class LanguageToolClient {
             "TYPOGRAPHY",           // guillemets, espaces fines : pas des fautes
             "PONCTUATION",          // virgules conseillées : affaire de style
             "PONCTUATION_VIRGULE",
-            "PUNCTUATION"
+            "PUNCTUATION",
+            // Anglais : préférences régionales, pas des fautes. « Afterwards »
+            // est correct, l'américain préfère seulement « Afterward ».
+            "BRITISH_ENGLISH",
+            "AMERICAN_ENGLISH_STYLE",
+            "REGIONALISMS",
+            // Néerlandais : registre et tournures conseillées.
+            "STIJL",
+            "GEBRUIK"
     );
 
-    private RestClient restClient;
+    private RestClient avecModele;
+    private RestClient sansModele;
+    private Set<String> languesDuModele;
 
     @PostConstruct
     public void init() {
-        restClient = RestClient.builder().baseUrl(baseUrl).build();
+        avecModele = RestClient.builder().baseUrl(baseUrl).build();
+        sansModele = RestClient.builder().baseUrl(baseUrlSansModele).build();
+        languesDuModele = Set.of(languesAvecModele.split("\\s*,\\s*"));
+    }
+
+    /** L'instance à interroger pour cette langue. */
+    private RestClient clientPour(String langue) {
+        return languesDuModele.contains(langue) ? avecModele : sansModele;
+    }
+
+    /**
+     * Reconnaît la langue du document.
+     *
+     * Un extrait suffit : l'identification d'une langue ne demande pas le texte
+     * entier, et l'envoyer coûterait une analyse complète pour rien.
+     *
+     * @return le code d'une langue prise en charge, ou null si le document est
+     *         rédigé dans une autre langue
+     */
+    @SuppressWarnings("unchecked")
+    public String detecterLangue(String texte) {
+        if (texte == null || texte.isBlank()) return null;
+
+        try {
+            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+            form.add("language", "auto");
+            form.add("text", texte.substring(0, Math.min(texte.length(), 600)));
+
+            Map<String, Object> reponse = sansModele.post()
+                    .uri("/v2/check")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(form)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (reponse == null) return null;
+            Map<String, Object> langue = (Map<String, Object>) reponse.get("language");
+            if (langue == null) return null;
+            Map<String, Object> detectee = (Map<String, Object>) langue.get("detectedLanguage");
+            String code = String.valueOf((detectee == null ? langue : detectee).get("code"));
+
+            // « en-GB », « nl-BE »… sont ramenés à la variante que nous servons.
+            for (String prise : LANGUES_PRISES_EN_CHARGE.keySet()) {
+                if (code.regionMatches(true, 0, prise, 0, 2)) return prise;
+            }
+            return null;
+
+        } catch (Exception e) {
+            log.warn("Détection de langue impossible", e);
+            return null;
+        }
     }
 
     /**
@@ -75,7 +160,7 @@ public class LanguageToolClient {
      *
      * @param textes le texte de chaque page, dans l'ordre
      */
-    public List<FauteDTO> analyserPages(List<String> textes) {
+    public List<FauteDTO> analyserPages(List<String> textes, String langue) {
         List<FauteDTO> fautes = new ArrayList<>();
         if (textes == null || textes.isEmpty()) return fautes;
 
@@ -89,24 +174,24 @@ public class LanguageToolClient {
             // Une page à elle seule plus longue qu'un envoi garde son découpage propre.
             if (texte.length() >= TAILLE_MAX_REQUETE) {
                 if (!groupe.isEmpty()) {
-                    fautes.addAll(analyserGroupe(textes, groupe));
+                    fautes.addAll(analyserGroupe(textes, groupe, langue));
                     groupe = new ArrayList<>();
                     longueur = 0;
                 }
-                fautes.addAll(analyserPage(texte, i + 1));
+                fautes.addAll(analyserPage(texte, i + 1, langue));
                 continue;
             }
 
             int cout = texte.length() + SEPARATEUR_LOT.length();
             if (!groupe.isEmpty() && longueur + cout > TAILLE_MAX_REQUETE) {
-                fautes.addAll(analyserGroupe(textes, groupe));
+                fautes.addAll(analyserGroupe(textes, groupe, langue));
                 groupe = new ArrayList<>();
                 longueur = 0;
             }
             groupe.add(i);
             longueur += cout;
         }
-        if (!groupe.isEmpty()) fautes.addAll(analyserGroupe(textes, groupe));
+        if (!groupe.isEmpty()) fautes.addAll(analyserGroupe(textes, groupe, langue));
 
         return fautes;
     }
@@ -122,7 +207,7 @@ public class LanguageToolClient {
 
     /** Envoie un groupe de pages et rattache chaque faute à la sienne. */
     @SuppressWarnings("unchecked")
-    private List<FauteDTO> analyserGroupe(List<String> textes, List<Integer> indices) {
+    private List<FauteDTO> analyserGroupe(List<String> textes, List<Integer> indices, String langue) {
         StringBuilder envoi = new StringBuilder();
         int[] debuts = new int[indices.size()];
         int[] fins = new int[indices.size()];
@@ -138,14 +223,14 @@ public class LanguageToolClient {
             form.add("language", langue);
             form.add("text", envoi.toString());
 
-            Map<String, Object> reponse = restClient.post()
+            Map<String, Object> reponse = clientPour(langue).post()
                     .uri("/v2/check")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(form)
                     .retrieve()
                     .body(Map.class);
 
-            return extraireFautes(reponse, position -> {
+            return extraireFautes(reponse, envoi.toString(), position -> {
                 for (int rang = 0; rang < fins.length; rang++) {
                     if (position < fins[rang]) return new Reperage(indices.get(rang) + 1, debuts[rang]);
                 }
@@ -169,7 +254,7 @@ public class LanguageToolClient {
      * @param page  le numéro de page (repris tel quel dans les fautes retournées)
      */
     @SuppressWarnings("unchecked")
-    public List<FauteDTO> analyserPage(String texte, int page) {
+    public List<FauteDTO> analyserPage(String texte, int page, String langue) {
         List<FauteDTO> fautes = new ArrayList<>();
         if (texte == null || texte.isBlank()) return fautes;
 
@@ -179,14 +264,14 @@ public class LanguageToolClient {
                 form.add("language", langue);
                 form.add("text", morceau);
 
-                Map<String, Object> reponse = restClient.post()
+                Map<String, Object> reponse = clientPour(langue).post()
                         .uri("/v2/check")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .body(form)
                         .retrieve()
                         .body(Map.class);
 
-                fautes.addAll(extraireFautes(reponse, position -> new Reperage(page, 0)));
+                fautes.addAll(extraireFautes(reponse, morceau, position -> new Reperage(page, 0)));
             } catch (Exception e) {
                 log.warn("Échec de l'analyse LanguageTool (page {})", page, e);
             }
@@ -219,7 +304,7 @@ public class LanguageToolClient {
      *
      * @return un verdict par épreuve, dans l'ordre reçu
      */
-    public List<Verdict> eprouverEnLot(List<Epreuve> epreuves) {
+    public List<Verdict> eprouverEnLot(List<Epreuve> epreuves, String langue) {
         List<Verdict> verdicts = new ArrayList<>(java.util.Collections.nCopies(epreuves.size(), null));
 
         List<Integer> lot = new ArrayList<>();
@@ -233,21 +318,21 @@ public class LanguageToolClient {
             }
             int longueur = epreuve.phrase().length() + SEPARATEUR_LOT.length();
             if (!lot.isEmpty() && longueurLot + longueur > TAILLE_MAX_REQUETE) {
-                traiterLot(epreuves, lot, verdicts);
+                traiterLot(epreuves, lot, verdicts, langue);
                 lot = new ArrayList<>();
                 longueurLot = 0;
             }
             lot.add(i);
             longueurLot += longueur;
         }
-        if (!lot.isEmpty()) traiterLot(epreuves, lot, verdicts);
+        if (!lot.isEmpty()) traiterLot(epreuves, lot, verdicts, langue);
 
         return verdicts;
     }
 
     /** Envoie un groupe de phrases et répartit les signalements entre elles. */
     @SuppressWarnings("unchecked")
-    private void traiterLot(List<Epreuve> epreuves, List<Integer> indices, List<Verdict> verdicts) {
+    private void traiterLot(List<Epreuve> epreuves, List<Integer> indices, List<Verdict> verdicts, String langue) {
         // Position de chaque phrase dans l'envoi, pour rattacher les signalements.
         StringBuilder envoi = new StringBuilder();
         int[] debuts = new int[indices.size()];
@@ -264,7 +349,7 @@ public class LanguageToolClient {
             form.add("language", langue);
             form.add("text", envoi.toString());
 
-            Map<String, Object> reponse = restClient.post()
+            Map<String, Object> reponse = clientPour(langue).post()
                     .uri("/v2/check")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(form)
@@ -344,7 +429,7 @@ public class LanguageToolClient {
      * indique souvent la bonne forme : on la récupère pour l'essayer à son tour.
      */
     @SuppressWarnings("unchecked")
-    public Verdict eprouverDansLaPhrase(String phrase, String mot) {
+    public Verdict eprouverDansLaPhrase(String phrase, String mot, String langue) {
         if (phrase == null || phrase.isBlank() || mot == null || mot.isBlank()) {
             return new Verdict(false, null);
         }
@@ -354,7 +439,7 @@ public class LanguageToolClient {
             form.add("language", langue);
             form.add("text", phrase);
 
-            Map<String, Object> reponse = restClient.post()
+            Map<String, Object> reponse = clientPour(langue).post()
                     .uri("/v2/check")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(form)
@@ -425,7 +510,7 @@ public class LanguageToolClient {
      * plus juste que les règles.
      */
     @SuppressWarnings("unchecked")
-    public boolean estMalOrthographie(String phrase, String mot) {
+    public boolean estMalOrthographie(String phrase, String mot, String langue) {
         if (phrase == null || phrase.isBlank() || mot == null || mot.isBlank()) return false;
 
         try {
@@ -433,7 +518,7 @@ public class LanguageToolClient {
             form.add("language", langue);
             form.add("text", phrase);
 
-            Map<String, Object> reponse = restClient.post()
+            Map<String, Object> reponse = clientPour(langue).post()
                     .uri("/v2/check")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(form)
@@ -471,7 +556,8 @@ public class LanguageToolClient {
     /** Vérifie que le service est joignable (utilisé avant de facturer quoi que ce soit). */
     public boolean estDisponible() {
         try {
-            restClient.get().uri("/v2/languages").retrieve().toBodilessEntity();
+            avecModele.get().uri("/v2/languages").retrieve().toBodilessEntity();
+            sansModele.get().uri("/v2/languages").retrieve().toBodilessEntity();
             return true;
         } catch (Exception e) {
             log.warn("LanguageTool injoignable sur {}", baseUrl, e);
@@ -483,8 +569,27 @@ public class LanguageToolClient {
      * @param reperage situe le signalement d'après sa position dans l'envoi ;
      *        un envoi peut porter plusieurs pages
      */
+    /**
+     * Rang de l'occurrence signalée parmi celles du même mot dans la page.
+     *
+     * Compté sur le texte même qui a été analysé, donc exact. Sert à ne réécrire
+     * que le mot fautif lorsqu'il figure aussi ailleurs, correctement employé.
+     */
+    private Integer rangDansLaPage(String envoi, int debutDePage, int position, String mot) {
+        if (envoi == null || position < debutDePage || position > envoi.length()) return null;
+
+        Matcher chercheur = Pattern
+                .compile("\\b" + Pattern.quote(mot) + "\\b", Pattern.UNICODE_CHARACTER_CLASS)
+                .matcher(envoi.substring(debutDePage, position));
+
+        int rang = 1;
+        while (chercheur.find()) rang++;
+        return rang;
+    }
+
     @SuppressWarnings("unchecked")
-    private List<FauteDTO> extraireFautes(Map<String, Object> reponse, IntFunction<Reperage> reperage) {
+    private List<FauteDTO> extraireFautes(Map<String, Object> reponse, String envoi,
+                                          IntFunction<Reperage> reperage) {
         List<FauteDTO> fautes = new ArrayList<>();
         if (reponse == null) return fautes;
 
@@ -542,6 +647,7 @@ public class LanguageToolClient {
                     suggestions,
                     (String) match.get("message"),
                     texteContexte,
+                    rangDansLaPage(envoi, ou.debut(), position, motFautif),
                     false // renseigné plus tard, lors de la génération du PDF corrigé
             ));
         }

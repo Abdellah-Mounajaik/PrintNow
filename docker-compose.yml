@@ -17,6 +17,13 @@ services:
 
   # --- Correcteur orthographique (vérification des PDF avant impression) ---
   # Auto-hébergé : les documents des clients ne sortent jamais de l'infrastructure.
+  #
+  # Deux instances, pour une raison mesurée : « languageModel » pointant vers un
+  # dossier dépourvu de sous-dossier pour la langue demandée désactive
+  # silencieusement toutes ses règles. Avec nos seules données françaises,
+  # l'anglais renvoyait zéro faute sur une phrase qui en comptait cinq, sans la
+  # moindre erreur dans les journaux. Plutôt que de télécharger des gigaoctets de
+  # n-grammes anglais, la seconde instance s'en passe.
   languagetool:
     image: erikvl87/languagetool:latest
     container_name: printnow_languagetool
@@ -36,6 +43,18 @@ services:
       - ./languagetool/confusion_sets_fr.txt:/LanguageTool/org/languagetool/resource/fr/confusion_sets.txt:ro
     ports:
       - "8010:8010"
+
+  # Instance sans modèle de langue, pour les langues dont nous n'avons pas les
+  # n-grammes. Elle perd les règles de confusion — qui en dépendent — mais
+  # conserve l'orthographe et la grammaire, l'essentiel du service.
+  languagetool-sans-modele:
+    image: erikvl87/languagetool:latest
+    container_name: printnow_languagetool_sans_modele
+    environment:
+      Java_Xms: 512m
+      Java_Xmx: 2g
+    ports:
+      - "8011:8010"
 
   # --- L'interface pour voir les tables ---
   phpmyadmin:

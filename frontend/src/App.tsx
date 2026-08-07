@@ -1,4 +1,4 @@
-import React, { type JSX } from 'react';
+import { type JSX } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom'; // On enlève BrowserRouter d'ici
 
 import { AuthProvider, useAuth } from './modules/auth/context/AuthContext';
@@ -19,6 +19,7 @@ import ConditionsGenerales from './pages/ConditionsGenerales';
 import Confidentialite from './pages/Confidentialite';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
+import { Toaster } from './components/ui/toaster';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
@@ -75,6 +76,9 @@ function App() {
         </Routes>
       </div>
       <Footer />
+      {/* Zone d'affichage des messages : sans elle, tous les appels à toast()
+          restaient sans effet et les erreurs passaient inaperçues. */}
+      <Toaster />
     </AuthProvider>
   );
 }

@@ -2,7 +2,6 @@
 
 import CTASection from "../components/layout/CTASection";
 import FeaturesSection from "../components/layout/FeaturesSection";
-import Header from "../components/layout/Header";
 import HeroSection from "../components/layout/HeroSection";
 import HowItWorksSection from "../components/layout/HowItWorksSection";
 

@@ -70,6 +70,35 @@ public class CorrecteurPdfService {
     private record Police(COSName nom, float taille, PDFont fonte) {}
 
     /**
+     * Désigne l'occurrence à réécrire lorsqu'un mot fautif figure plusieurs fois
+     * dans la page.
+     *
+     * « nous sommes sortis visiter le centre-ville » puis « nous avons visiter un
+     * château » : seule la seconde est fautive. Sans ce repère, la réécriture
+     * abîmait la première. Un rang absent vise toutes les occurrences, comme
+     * auparavant.
+     */
+    private static final class Cible {
+        private final Integer rang;
+        private int rencontrees;
+
+        Cible(Integer rang) {
+            this.rang = rang;
+        }
+
+        /** Faut-il réécrire l'occurrence que l'on vient de rencontrer ? */
+        boolean retenir() {
+            rencontrees++;
+            return rang == null || rencontrees == rang;
+        }
+
+        /** L'occurrence visée est passée : inutile de poursuivre la recherche. */
+        boolean depassee() {
+            return rang != null && rencontrees >= rang;
+        }
+    }
+
+    /**
      * Applique les corrections au document. Les objets {@link FauteDTO} passés en
      * paramètre sont mis à jour pour indiquer lesquelles ont été réécrites.
      */
@@ -88,8 +117,10 @@ public class CorrecteurPdfService {
             for (FauteDTO faute : fautesPage) {
                 boolean remplacee = faute.getCorrection() != null
                         && !faute.getCorrection().isBlank()
-                        && (remplacerDansPage(document, page, faute.getMotFautif(), faute.getCorrection())
-                            || remplacerACheval(document, page, faute.getMotFautif(), faute.getCorrection()));
+                        && (remplacerDansPage(document, page, faute.getMotFautif(), faute.getCorrection(),
+                                              new Cible(faute.getOccurrence()))
+                            || remplacerACheval(document, page, faute.getMotFautif(), faute.getCorrection(),
+                                                new Cible(faute.getOccurrence())));
 
                 faute.setCorrigeeDansPdf(remplacee);
                 if (remplacee) {
@@ -115,7 +146,8 @@ public class CorrecteurPdfService {
      *
      * @return true si le mot a effectivement été réécrit
      */
-    private boolean remplacerDansPage(PDDocument document, PDPage page, String motFautif, String correction) {
+    private boolean remplacerDansPage(PDDocument document, PDPage page, String motFautif,
+                                      String correction, Cible cible) {
         try {
             PDFStreamParser parser = new PDFStreamParser(page);
             List<Object> jetons = parser.parse();
@@ -141,13 +173,13 @@ public class CorrecteurPdfService {
                     case "Tj", "'" -> {
                         if (i > 0 && jetons.get(i - 1) instanceof COSString chaine
                                 && appliquer(page, resultat, policeCourante, chaine,
-                                             motFautif, correction, echelleCourante)) {
+                                             motFautif, correction, echelleCourante, cible)) {
                             modifie = true;
                         }
                     }
                     case "TJ" -> {
                         if (i > 0 && jetons.get(i - 1) instanceof COSArray tableau
-                                && remplacerDansTableau(page, tableau, policeCourante, motFautif,
+                                && remplacerDansTableau(page, tableau, policeCourante, motFautif, cible,
                                                         correction, resultat, echelleCourante)) {
                             modifie = true;
                         }
@@ -187,7 +219,8 @@ public class CorrecteurPdfService {
      * l'extraction de texte les a d'ailleurs lus comme un seul mot —, si bien
      * que le résultat occupe la même place, à l'ajustement d'échelle près.
      */
-    private boolean remplacerACheval(PDDocument document, PDPage page, String motFautif, String correction) {
+    private boolean remplacerACheval(PDDocument document, PDPage page, String motFautif,
+                                     String correction, Cible cible) {
         try {
             PDFStreamParser parser = new PDFStreamParser(page);
             List<Object> jetons = parser.parse();
@@ -209,9 +242,13 @@ public class CorrecteurPdfService {
 
                     if (assemble.length() > motFautif.length()) break;
                     // Un passage isolé relève de la première passe.
-                    if (fin > debut && assemble.toString().equals(motFautif)
-                            && ecrireACheval(document, page, jetons, passages, debut, fin, motFautif, correction)) {
-                        return true;
+                    if (fin > debut && assemble.toString().equals(motFautif)) {
+                        // Les occurrences précédant celle qui est visée sont
+                        // comptées puis laissées telles quelles.
+                        if (!cible.retenir()) break;
+                        if (ecrireACheval(document, page, jetons, passages, debut, fin, motFautif, correction)) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -318,17 +355,22 @@ public class CorrecteurPdfService {
      * @return true si la réécriture a pu être faite
      */
     private boolean appliquer(PDPage page, List<Object> resultat, Police police, COSString chaine,
-                              String motFautif, String correction, float echelleCourante) {
+                              String motFautif, String correction, float echelleCourante, Cible cible) {
         if (police == null) return false;
 
         String texteOrigine = decoder(chaine, police.fonte());
         if (texteOrigine == null || !texteOrigine.contains(motFautif)) return false;
 
         // Remplacement borné aux limites de mot : sans cela, corriger « sa » en
-        // « ça » abîmerait aussi le « sa » contenu dans « intéressant ».
+        // « ça » abîmerait aussi le « sa » contenu dans « intéressant ». Et seule
+        // l'occurrence visée est réécrite, le mot pouvant être correct ailleurs.
+        List<Integer> aReecrire = new ArrayList<>();
         Matcher chercheur = motifDeMot(motFautif).matcher(texteOrigine);
-        if (!chercheur.find()) return false;
-        String texteCorrige = chercheur.reset().replaceAll(Matcher.quoteReplacement(correction));
+        for (int rang = 0; chercheur.find(); rang++) {
+            if (cible.retenir()) aReecrire.add(rang);
+        }
+        if (aReecrire.isEmpty()) return false;
+        String texteCorrige = reecrire(texteOrigine, motFautif, correction, aReecrire);
 
         try {
             Police ecriture = policeCapable(page, police, texteCorrige,
@@ -459,7 +501,7 @@ public class CorrecteurPdfService {
      * On reconstitue donc le texte complet du tableau pour y chercher le mot,
      * puis on réécrit les fragments concernés.
      */
-    private boolean remplacerDansTableau(PDPage page, COSArray tableau, Police police, String motFautif,
+    private boolean remplacerDansTableau(PDPage page, COSArray tableau, Police police, String motFautif, Cible cible,
                                          String correction, List<Object> resultat, float echelleCourante) {
         if (police == null) return false;
 
@@ -467,9 +509,15 @@ public class CorrecteurPdfService {
             String texteOrigine = texteDuTableau(tableau, police.fonte());
             if (texteOrigine == null) return false;
 
+            // Rangs, dans ce passage, des occurrences que la cible retient.
+            List<Integer> aReecrire = new ArrayList<>();
             Matcher chercheur = motifDeMot(motFautif).matcher(texteOrigine);
-            if (!chercheur.find()) return false;
-            String texteCorrige = chercheur.reset().replaceAll(Matcher.quoteReplacement(correction));
+            for (int rang = 0; chercheur.find(); rang++) {
+                if (cible.retenir()) aReecrire.add(rang);
+            }
+            if (aReecrire.isEmpty()) return false;
+
+            String texteCorrige = reecrire(texteOrigine, motFautif, correction, aReecrire);
 
             // Tout est décidé avant la moindre modification : si la correction
             // n'est pas représentable ou si l'écart de largeur est incompensable,
@@ -482,14 +530,15 @@ public class CorrecteurPdfService {
             float ajustement = ajustement(police.fonte(), texteOrigine, ecriture.fonte(), texteCorrige);
             if (ajustement == 0) return false;
 
-            boolean trouve = false;
-            // Un même mot peut apparaître plusieurs fois dans le tableau ; on
-            // recommence tant qu'il en reste, avec une borne de sécurité.
-            for (int tentative = 0; tentative < 50; tentative++) {
-                if (!remplacerUneOccurrence(tableau, police.fonte(), ecriture.fonte(), motFautif, correction)) break;
-                trouve = true;
+            // Chaque réécriture fait disparaître l'occurrence traitée : le rang
+            // des suivantes se décale d'autant.
+            int dejaReecrites = 0;
+            for (int rang : aReecrire) {
+                if (!remplacerUneOccurrence(tableau, police.fonte(), ecriture.fonte(),
+                                            motFautif, correction, rang - dejaReecrites)) break;
+                dejaReecrites++;
             }
-            if (!trouve) return false;
+            if (dejaReecrites == 0) return false;
 
             encadrer(resultat, police, ecriture, echelleCourante, ajustement);
             return true;
@@ -506,7 +555,8 @@ public class CorrecteurPdfService {
      * @return true si une occurrence a été traitée
      */
     private boolean remplacerUneOccurrence(COSArray tableau, PDFont lecture, PDFont ecriture,
-                                           String motFautif, String correction) throws IOException {
+                                           String motFautif, String correction, int aSauter)
+            throws IOException {
         StringBuilder texteComplet = new StringBuilder();
         List<int[]> origines = new ArrayList<>(); // par caractère : {position dans le tableau, position dans le fragment}
 
@@ -522,7 +572,9 @@ public class CorrecteurPdfService {
         if (origines.isEmpty()) return false;
 
         Matcher chercheur = motifDeMot(motFautif).matcher(texteComplet);
-        if (!chercheur.find()) return false;
+        for (int passees = 0; passees <= aSauter; passees++) {
+            if (!chercheur.find()) return false;
+        }
 
         int debut = chercheur.start();
         int fin = chercheur.end();
@@ -570,6 +622,23 @@ public class CorrecteurPdfService {
             }
         }
         return texte.toString();
+    }
+
+    /** Applique la correction aux seules occurrences dont le rang est retenu. */
+    private String reecrire(String texte, String motFautif, String correction, List<Integer> rangs) {
+        StringBuilder resultat = new StringBuilder();
+        Matcher chercheur = motifDeMot(motFautif).matcher(texte);
+
+        int rang = 0;
+        int repris = 0;
+        while (chercheur.find()) {
+            if (rangs.contains(rang)) {
+                resultat.append(texte, repris, chercheur.start()).append(correction);
+                repris = chercheur.end();
+            }
+            rang++;
+        }
+        return resultat.append(texte.substring(repris)).toString();
     }
 
     /**

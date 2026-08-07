@@ -27,6 +27,8 @@ export interface Verification {
   nomFichier: string;
   nbPages: number;
   nbFautes: number;
+  /** Langue reconnue dans le document (« français », « néerlandais », « anglais »). */
+  langue?: string;
   prix: number;
   payee: boolean;
   nbCorrigees: number | null;
@@ -256,7 +258,9 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
           </p>
           <p className="text-xs text-muted-foreground">
             {verification.nbPages} page{verification.nbPages > 1 ? "s" : ""} analysée
-            {verification.nbPages > 1 ? "s" : ""} · choisissez une autre suggestion, ou conservez le mot d'origine
+            {verification.nbPages > 1 ? "s" : ""}
+            {verification.langue ? ` en ${verification.langue}` : ""} · choisissez une autre suggestion,
+            ou conservez le mot d'origine
           </p>
         </div>
       </div>

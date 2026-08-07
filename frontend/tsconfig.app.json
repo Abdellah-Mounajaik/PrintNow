@@ -15,17 +15,21 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Alias « @/ » vers src, comme dans vite.config.ts. Cette clé était placée à
+       la racine du fichier, hors de compilerOptions, où TypeScript l'ignore :
+       tous les imports en « @/ » étaient donc signalés introuvables à la
+       compilation, alors que Vite les résolvait sans peine. En mode « bundler »,
+       les chemins sont relatifs à ce fichier et baseUrl — désormais déprécié —
+       n'est plus nécessaire. */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
   "include": ["src"]
 }
