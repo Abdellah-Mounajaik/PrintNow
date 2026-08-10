@@ -70,22 +70,13 @@ const Footer = () => {
           {/* Services */}
           <div>
             <h4 className="font-display font-semibold text-lg mb-4">Services</h4>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link to="/imprimeries" className="text-background/70 hover:text-background transition-colors">
-                  Documents & CV
-                </Link>
-              </li>
-              <li>
-                <Link to="/imprimeries" className="text-background/70 hover:text-background transition-colors">
-                  Flyers & Affiches
-                </Link>
-              </li>
-              <li>
-                <Link to="/imprimeries" className="text-background/70 hover:text-background transition-colors">
-                  Cartes de visite
-                </Link>
-              </li>
+            {/* Simple énumération de ce que la plateforme permet d'imprimer : ces
+                trois entrées renvoyaient toutes vers la même page générique, ce
+                que leur apparence de lien laissait mal deviner. */}
+            <ul className="space-y-3 text-sm text-background/70">
+              <li>Documents & CV</li>
+              <li>Flyers & Affiches</li>
+              <li>Cartes de visite</li>
             </ul>
           </div>
 

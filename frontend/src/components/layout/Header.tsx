@@ -95,16 +95,8 @@ const Header = () => {
             >
               Imprimeries
             </Link>
-            <Link 
-              to="/services" 
-              className={`font-medium transition-colors hover:opacity-80 ${
-                useLight ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Services
-            </Link>
-            <Link 
-              to="/devenir-partenaire" 
+            <Link
+              to="/devenir-partenaire"
               className={`font-medium transition-colors hover:opacity-80 ${
                 useLight ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
@@ -194,9 +186,6 @@ const Header = () => {
             <nav className="container mx-auto px-4 py-4 flex flex-col gap-3">
               <Link to="/imprimeries" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
                 Imprimeries
-              </Link>
-              <Link to="/services" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
-                Services
               </Link>
               <Link to="/devenir-partenaire" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
                 Devenir partenaire
