@@ -15,7 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import type { LoginRequest, SignupRequest } from "../models/auth.model";
 
 const Auth = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { loginGlobal } = useAuth(); 
 
@@ -39,6 +39,19 @@ const Auth = () => {
       setActiveTab(tab);
     }
   }, [searchParams]);
+
+  /**
+   * Change d'onglet en gardant l'adresse à jour : sans cela, l'URL continuait
+   * d'annoncer l'onglet d'arrivée, et un rechargement ou un lien partagé
+   * ramenait sur le mauvais formulaire.
+   *
+   * Le remplacement de l'entrée d'historique évite que le bouton « Précédent »
+   * ait à défaire chaque aller-retour entre les deux onglets.
+   */
+  const changerOnglet = (onglet: string) => {
+    setActiveTab(onglet);
+    setSearchParams({ tab: onglet }, { replace: true });
+  };
 
  const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -97,7 +110,7 @@ const Auth = () => {
     try {
       await authService.register(signupData);
       setSuccessMsg("Compte créé avec succès ! Connectez-vous.");
-      setActiveTab("connexion"); 
+      changerOnglet("connexion");
       
       // On vide les champs de mot de passe par sécurité
       setSignupData({...signupData, motDePasse: ""});
@@ -123,7 +136,7 @@ const Auth = () => {
           </div>
 
           <Card className="border-border shadow-lg">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={changerOnglet} className="w-full">
               <CardHeader className="pb-4">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="connexion">Connexion</TabsTrigger>
