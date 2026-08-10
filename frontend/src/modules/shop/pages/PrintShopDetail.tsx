@@ -239,7 +239,7 @@ const PrintShopDetail = () => {
                 </Button>
               ) : (
                 <Button size="lg" className="w-full text-lg h-14" asChild>
-                  <Link to={`/commander/${shop.id}`}>Commander maintenant</Link>
+                  <Link to={`/commander/${shop.slug ?? shop.id}`}>Commander maintenant</Link>
                 </Button>
               )}
               <Card>

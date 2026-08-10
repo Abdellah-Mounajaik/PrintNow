@@ -257,7 +257,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 // Order page
 // ──────────────────────────────────────────────────────────────────────────────
 const Order = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const { token, user } = useAuth();
   const navigate = useNavigate();
 
@@ -283,8 +283,10 @@ const Order = () => {
   const [confirmation, setConfirmation] = useState<OrderConfirmation | null>(null);
 
   useEffect(() => {
-    if (id) {
-      imprimerieService.getImprimerieById(id)
+    if (slug) {
+      // Le serveur accepte aussi un numéro : les liens /commander/31 partagés
+      // avant la mise en place des adresses lisibles continuent de fonctionner.
+      imprimerieService.getImprimerieBySlug(slug)
         .then(data => {
           setShop(data);
           if (!data.livraisonActive) setFulfillment("pickup");
@@ -297,7 +299,7 @@ const Order = () => {
     } else {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [slug]);
 
   useEffect(() => {
     if (!token) return;
@@ -739,7 +741,7 @@ const Order = () => {
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-6xl">
           <Button variant="ghost" size="sm" className="mb-6" asChild>
-            <Link to={`/imprimerie/${id}`}>
+            <Link to={`/imprimerie/${slug}`}>
               <ChevronLeft className="h-4 w-4 mr-1" />
               Retour à l'imprimerie
             </Link>

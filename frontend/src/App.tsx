@@ -39,7 +39,7 @@ function App() {
           <Route path="/login" element={<Auth />} />
           <Route path="/devenir-partenaire" element={<DevenirPartenaire />} />
           <Route path='/imprimerie/:slug' element={<PrintShopDetail />} />
-          <Route path='/commander/:id' element={<Order />} />
+          <Route path='/commander/:slug' element={<Order />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/conditions-generales" element={<ConditionsGenerales />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
