@@ -103,6 +103,14 @@ const Header = () => {
             >
               Devenir partenaire
             </Link>
+            <Link
+              to="/faq"
+              className={`font-medium transition-colors hover:opacity-80 ${
+                useLight ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              FAQ
+            </Link>
           </nav>
 
           {/* Right Actions */}
@@ -189,6 +197,9 @@ const Header = () => {
               </Link>
               <Link to="/devenir-partenaire" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
                 Devenir partenaire
+              </Link>
+              <Link to="/faq" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
+                FAQ
               </Link>
               <hr className="border-border" />
               
