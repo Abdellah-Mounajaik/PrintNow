@@ -1,10 +1,10 @@
-import { 
-  Zap, 
-  GraduationCap, 
-  Truck, 
-  Shield, 
-  Clock, 
-  FileCheck
+import {
+  Zap,
+  GraduationCap,
+  Truck,
+  Shield,
+  Clock,
+  SpellCheck2
 } from "lucide-react";
 
 const features = [
@@ -44,11 +44,12 @@ const features = [
     bgColor: "bg-warning/10",
   },
   {
-    icon: FileCheck,
-    title: "Qualité garantie",
-    description: "Nos imprimeries partenaires sont sélectionnées pour leur professionnalisme.",
-    color: "text-success",
-    bgColor: "bg-success/10",
+    icon: SpellCheck2,
+    title: "Correction orthographique",
+    description: "Faites relire vos documents avant impression : les fautes sont corrigées "
+      + "directement dans le PDF, sans rien changer à votre mise en page.",
+    color: "text-secondary",
+    bgColor: "bg-secondary/10",
   },
 ];
 
@@ -67,7 +68,7 @@ const FeaturesSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div 
+            <div
               key={feature.title}
               className="p-6 rounded-2xl bg-card border border-border hover:border-secondary/50 hover:shadow-card transition-all duration-300 group"
               style={{ animationDelay: `${index * 0.1}s` }}
