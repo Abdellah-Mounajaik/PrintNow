@@ -92,6 +92,7 @@ public class CommandeService {
         if (paiementConfirme) {
             commande.setStatut(StatutCommande.PAYEE);
             commande.setDatePaiement(LocalDateTime.now());
+            commande.setPaymentIntentId(request.getPaymentIntentId());
         } else {
             commande.setStatut(StatutCommande.EN_ATTENTE_PAIEMENT);
         }

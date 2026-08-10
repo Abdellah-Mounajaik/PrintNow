@@ -74,6 +74,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/partners/register").permitAll() // L'inscription des partenaires est publique
                 .requestMatchers("/api/uploads/**").permitAll() // Upload du logo pendant l'inscription (avant authentification)
                 .requestMatchers("/uploads/**").permitAll() // Fichiers publics servis statiquement (logos)
+                // Déclaré avant la règle publique ci-dessous : réclamer un
+                // remboursement suppose de savoir qui le demande.
+                .requestMatchers(HttpMethod.POST, "/api/payments/abandon").authenticated()
                 .requestMatchers("/api/payments/**").permitAll()
                 .requestMatchers("/api/contact").permitAll() // Le formulaire de contact est public
                 .requestMatchers("/api/chat").permitAll() // L'assistant de la FAQ est public

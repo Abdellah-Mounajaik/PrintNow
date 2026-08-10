@@ -16,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -72,13 +74,24 @@ public class CommandeController {
             return ResponseEntity.ok(
                     commandeService.passerCommande(request, client, paiementConfirme, montantRegle));
 
+        } catch (ResponseStatusException e) {
+            // Refus déjà porteur d'un statut choisi (paiement insuffisant,
+            // vérification non autorisée…) : on le laisse tel quel.
+            if (paiementConfirme) {
+                remboursementService.rembourser(request.getPaymentIntentId(), e.getReason());
+            }
+            throw e;
+
         } catch (RuntimeException e) {
             // La commande est refusée alors que Stripe a déjà encaissé : sans
             // remboursement, le client serait débité sans rien recevoir.
             if (paiementConfirme) {
                 remboursementService.rembourser(request.getPaymentIntentId(), e.getMessage());
             }
-            throw e;
+            // 422 plutôt que 500 : la demande est recevable, ce sont les règles
+            // métier qui s'y opposent. Le navigateur peut ainsi distinguer un
+            // refus définitif — déjà remboursé ici — d'une panne à réessayer.
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage(), e);
         }
     }
 

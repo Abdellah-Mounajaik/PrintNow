@@ -203,7 +203,14 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       await onSuccess(paymentIntent.id);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Une erreur est survenue.";
-      toast({ title: "Erreur de paiement", description: message, variant: "destructive" });
+      // Le titre suit ce qui a échoué : parler d'« erreur de paiement » alors
+      // que la carte a bien été débitée inquiéterait pour rien.
+      const paiementPasse = /rembours|enregistr/i.test(message);
+      toast({
+        title: paiementPasse ? "Commande non enregistrée" : "Erreur de paiement",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setProcessing(false);
     }
@@ -541,6 +548,28 @@ const Order = () => {
   };
 
   // Called after Stripe payment is confirmed — creates the commande and uploads PDFs
+  /**
+   * Réclame le remboursement d'un paiement dont la commande n'a pas pu être
+   * enregistrée. Le serveur vérifie lui-même qu'aucune commande n'y correspond.
+   *
+   * L'échec de cette réclamation n'est pas propagé : elle n'est qu'un secours,
+   * et c'est l'échec de la commande qui doit être annoncé au client.
+   */
+  const reclamerLeRemboursement = async (paymentIntentId: string) => {
+    try {
+      const res = await fetch("http://localhost:8080/api/payments/abandon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ paymentIntentId }),
+      });
+      if (!res.ok) console.error("Remboursement refusé par le serveur :", res.status);
+      return res.ok;
+    } catch (e) {
+      console.error("Remboursement injoignable :", e);
+      return false;
+    }
+  };
+
   const handleCreateOrder = async (paymentIntentId: string) => {
     const payload = {
       paymentIntentId,
@@ -573,21 +602,58 @@ const Order = () => {
       })),
     };
 
-    const response = await fetch("http://localhost:8080/api/commandes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    const envoyerLaCommande = async () => {
+      const response = await fetch("http://localhost:8080/api/commandes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Erreur lors de la création de la commande");
+      if (!response.ok) {
+        const brut = await response.text();
+        // Le serveur répond en JSON ({"message": "..."}) : sans cette lecture,
+        // le client verrait l'objet entier s'afficher dans l'alerte.
+        let motif = brut;
+        try {
+          motif = JSON.parse(brut).message || brut;
+        } catch { /* texte brut, on le garde tel quel */ }
+
+        const erreur = new Error(motif || "Erreur lors de la création de la commande");
+        // Un refus argumenté du serveur ne changera pas d'avis, et il l'a déjà
+        // remboursé lui-même ; une panne (5xx), elle, mérite d'être réessayée.
+        (erreur as Error & { definitif?: boolean }).definitif = response.status < 500;
+        throw erreur;
+      }
+      return response.json();
+    };
+
+    // La carte est déjà débitée : plutôt que d'abandonner à la première coupure,
+    // on réessaie, et on ne renonce qu'après avoir récupéré l'argent du client.
+    let data;
+    for (let tentative = 1; ; tentative++) {
+      try {
+        data = await envoyerLaCommande();
+        break;
+      } catch (e) {
+        const definitif = (e as Error & { definitif?: boolean }).definitif;
+        if (!definitif && tentative < 3) {
+          await new Promise((r) => setTimeout(r, tentative * 1000));
+          continue;
+        }
+        if (!definitif) {
+          // Panne côté serveur : personne là-bas n'a pu rembourser, on le
+          // réclame nous-mêmes avant d'annoncer l'échec au client.
+          const rembourse = await reclamerLeRemboursement(paymentIntentId);
+          (e as Error).message = rembourse
+            ? "Votre commande n'a pas pu être enregistrée. Votre paiement a été remboursé, rien ne vous sera prélevé."
+            : "Votre commande n'a pas pu être enregistrée. Contactez-nous : votre paiement vous sera remboursé.";
+        }
+        throw e;
+      }
     }
-
-    const data = await response.json();
 
     const lignes: any[] = data.lignes ?? [];
     const uploadResults = await Promise.allSettled(

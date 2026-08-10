@@ -14,6 +14,9 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     
     // Trouver une commande par son numéro unique (ex: CMD-2025-012)
     Optional<Commande> findByNumeroCommande(String numeroCommande);
+
+    // Ce paiement a-t-il donné lieu à une commande ? (voir PaiementAbandonneService)
+    boolean existsByPaymentIntentId(String paymentIntentId);
     
     // Récupérer toutes les commandes d'un client précis
     List<Commande> findByClient_IdOrderByDateCreationDesc(Long clientId);

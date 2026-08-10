@@ -38,6 +38,16 @@ public class Commande {
     private LocalDateTime dateCreation;
     private LocalDateTime datePaiement;
 
+    /**
+     * Paiement Stripe correspondant à cette commande.
+     *
+     * Conservé pour pouvoir répondre à la question « cette somme encaissée
+     * a-t-elle donné lieu à une commande ? » — sans quoi un paiement resté
+     * orphelin serait indiscernable d'un paiement légitime.
+     */
+    @Column(name = "payment_intent_id", unique = true, length = 100)
+    private String paymentIntentId;
+
     @Enumerated(EnumType.STRING)
     private ModeRetrait modeRetrait;
 
