@@ -2,11 +2,16 @@ package com.printnow.module.user.controller;
 
 import com.printnow.module.user.dto.JwtResponseDTO;
 import com.printnow.module.user.dto.LoginRequestDTO;
+import com.printnow.module.user.dto.MotDePasseOublieRequestDTO;
+import com.printnow.module.user.dto.ReinitialisationRequestDTO;
 import com.printnow.module.user.dto.SignupRequestDTO;
 import com.printnow.module.user.dto.UserResponseDTO;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
+import com.printnow.module.user.service.ReinitialisationMotDePasseService;
 import com.printnow.module.user.service.UserService;
+
+import java.util.Map;
 import com.printnow.infrastructure.security.JwtUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +36,7 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder; // Ajouté pour le test de match
+    private final ReinitialisationMotDePasseService reinitialisationService;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequestDTO loginRequest) {
@@ -89,5 +95,38 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    /**
+     * POST /api/auth/mot-de-passe-oublie
+     * Envoie un lien de réinitialisation à l'adresse indiquée.
+     *
+     * Répond toujours 204, que l'adresse soit connue ou non : dire le contraire
+     * reviendrait à publier la liste des inscrits.
+     */
+    @PostMapping("/mot-de-passe-oublie")
+    public ResponseEntity<Void> demanderReinitialisation(@Valid @RequestBody MotDePasseOublieRequestDTO demande) {
+        reinitialisationService.demanderUnLien(demande.getEmail());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * GET /api/auth/reinitialiser?jeton=…
+     * Indique si un lien est encore exploitable, pour éviter de faire saisir un
+     * mot de passe avant d'annoncer que le lien a expiré.
+     */
+    @GetMapping("/reinitialiser")
+    public ResponseEntity<Map<String, Boolean>> verifierLien(@RequestParam String jeton) {
+        return ResponseEntity.ok(Map.of("valide", reinitialisationService.lienEncoreValable(jeton)));
+    }
+
+    /**
+     * POST /api/auth/reinitialiser
+     * Remplace le mot de passe du compte désigné par le jeton du lien.
+     */
+    @PostMapping("/reinitialiser")
+    public ResponseEntity<Void> reinitialiser(@Valid @RequestBody ReinitialisationRequestDTO demande) {
+        reinitialisationService.reinitialiser(demande);
+        return ResponseEntity.noContent().build();
     }
 }

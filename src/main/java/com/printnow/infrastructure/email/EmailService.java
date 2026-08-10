@@ -24,6 +24,7 @@ public class EmailService {
     private static final String URL_CATALOGUE = "http://localhost:5173/imprimeries";
     private static final String URL_DASHBOARD_PARTENAIRE = "http://localhost:5173/dashboard-imprimeur";
     private static final String URL_DASHBOARD_CLIENT = "http://localhost:5173/dashboard";
+    private static final String URL_REINITIALISATION = "http://localhost:5173/reinitialiser-mot-de-passe";
 
     private final JavaMailSender mailSender;
 
@@ -84,6 +85,28 @@ public class EmailService {
             mailSender.send(message);
         } catch (MessagingException | RuntimeException e) {
             log.warn("Échec de l'envoi du mail de vérification refusée à {}", destinataire, e);
+        }
+    }
+
+    /**
+     * Envoie le lien permettant de choisir un nouveau mot de passe.
+     *
+     * Le jeton ne figure que dans cet email : c'est lui qui fait office de
+     * preuve que le demandeur possède bien la boîte mail du compte. Il n'est
+     * donc jamais journalisé, même en cas d'échec.
+     */
+    @Async
+    public void envoyerReinitialisationMotDePasse(String destinataire, String prenom, String jeton, long minutesDeValidite) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            helper.setTo(destinataire);
+            helper.setFrom(EXPEDITEUR);
+            helper.setSubject("Réinitialisation de votre mot de passe PrintNow");
+            helper.setText(corpsReinitialisation(prenom, jeton, minutesDeValidite), true);
+            mailSender.send(message);
+        } catch (MessagingException | RuntimeException e) {
+            log.warn("Échec de l'envoi du mail de réinitialisation à {}", destinataire, e);
         }
     }
 
@@ -329,6 +352,71 @@ public class EmailService {
                 </body>
                 </html>
                 """.formatted(prenom, echapperHtml(motifRefus), URL_DASHBOARD_CLIENT);
+    }
+
+    private String corpsReinitialisation(String prenom, String jeton, long minutesDeValidite) {
+        // Le jeton est produit en Base64 « URL » : aucun caractère à échapper.
+        String lien = URL_REINITIALISATION + "?jeton=" + jeton;
+        String salutation = (prenom == null || prenom.isBlank()) ? "Bonjour," : "Bonjour <strong>%s</strong>,".formatted(echapperHtml(prenom));
+
+        return """
+                <!DOCTYPE html>
+                <html lang="fr">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f6; color: #334155; }
+                        .email-wrapper { width: 100%%; background-color: #f8fafc; padding: 40px 15px; box-sizing: border-box; }
+                        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+                        .email-header { background-color: #1e293b; padding: 35px 20px; text-align: center; }
+                        .logo { font-size: 32px; font-weight: 800; color: #ffffff; margin: 0; letter-spacing: 0.5px; }
+                        .logo span { color: #f59e0b; }
+                        .email-body { padding: 40px 35px; }
+                        h1 { color: #1e293b; font-size: 22px; margin-top: 0; font-weight: 700; text-align: center; margin-bottom: 25px;}
+                        p { font-size: 16px; line-height: 1.6; margin-bottom: 20px; color: #475569; }
+                        .cta-container { text-align: center; margin: 35px 0; }
+                        .cta-button { display: inline-block; background-color: #f59e0b; color: #ffffff; text-decoration: none; padding: 15px 35px; border-radius: 8px; font-weight: bold; font-size: 16px; }
+                        .lien-brut { font-size: 13px; color: #94a3b8; word-break: break-all; text-align: center; }
+                        .alert-box { background-color: #f8fafc; border-left: 4px solid #94a3b8; padding: 15px 20px; margin-top: 30px; border-radius: 0 8px 8px 0; }
+                        .alert-box p { margin: 0; font-size: 15px; }
+                        .signature { margin-top: 30px; font-size: 16px; }
+                        .email-footer { background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #e2e8f0; }
+                        .email-footer p { font-size: 12px; color: #94a3b8; margin: 5px 0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="email-wrapper">
+                        <div class="email-container">
+                            <div class="email-header">
+                                <p class="logo">PRINT<span>NOW</span></p>
+                            </div>
+                            <div class="email-body">
+                                <h1>Réinitialisation de votre mot de passe 🔑</h1>
+                                <p>%s</p>
+                                <p>Vous avez demandé à réinitialiser le mot de passe de votre compte PrintNow. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.</p>
+                                <div class="cta-container">
+                                    <a href="%s" class="cta-button">Choisir un nouveau mot de passe</a>
+                                </div>
+                                <p class="lien-brut">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>%s</p>
+                                <div class="alert-box">
+                                    <p>Ce lien est valable <strong>%d minutes</strong> et ne peut servir qu'une seule fois.<br>
+                                    Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email : votre mot de passe actuel reste inchangé.</p>
+                                </div>
+                                <p class="signature">
+                                    À bientôt,<br>
+                                    <strong>L'équipe PrintNow</strong>
+                                </p>
+                            </div>
+                            <div class="email-footer">
+                                <p>© 2026 PrintNow. Tous droits réservés.</p>
+                                <p>Une question ? Contactez-nous à <a href="mailto:contact@printnow.be" style="color: #f59e0b; text-decoration: none;">contact@printnow.be</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(salutation, lien, lien, minutesDeValidite);
     }
 
     private String corpsMessageContact(String nom, String emailExpediteur, String sujet, String message) {

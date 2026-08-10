@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'; // On enlève Browse
 
 import { AuthProvider, useAuth } from './modules/auth/context/AuthContext';
 import Auth from './modules/auth/pages/Auth';
+import MotDePasseOublie from './modules/auth/pages/MotDePasseOublie';
+import ReinitialiserMotDePasse from './modules/auth/pages/ReinitialiserMotDePasse';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ScrollToTop from './components/layout/ScrollToTop';
@@ -37,6 +39,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/imprimeries" element={<Imprimeries />} />
           <Route path="/login" element={<Auth />} />
+          <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+          <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
           <Route path="/devenir-partenaire" element={<DevenirPartenaire />} />
           <Route path='/imprimerie/:slug' element={<PrintShopDetail />} />
           <Route path='/commander/:slug' element={<Order />} />
