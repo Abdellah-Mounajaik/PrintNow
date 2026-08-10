@@ -29,6 +29,19 @@ public class FichierPDFController {
     }
 
     /**
+     * POST /api/fichiers-pdf/verifier-format
+     * Contrôle qu'un PDF correspond au format d'un produit, avant paiement et
+     * sans rien enregistrer. Le même contrôle a lieu à l'envoi du fichier, mais
+     * trop tard : la commande serait déjà réglée.
+     */
+    @PostMapping(value = "/verifier-format", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> verifierFormat(@RequestParam MultipartFile file,
+                                               @RequestParam Long produitId) {
+        fichierPDFService.verifierFormat(file, produitId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * GET /api/fichiers-pdf/{id}/download
      * Télécharge / affiche un PDF dans le navigateur.
      */

@@ -87,6 +87,17 @@ const formatMatchesDimensions = (
   return matches(dims.width, dims.height) || matches(dims.height, dims.width);
 };
 
+/**
+ * Le fichier correspond-il à l'un des formats que nous savons reconnaître ?
+ *
+ * Distinction indispensable : un A4 déposé chez une imprimerie qui ne fait que
+ * des cartes de visite doit être refusé, alors qu'un format inhabituel — une
+ * affiche carrée, par exemple — ne peut pas être jugé et ne doit donc pas
+ * bloquer la commande.
+ */
+const formatReconnu = (fileDims: { width: number; height: number }): boolean =>
+  Object.keys(FORMAT_DIMENSIONS_MM).some((cle) => formatMatchesDimensions(cle, fileDims));
+
 
 interface DeliveryAddress {
   nomDestinataire: string;
@@ -108,6 +119,12 @@ interface OrderConfirmation {
   total: number;
   /** Vérification orthographique, facturée en plus de l'impression. */
   correction: number;
+  /**
+   * Fichiers que le serveur n'a pas pu recevoir malgré le paiement. Tant qu'il
+   * y en a, la commande ne peut pas être imprimée et il serait trompeur de
+   * l'annoncer comme confirmée.
+   */
+  fichiersNonEnvoyes: string[];
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -119,11 +136,13 @@ interface CheckoutFormProps {
   addressValid: boolean;
   fulfillment: "pickup" | "delivery";
   token: string | null;
+  /** Contrôle serveur des formats, effectué avant tout débit. */
+  verifierFormats: () => Promise<void>;
   onSuccess: (paymentIntentId: string) => Promise<void>;
 }
 
 const CheckoutForm: React.FC<CheckoutFormProps> = ({
-  total, canPay, addressValid, fulfillment, token, onSuccess,
+  total, canPay, addressValid, fulfillment, token, verifierFormats, onSuccess,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -137,7 +156,12 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       return;
     }
     if (!canPay) {
-      toast({ title: "Aucun fichier", description: "Ajoutez au moins un PDF.", variant: "destructive" });
+      toast({
+        title: "Commande incomplète",
+        description: "Ajoutez au moins un PDF, et vérifiez que son format correspond bien "
+          + "à un produit proposé par cette imprimerie.",
+        variant: "destructive",
+      });
       return;
     }
     if (fulfillment === "delivery" && !addressValid) {
@@ -151,6 +175,11 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
     setProcessing(true);
     try {
+      // 0. Le serveur mesure lui-même chaque PDF : l'imprimeur ne doit jamais
+      // recevoir une commande payée qu'il ne pourra pas honorer, et le contrôle
+      // du navigateur ne suffit pas à le garantir.
+      await verifierFormats();
+
       // 1. Create PaymentIntent on the backend
       const piRes = await fetch("http://localhost:8080/api/payments/create-payment-intent", {
         method: "POST",
@@ -583,41 +612,57 @@ const Order = () => {
           }
         }
 
-        const formData = new FormData();
-        formData.append("file", aEnvoyer);
-        formData.append("ligneCommandeId", ligneId.toString());
-        formData.append("nbPages", uploadedFile.pageCount.toString());
-        const res = await fetch("http://localhost:8080/api/fichiers-pdf", {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${token}` },
-          body: formData,
-        });
-        if (!res.ok) {
-          const txt = await res.text();
-          const message = (() => {
-            try {
-              return JSON.parse(txt).message as string;
-            } catch {
-              return null;
-            }
-          })();
-          throw new Error(message || `Upload échoué (${res.status})`);
+        const envoyer = async () => {
+          const formData = new FormData();
+          formData.append("file", aEnvoyer);
+          formData.append("ligneCommandeId", ligneId.toString());
+          formData.append("nbPages", uploadedFile.pageCount.toString());
+          const res = await fetch("http://localhost:8080/api/fichiers-pdf", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}` },
+            body: formData,
+          });
+          if (!res.ok) {
+            const txt = await res.text();
+            const message = (() => {
+              try {
+                return JSON.parse(txt).message as string;
+              } catch {
+                return null;
+              }
+            })();
+            const erreur = new Error(message || `Upload échoué (${res.status})`);
+            // Un refus du serveur ne s'arrangera pas en réessayant ; une panne
+            // passagère, si.
+            (erreur as Error & { definitif?: boolean }).definitif = res.status < 500;
+            throw erreur;
+          }
+          return res.json();
+        };
+
+        // Le paiement est déjà encaissé : plutôt que d'abandonner à la première
+        // coupure, on réessaie brièvement avant de renoncer.
+        for (let tentative = 1; ; tentative++) {
+          try {
+            return await envoyer();
+          } catch (e) {
+            const definitif = (e as Error & { definitif?: boolean }).definitif;
+            if (definitif || tentative >= 3) throw e;
+            await new Promise((r) => setTimeout(r, tentative * 1000));
+          }
         }
-        return res.json();
       })
     );
 
-    const failed = uploadResults.filter((r): r is PromiseRejectedResult => r.status === "rejected");
-    if (failed.length > 0) {
-      console.error("Erreurs upload PDF:", failed);
-      const detail = failed
-        .map((r) => (r.reason instanceof Error ? r.reason.message : String(r.reason)))
-        .join(" ");
-      toast({
-        title: "Certains fichiers n'ont pas pu être envoyés",
-        description: detail || "Vérifiez vos fichiers et réessayez.",
-        variant: "destructive",
-      });
+    // Les fichiers que l'imprimeur ne recevra pas : la commande est payée, mais
+    // elle ne peut pas être honorée en l'état. Le client doit l'apprendre ici,
+    // pas en constatant plus tard que rien n'a été imprimé.
+    const fichiersNonEnvoyes = uploadResults
+      .map((resultat, i) => (resultat.status === "rejected" ? files[i].file.name : null))
+      .filter((nom): nom is string => nom !== null);
+
+    if (fichiersNonEnvoyes.length > 0) {
+      console.error("Erreurs upload PDF:", uploadResults.filter((r) => r.status === "rejected"));
     }
 
     setConfirmation({
@@ -630,6 +675,7 @@ const Order = () => {
       // La vérification orthographique est facturée à part de l'impression :
       // sans elle, le total affiché ne correspondrait pas au montant débité.
       correction: Number(data.montantCorrections ?? 0),
+      fichiersNonEnvoyes,
     });
   };
 
@@ -644,6 +690,47 @@ const Order = () => {
   if (!shop) return <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 text-destructive"><p className="text-xl font-bold">Imprimerie introuvable.</p><Button className="mt-4" asChild><Link to="/">Retour à l'accueil</Link></Button></div>;
 
   const activeProducts = shop.produits?.filter(p => p.actif) || [];
+
+  /**
+   * Le fichier peut-il être imprimé tel quel par cette imprimerie ?
+   *
+   * Un format que nous savons reconnaître doit trouver un produit à sa mesure ;
+   * un format inhabituel échappe au contrôle, faute de pouvoir en juger.
+   */
+  const fichierImprimable = (fichier: UploadedFile) => {
+    const dims = fichier.detectedFormatMm;
+    if (!dims || !formatReconnu(dims)) return true;
+
+    const produit = activeProducts.find((p) => p.id === fichier.options.productId);
+    return !!produit && formatMatchesDimensions(produit.formatImpression, dims);
+  };
+
+  // On ne laisse pas payer une commande qu'aucune imprimerie ne pourra honorer.
+  const commandeImprimable = files.length > 0 && files.every(fichierImprimable);
+
+  /**
+   * Fait confirmer par le serveur que chaque fichier correspond bien au produit
+   * choisi, avant tout débit. Le navigateur a déjà fait ce contrôle, mais lui
+   * seul ne prouve rien : c'est la mesure du serveur qui fait foi.
+   */
+  const verifierFormats = async () => {
+    for (const fichier of files) {
+      const formData = new FormData();
+      formData.append("file", fichier.file);
+      formData.append("produitId", String(fichier.options.productId));
+
+      const res = await fetch("http://localhost:8080/api/fichiers-pdf/verifier-format", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!res.ok) {
+        const corps = await res.json().catch(() => null);
+        throw new Error(corps?.message
+          ?? `Le fichier « ${fichier.file.name} » ne convient pas au produit choisi.`);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
@@ -700,10 +787,13 @@ const Order = () => {
               {files.map((uploadedFile, index) => {
                 const selectedProduct = activeProducts.find(p => p.id === uploadedFile.options.productId);
                 const fileDims = uploadedFile.detectedFormatMm;
-                // On ne bloque que s'il existe au moins une option compatible avec le
-                // fichier déposé — sinon aucune ne serait sélectionnable, ce qui
-                // empêcherait de commander malgré un format non reconnu.
                 const anyCompatible = !fileDims || activeProducts.some((p) => formatMatchesDimensions(p.formatImpression, fileDims));
+                // Aucun produit ne convient, mais le format du fichier est bien
+                // identifié : l'imprimerie ne sait tout simplement pas l'imprimer.
+                const formatNonProposé = !!fileDims && !anyCompatible && formatReconnu(fileDims);
+                // Format inhabituel, que nous ne savons pas juger : on laisse
+                // choisir plutôt que d'empêcher une commande légitime.
+                const formatIndeterminé = !!fileDims && !anyCompatible && !formatReconnu(fileDims);
                 return (
                   <Card key={index} className="shadow-card overflow-visible">
                     <CardHeader>
@@ -734,7 +824,8 @@ const Order = () => {
                           <SelectContent>
                             {activeProducts.map((p) => {
                               const dims = FORMAT_DIMENSIONS_MM[p.formatImpression];
-                              const compatible = !fileDims || !anyCompatible || formatMatchesDimensions(p.formatImpression, fileDims);
+                              const compatible = !fileDims || formatIndeterminé
+                                || formatMatchesDimensions(p.formatImpression, fileDims);
                               return (
                                 <SelectItem key={p.id} value={p.id.toString()} disabled={!compatible}>
                                   {getProductLabel(p)}{" "}
@@ -750,6 +841,16 @@ const Order = () => {
                             })}
                           </SelectContent>
                         </Select>
+                        {formatNonProposé && fileDims && (
+                          <p className="flex items-start gap-1.5 text-xs text-destructive">
+                            <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                            <span>
+                              Cette imprimerie ne propose aucun format correspondant à votre fichier
+                              ({Math.round(fileDims.width)}×{Math.round(fileDims.height)} mm).
+                              Retirez-le, ou choisissez une autre imprimerie.
+                            </span>
+                          </p>
+                        )}
                         {fileDims && selectedProduct && anyCompatible && !formatMatchesDimensions(selectedProduct.formatImpression, fileDims) && (
                           <p className="flex items-center gap-1.5 text-xs text-destructive">
                             <AlertCircle className="h-3.5 w-3.5" />
@@ -1031,7 +1132,8 @@ const Order = () => {
                   <Elements stripe={stripePromise}>
                     <CheckoutForm
                       total={totalAPayer}
-                      canPay={files.length > 0}
+                      canPay={commandeImprimable}
+                      verifierFormats={verifierFormats}
                       addressValid={isAddressValid()}
                       fulfillment={fulfillment}
                       token={token}
@@ -1123,11 +1225,30 @@ const Order = () => {
       <Dialog open={!!confirmation} onOpenChange={(o) => !o && handleFermerConfirmation()}>
         <DialogContent>
           <DialogHeader>
-            <div className="mx-auto w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mb-2">
-              <Check className="h-7 w-7 text-success" />
-            </div>
-            <DialogTitle className="text-center font-display text-2xl">Commande confirmée !</DialogTitle>
-            <DialogDescription className="text-center">Merci pour votre commande. Un email vous a été envoyé.</DialogDescription>
+            {confirmation?.fichiersNonEnvoyes.length ? (
+              <>
+                <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
+                  <AlertCircle className="h-7 w-7 text-destructive" />
+                </div>
+                <DialogTitle className="text-center font-display text-2xl">
+                  Paiement reçu, fichier non transmis
+                </DialogTitle>
+                <DialogDescription className="text-center">
+                  Votre paiement a bien été enregistré, mais {confirmation.fichiersNonEnvoyes.length > 1
+                    ? "certains fichiers n'ont pas pu être envoyés"
+                    : "votre fichier n'a pas pu être envoyé"} à l'imprimerie.
+                  Contactez-nous en indiquant le numéro de commande ci-dessous : nous reprendrons la main.
+                </DialogDescription>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mb-2">
+                  <Check className="h-7 w-7 text-success" />
+                </div>
+                <DialogTitle className="text-center font-display text-2xl">Commande confirmée !</DialogTitle>
+                <DialogDescription className="text-center">Merci pour votre commande. Un email vous a été envoyé.</DialogDescription>
+              </>
+            )}
           </DialogHeader>
 
           {confirmation && (
@@ -1140,6 +1261,18 @@ const Order = () => {
                 <span className="text-muted-foreground flex items-center gap-2"><CreditCard className="h-4 w-4" /> Paiement</span>
                 <Badge className="bg-success/15 text-success border-success/20" variant="outline">Payé</Badge>
               </div>
+              {confirmation.fichiersNonEnvoyes.length > 0 && (
+                <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5">
+                  <p className="text-destructive font-medium mb-1">
+                    Fichier{confirmation.fichiersNonEnvoyes.length > 1 ? "s" : ""} non transmis
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground">
+                    {confirmation.fichiersNonEnvoyes.map((nom) => (
+                      <li key={nom} className="truncate">{nom}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <div className="flex justify-between p-3 rounded-lg bg-muted/50">
                 <span className="text-muted-foreground flex items-center gap-2">
                   {confirmation.modeRetrait === "RETRAIT_MAGASIN" ? <Store className="h-4 w-4" /> : <Truck className="h-4 w-4" />} Mode de retrait

@@ -20,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import com.printnow.module.shop.model.Produit;
+import com.printnow.module.shop.repository.ProduitRepository;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,6 +39,7 @@ public class FichierPDFService {
 
     private final FichierPDFRepository fichierPDFRepository;
     private final LigneCommandeRepository ligneCommandeRepository;
+    private final ProduitRepository produitRepository;
 
     // Dimensions réelles (mm) des formats proposés — mêmes valeurs que côté
     // frontend (Order.tsx), pour détecter les incohérences entre le fichier
@@ -110,6 +114,46 @@ public class FichierPDFService {
             return toDto(fichierPDFRepository.save(fichier));
         } catch (IOException e) {
             throw new RuntimeException("Erreur lors de l'upload du fichier PDF", e);
+        }
+    }
+
+    /**
+     * Vérifie qu'un fichier peut être imprimé au format d'un produit, sans rien
+     * enregistrer.
+     *
+     * Le même contrôle existe à l'envoi du fichier, mais celui-ci n'a lieu
+     * qu'une fois la commande payée : le client se retrouvait alors débité d'une
+     * commande que l'imprimeur ne pourrait pas honorer. Cette vérification permet
+     * de l'arrêter avant le paiement, en s'appuyant sur les dimensions réelles du
+     * PDF plutôt que sur celles annoncées par le navigateur.
+     *
+     * @throws IllegalArgumentException si le format ne convient pas
+     */
+    public void verifierFormat(MultipartFile file, Long produitId) {
+        Produit produit = produitRepository.findById(produitId)
+                .orElseThrow(() -> new IllegalArgumentException("Produit introuvable : " + produitId));
+
+        double[] dimsAttendues = produit.getFormatImpression() == null
+                ? null : FORMAT_DIMENSIONS_MM.get(produit.getFormatImpression().name());
+        if (dimsAttendues == null) return; // format libre : rien à contrôler
+
+        try (PDDocument document = Loader.loadPDF(file.getBytes())) {
+            if (document.getNumberOfPages() == 0) return;
+
+            PDRectangle box = document.getPage(0).getMediaBox();
+            double largeurMm = Math.abs(box.getWidth()) * PT_TO_MM;
+            double hauteurMm = Math.abs(box.getHeight()) * PT_TO_MM;
+
+            if (!formatCorrespond(dimsAttendues, largeurMm, hauteurMm)) {
+                throw new IllegalArgumentException(String.format(
+                        "Le format du fichier (%.0f×%.0f mm) ne correspond pas au produit sélectionné (%.0f×%.0f mm).",
+                        largeurMm, hauteurMm, dimsAttendues[0], dimsAttendues[1]));
+            }
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            // PDF illisible (chiffré, corrompu…) : on ne bloque pas la commande
+            // pour autant, comme à l'envoi du fichier.
         }
     }
 
