@@ -27,6 +27,17 @@ public class Imprimerie {
     @Column(nullable = false, length = 150)
     private String nom;
 
+    /**
+     * Identifiant lisible utilisé dans l'adresse de la fiche, dérivé du nom
+     * (« Imprimerie du centre » → « imprimerie-du-centre »).
+     *
+     * Il est enregistré plutôt que recalculé à chaque affichage : rien n'impose
+     * l'unicité des noms, et deux homonymes se disputeraient sinon la même
+     * adresse. En cas de collision, un numéro est ajouté à la fin.
+     */
+    @Column(unique = true, length = 180)
+    private String slug;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

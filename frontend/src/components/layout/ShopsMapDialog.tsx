@@ -16,6 +16,8 @@ import { formatDuration, fetchDrivingDurationMin, fetchWalkingDurationMin } from
 interface ShopMapPoint {
   id: string;
   name: string;
+  /** Adresse lisible de la fiche ; l'identifiant sert de repli. */
+  slug?: string;
   address: string;
   latitude: number | null;
   longitude: number | null;
@@ -186,7 +188,7 @@ const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
                           )}
 
                           <Link
-                            to={`/imprimerie/${shop.id}`}
+                            to={`/imprimerie/${shop.slug ?? shop.id}`}
                             className="text-primary text-xs font-medium hover:underline"
                           >
                             Voir la fiche →

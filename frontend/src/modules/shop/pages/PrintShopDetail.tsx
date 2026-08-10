@@ -25,7 +25,7 @@ interface TabItem {
 
 const PrintShopDetail = () => {
     
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const [shop, setShop] = useState<ImprimerieDetail | null>(null);
@@ -33,8 +33,8 @@ const PrintShopDetail = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      imprimerieService.getImprimerieById(id)
+    if (slug) {
+      imprimerieService.getImprimerieBySlug(slug)
         .then(data => {
           setShop(data);
           setIsLoading(false);
@@ -44,7 +44,7 @@ const PrintShopDetail = () => {
           setIsLoading(false);
         });
     }
-  }, [id]);
+  }, [slug]);
 
   const todayStr = new Date().toLocaleDateString("fr-FR", { weekday: "long" }).toUpperCase();
 

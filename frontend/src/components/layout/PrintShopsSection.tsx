@@ -228,6 +228,7 @@ const PrintShopsSection = () => {
 
           return {
             id: shopApi.id.toString(),
+            slug: shopApi.slug,
             name: shopApi.nom,
             address: `${shopApi.adresse}, ${shopApi.ville || "Belgique"}`,
             distance: "À proximité",

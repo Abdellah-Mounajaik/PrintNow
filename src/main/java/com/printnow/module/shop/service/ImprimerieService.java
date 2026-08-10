@@ -25,6 +25,7 @@ public class ImprimerieService {
     private final ShopMapper shopMapper;
     private final UserRepository userRepository;
     private final GeocodingService geocodingService;
+    private final SlugImprimerieService slugService;
 
     public ImprimerieResponseDTO createImprimerie(ImprimerieRequestDTO dto) {
         Imprimerie imprimerie = shopMapper.toEntity(dto);
@@ -32,6 +33,7 @@ public class ImprimerieService {
             .orElseThrow(() -> new RuntimeException("Gérant non trouvé"));
         imprimerie.setGerant(gerant);
         geocodeAndSetCoordonnees(imprimerie);
+        slugService.attribuer(imprimerie);
         return shopMapper.toResponse(imprimerieRepository.save(imprimerie));
     }
 
@@ -47,6 +49,24 @@ public class ImprimerieService {
         Imprimerie imprimerie = imprimerieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Imprimerie non trouvée avec l'id : " + id));
         return shopMapper.toResponse(imprimerie);
+    }
+
+    /**
+     * Récupère l'imprimerie depuis l'adresse lisible de sa fiche.
+     *
+     * Les adresses partagées avant la mise en place du slug portent encore un
+     * numéro : on les accepte toujours, pour ne pas les briser.
+     */
+    @Transactional(readOnly = true)
+    public ImprimerieResponseDTO getImprimerieBySlug(String slug) {
+        return imprimerieRepository.findBySlug(slug)
+                .map(shopMapper::toResponse)
+                .orElseGet(() -> {
+                    if (!slug.matches("\\d+")) {
+                        throw new RuntimeException("Imprimerie non trouvée : " + slug);
+                    }
+                    return getImprimerieById(Long.parseLong(slug));
+                });
     }
 
     /** Récupère l'imprimerie gérée par un utilisateur (dashboard imprimeur). */
@@ -73,6 +93,9 @@ public class ImprimerieService {
         if (adresseChangee || coordonneesManquantes) {
             geocodeAndSetCoordonnees(imprimerie);
         }
+
+        // L'adresse de la fiche suit le nom : elle n'est refaite que s'il change.
+        slugService.attribuer(imprimerie);
 
         return shopMapper.toResponse(imprimerieRepository.save(imprimerie));
     }

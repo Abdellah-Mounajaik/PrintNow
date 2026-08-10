@@ -32,6 +32,15 @@ public class ImprimerieController {
         return ResponseEntity.ok(imprimerieService.getImprimerieById(id));
     }
 
+    /**
+     * Récupère une imprimerie depuis l'adresse lisible de sa fiche
+     * (« imprimerie-du-centre »), telle qu'elle apparaît dans le navigateur.
+     */
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<ImprimerieResponseDTO> getImprimerieBySlug(@PathVariable String slug) {
+        return ResponseEntity.ok(imprimerieService.getImprimerieBySlug(slug));
+    }
+
     /** Récupère l'imprimerie du gérant connecté (dashboard imprimeur). */
     @GetMapping("/gerant/{idGerant}")
     public ResponseEntity<ImprimerieResponseDTO> getImprimerieByGerant(@PathVariable Long idGerant) {

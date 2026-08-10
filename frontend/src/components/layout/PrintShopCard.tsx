@@ -24,6 +24,8 @@ export interface PrintShopProduit {
 export interface PrintShop {
   id: string;
   name: string;
+  /** Adresse lisible de la fiche ; l'identifiant sert de repli. */
+  slug?: string;
   address: string;
   distance: string;
   latitude: number | null;
@@ -59,7 +61,7 @@ const PrintShopCard = ({ shop, index = 0, walkTime, driveTime, estimatedPrice }:
       className="group overflow-hidden hover-lift cursor-pointer border-border/50"
       style={{ animationDelay: `${index * 0.1}s` }}
     >
-      <Link to={`/imprimerie/${shop.id}`}>
+      <Link to={`/imprimerie/${shop.slug ?? shop.id}`}>
         {/* Image Header */}
         <div className="relative h-40 overflow-hidden">
           <img

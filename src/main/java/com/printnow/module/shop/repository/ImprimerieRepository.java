@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 import com.printnow.module.shop.model.Imprimerie;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
+import java.util.Optional;
 
 
 
@@ -15,5 +16,13 @@ public interface ImprimerieRepository extends JpaRepository<Imprimerie, Long> {
     
     // Récupérer les imprimeries gérées par un utilisateur spécifique
     List<Imprimerie> findByGerantId(Long idGerant);
-    
+
+    // Retrouver une imprimerie depuis l'adresse lisible de sa fiche
+    Optional<Imprimerie> findBySlug(String slug);
+
+    boolean existsBySlug(String slug);
+
+    // Imprimeries dont l'adresse lisible reste à calculer (créées avant sa mise en place)
+    List<Imprimerie> findBySlugIsNull();
+
 }

@@ -25,6 +25,8 @@ export interface ImprimerieDetail {
   proposeTarifEtudiant: boolean;
   id: number;
   nom: string;
+  /** Adresse lisible de la fiche : « imprimerie-du-centre ». */
+  slug?: string;
   description: string;
   adresse: string;
   ville: string;

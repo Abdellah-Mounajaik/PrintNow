@@ -8,6 +8,8 @@ import lombok.Data;
 public class ImprimerieResponseDTO {
     private Long id;
     private String nom;
+    /** Adresse lisible de la fiche, dérivée du nom : « imprimerie-du-centre ». */
+    private String slug;
     private String description;
     private String logoUrl;
     private String adresse;

@@ -29,6 +29,17 @@ export const imprimerieService = {
     return response.json();
   },
 
+  /**
+   * Récupère l'imprimerie depuis l'adresse lisible de sa fiche. Le serveur
+   * accepte aussi un identifiant numérique, pour les liens partagés avant la
+   * mise en place des adresses lisibles.
+   */
+  getImprimerieBySlug: async (slug: string): Promise<ImprimerieDetail> => {
+    const response = await fetch(`${API_BASE_URL}/imprimeries/slug/${encodeURIComponent(slug)}`);
+    if (!response.ok) throw new Error("Erreur lors de la récupération de l'imprimerie");
+    return response.json();
+  },
+
   /** Récupère l'imprimerie gérée par un utilisateur (id du gérant, pas de l'imprimerie). */
   getImprimerieByGerant: async (idGerant: string): Promise<ImprimerieDetail> => {
     const response = await fetch(`${API_BASE_URL}/imprimeries/gerant/${idGerant}`);
