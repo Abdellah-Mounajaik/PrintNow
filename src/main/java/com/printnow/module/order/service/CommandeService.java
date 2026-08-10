@@ -22,6 +22,7 @@ import com.printnow.module.shop.model.Produit;
 import com.printnow.module.shop.repository.ProduitRepository;
 import com.printnow.module.user.model.User;
 import lombok.RequiredArgsConstructor;
+import com.printnow.module.correction.service.CorrectionCommandeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +46,36 @@ public class CommandeService {
     private final AdresseLivraisonMapper adresseLivraisonMapper;
     private final CodePromoService codePromoService;
     private final VerificationEtudiantRepository verificationEtudiantRepository;
+    private final CorrectionCommandeService correctionCommandeService;
+
+    /**
+     * Passe une commande et applique, dans la même transaction, les vérifications
+     * orthographiques réglées avec elle.
+     *
+     * Les deux opérations sont indissociables. Le contrôle du paiement des
+     * corrections intervient après le calcul du total de l'impression, dont il a
+     * besoin ; s'il échoue, la commande ne doit pas subsister pour autant. Sans
+     * cette transaction commune, un règlement insuffisant laissait en base une
+     * commande orpheline, payée à moitié et jamais honorée.
+     *
+     * @param montantRegle montant réellement encaissé par Stripe, en centimes
+     */
+    @Transactional
+    public CommandeResponseDTO passerCommande(CommandeRequestDTO request, User client,
+                                              boolean paiementConfirme, Long montantRegle) {
+        CommandeResponseDTO commande = createCommande(request, client, paiementConfirme);
+
+        BigDecimal montantCorrections = correctionCommandeService.appliquerCorrections(
+                request.getCorrections(), client, commande.getTotalTTC(), montantRegle);
+
+        // Ce montant est un revenu de la plateforme, jamais de l'imprimerie : on
+        // le conserve à part, sans jamais l'ajouter au total de la commande ni à
+        // l'assiette de la commission.
+        if (montantCorrections.signum() > 0) {
+            commande = enregistrerMontantCorrections(commande.getId(), montantCorrections);
+        }
+        return commande;
+    }
 
     /**
      * Crée une nouvelle commande avec calcul des prix, taxes, livraison et commissions
@@ -264,6 +295,24 @@ public class CommandeService {
         Commande savedCommande = commandeRepository.save(commande);
         
         return commandeMapper.toDto(savedCommande);
+    }
+
+    /**
+     * Rattache à la commande le montant des vérifications orthographiques réglées
+     * avec elle.
+     *
+     * Ce montant est laissé hors du total, de la commission et de la somme versée
+     * à l'imprimerie : la correction est un service de la plateforme, dont le
+     * produit lui revient en entier. On l'enregistre uniquement pour qu'il puisse
+     * être comptabilisé.
+     */
+    @Transactional
+    public CommandeResponseDTO enregistrerMontantCorrections(Long commandeId, BigDecimal montant) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new RuntimeException("Commande introuvable : " + commandeId));
+
+        commande.setMontantCorrections(montant);
+        return commandeMapper.toDto(commandeRepository.save(commande));
     }
 
     /**

@@ -57,6 +57,17 @@ public class Commande {
     @Column(precision = 10, scale = 2)
     private BigDecimal commissionPlateforme;
 
+    /**
+     * Vérification orthographique réglée avec la commande.
+     *
+     * C'est un service de la plateforme, pas une prestation de l'imprimerie :
+     * ce montant revient entièrement à PrintNow. Il est donc tenu à l'écart du
+     * total de la commande, de l'assiette de la commission et de la somme versée
+     * à l'imprimerie — il n'est enregistré ici que pour être comptabilisé.
+     */
+    @Column(precision = 10, scale = 2)
+    private BigDecimal montantCorrections;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal montantVerseImprimerie;
 

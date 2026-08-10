@@ -65,6 +65,14 @@ const ORDER_STATUS_FILTERS: { key: string; label: string; statuts: string[] | nu
 // ─── Pagination de la liste des commandes ────────────────────────────────────
 const ORDERS_PER_PAGE = 6;
 
+/**
+ * Montant réellement débité : l'impression, plus la vérification orthographique
+ * lorsqu'elle a été demandée. Cette dernière est vendue par PrintNow et ne
+ * figure donc pas dans le total de la commande, qui ne concerne que l'imprimerie.
+ */
+const montantPaye = (commande: CommandeDTO) =>
+  Number(commande.totalTTC ?? 0) + Number(commande.montantCorrections ?? 0);
+
 const DashboardClient = () => {
   const { user, token, logoutGlobal } = useAuth();
   const navigate = useNavigate();
@@ -224,7 +232,7 @@ const DashboardClient = () => {
           {(() => {
             const now = new Date();
             const enCours = orders.filter(o => o.statut === "PAYEE" || o.statut === "EN_COURS_IMPRESSION").length;
-            const totalDepense = orders.reduce((s, o) => s + Number(o.totalTTC ?? 0), 0);
+            const totalDepense = orders.reduce((s, o) => s + montantPaye(o), 0);
             const cesMois = orders.filter(o => {
               const d = new Date(o.dateCreation);
               return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -352,7 +360,7 @@ const DashboardClient = () => {
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
                               <Badge variant={status.variant as any}>{status.label}</Badge>
-                              <span className="font-semibold text-primary">{Number(order.totalTTC).toFixed(2)}€</span>
+                              <span className="font-semibold text-primary">{montantPaye(order).toFixed(2)}€</span>
                               {isLivraison && (
                                 <Button
                                   variant="outline"
@@ -508,7 +516,7 @@ const DashboardClient = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-4 shrink-0">
-                            <span className="font-semibold">{Number(order.totalTTC).toFixed(2)}€</span>
+                            <span className="font-semibold">{montantPaye(order).toFixed(2)}€</span>
                             <Button
                               variant="outline"
                               size="sm"

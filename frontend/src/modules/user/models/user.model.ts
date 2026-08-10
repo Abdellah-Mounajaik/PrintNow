@@ -24,7 +24,13 @@ export interface CommandeDTO {
   numeroCommande: string;
   statut: string;
   modeRetrait: string;
+  /** Impression seule. */
   totalTTC: number;
+  /**
+   * Vérification orthographique, facturée par PrintNow en plus de l'impression.
+   * Le montant réellement payé est la somme des deux.
+   */
+  montantCorrections?: number | null;
   dateCreation: string;
   nomImprimerie: string;
 }

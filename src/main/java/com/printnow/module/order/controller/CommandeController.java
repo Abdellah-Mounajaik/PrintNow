@@ -1,12 +1,13 @@
 package com.printnow.module.order.controller;
 
-import com.printnow.module.correction.service.CorrectionCommandeService;
+
 import com.printnow.module.order.dto.CommandeRequestDTO;
 import com.printnow.module.order.dto.CommandeResponseDTO;
 import com.printnow.module.order.service.CommandeService;
 import com.printnow.module.order.service.FactureCommissionService;
 import com.printnow.module.order.service.FactureService;
 import com.printnow.module.order.service.ReleveVenteService;
+import com.printnow.module.payment.service.RemboursementService;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
 import com.stripe.exception.StripeException;
@@ -27,10 +28,10 @@ import java.util.List;
 public class CommandeController {
 
     private final CommandeService commandeService;
-    private final CorrectionCommandeService correctionCommandeService;
     private final FactureService factureService;
     private final FactureCommissionService factureCommissionService;
     private final ReleveVenteService releveVenteService;
+    private final RemboursementService remboursementService;
     private final UserRepository userRepository;
 
     /**
@@ -64,16 +65,21 @@ public class CommandeController {
             }
         }
 
-        // 4. On crée la commande via le service et on retourne le DTO généré
-        CommandeResponseDTO nouvelleCommande = commandeService.createCommande(request, client, paiementConfirme);
+        // 4. La commande et les vérifications orthographiques réglées avec elle
+        // sont enregistrées d'un seul tenant : si le paiement ne couvre pas les
+        // corrections demandées, rien n'est conservé.
+        try {
+            return ResponseEntity.ok(
+                    commandeService.passerCommande(request, client, paiementConfirme, montantRegle));
 
-        // 5. Les corrections orthographiques sont réglées avec la commande : on
-        // vérifie que le paiement couvre bien l'impression ET leur montant cumulé,
-        // puis on génère les PDF corrigés.
-        correctionCommandeService.appliquerCorrections(
-                request.getCorrections(), client, nouvelleCommande.getTotalTTC(), montantRegle);
-
-        return ResponseEntity.ok(nouvelleCommande);
+        } catch (RuntimeException e) {
+            // La commande est refusée alors que Stripe a déjà encaissé : sans
+            // remboursement, le client serait débité sans rien recevoir.
+            if (paiementConfirme) {
+                remboursementService.rembourser(request.getPaymentIntentId(), e.getMessage());
+            }
+            throw e;
+        }
     }
 
     /**

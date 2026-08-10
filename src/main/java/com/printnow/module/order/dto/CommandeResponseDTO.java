@@ -14,6 +14,12 @@ private Long id;
     private String modeRetrait;
     private Boolean express2h;
     private BigDecimal totalTTC;
+
+    /**
+     * Vérification orthographique réglée avec la commande. Revenu de la
+     * plateforme : compté à part du total, qui ne concerne que l'impression.
+     */
+    private BigDecimal montantCorrections;
     private BigDecimal totalHT;
     private BigDecimal totalTVA;
     private LocalDateTime dateCreation;

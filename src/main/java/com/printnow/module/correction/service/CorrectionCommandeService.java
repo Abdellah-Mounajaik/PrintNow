@@ -35,13 +35,15 @@ public class CorrectionCommandeService {
      * @param client       propriétaire attendu des vérifications
      * @param totalCommande montant de l'impression, calculé côté serveur
      * @param montantRegle  montant réellement encaissé par Stripe, en centimes
+     * @return le montant facturé au titre des corrections, à comptabiliser comme
+     *         revenu de la plateforme
      */
     @Transactional
-    public void appliquerCorrections(List<DemandeCorrectionDTO> demandes,
-                                     User client,
-                                     BigDecimal totalCommande,
-                                     Long montantRegle) {
-        if (demandes == null || demandes.isEmpty()) return;
+    public BigDecimal appliquerCorrections(List<DemandeCorrectionDTO> demandes,
+                                           User client,
+                                           BigDecimal totalCommande,
+                                           Long montantRegle) {
+        if (demandes == null || demandes.isEmpty()) return BigDecimal.ZERO;
 
         // On conserve la demande à côté de sa vérification : la liste est filtrée
         // (identifiants absents, corrections déjà appliquées), les index d'origine
@@ -71,7 +73,7 @@ public class CorrectionCommandeService {
             totalCorrections = totalCorrections.add(verification.getPrix());
         }
 
-        if (aTraiter.isEmpty()) return;
+        if (aTraiter.isEmpty()) return BigDecimal.ZERO;
 
         // Contrôle cumulé : sans lui, un client pourrait régler une petite commande
         // et débloquer plusieurs corrections coûteuses, chacune passant isolément.
@@ -87,5 +89,6 @@ public class CorrectionCommandeService {
         for (ACorriger element : aTraiter) {
             correctionService.appliquer(element.verification(), element.fautesIgnorees(), element.remplacementsChoisis());
         }
+        return totalCorrections;
     }
 }

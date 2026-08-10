@@ -181,9 +181,23 @@ public class FactureService {
                     commande.getMontantReduction().negate());
         }
         ligneTotal(c, xLabelTotal, xTotal, "TVA (21%)", commande.getTotalTVA());
+
+        // La vérification orthographique est vendue par PrintNow, non par
+        // l'imprimerie : elle est présentée à part, sous son propre régime de TVA.
+        // Sans elle, le total de la facture ne correspondrait pas à la somme
+        // réellement débitée — le client verrait moins que ce qu'il a payé.
+        BigDecimal corrections = commande.getMontantCorrections();
+        boolean avecCorrections = corrections != null && corrections.signum() > 0;
+        if (avecCorrections) {
+            ligneTotal(c, xLabelTotal, xTotal, "Impression TTC", commande.getTotalTTC());
+            ligneTotal(c, xLabelTotal, xTotal, "Vérification orthographique", corrections);
+        }
+
         c.avancer(6);
-        c.texteCouleur(FONT_BOLD, 12, xLabelTotal, "Total TTC", ORANGE);
-        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(commande.getTotalTTC()), ORANGE);
+        c.texteCouleur(FONT_BOLD, 12, xLabelTotal, avecCorrections ? "Total payé" : "Total TTC", ORANGE);
+        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(
+                avecCorrections ? commande.getTotalTTC().add(corrections) : commande.getTotalTTC()), ORANGE);
+
         c.avancer(40);
 
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);

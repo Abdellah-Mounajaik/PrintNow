@@ -104,7 +104,10 @@ interface OrderConfirmation {
   statutPaiement: "SUCCES";
   statutLivraison?: "EN_PREPARATION";
   modeRetrait: "RETRAIT_MAGASIN" | "LIVRAISON";
+  /** Impression seule. */
   total: number;
+  /** Vérification orthographique, facturée en plus de l'impression. */
+  correction: number;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -624,6 +627,9 @@ const Order = () => {
       statutLivraison: fulfillment === "delivery" ? "EN_PREPARATION" : undefined,
       modeRetrait: fulfillment === "delivery" ? "LIVRAISON" : "RETRAIT_MAGASIN",
       total: Number(data.totalTTC),
+      // La vérification orthographique est facturée à part de l'impression :
+      // sans elle, le total affiché ne correspondrait pas au montant débité.
+      correction: Number(data.montantCorrections ?? 0),
     });
   };
 
@@ -1146,9 +1152,26 @@ const Order = () => {
                   <span className="font-mono">{confirmation.numeroSuivi}</span>
                 </div>
               )}
+              {confirmation.correction > 0 && (
+                <div className="space-y-1 pt-2 border-t text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>Impression</span>
+                    <span>{confirmation.total.toFixed(2)}€</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <SpellCheck2 className="h-3.5 w-3.5" />
+                      Correction orthographique
+                    </span>
+                    <span>{confirmation.correction.toFixed(2)}€</span>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between pt-2 border-t">
                 <span className="font-semibold">Total payé</span>
-                <span className="font-display font-bold text-primary">{confirmation.total.toFixed(2)}€</span>
+                <span className="font-display font-bold text-primary">
+                  {(confirmation.total + confirmation.correction).toFixed(2)}€
+                </span>
               </div>
             </div>
           )}

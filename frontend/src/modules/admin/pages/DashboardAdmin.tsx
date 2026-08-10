@@ -169,6 +169,10 @@ const DashboardAdmin = () => {
   const imprimeriesActives = imprimeries.filter((i) => i.actif);
   const caTotal = commandes.reduce((s, c) => s + Number(c.totalTTC ?? 0), 0);
   const commissionTotale = caTotal * 0.1;
+  // La vérification orthographique est un service de la plateforme : son montant
+  // ne passe pas par l'imprimerie et s'ajoute donc entièrement à ses revenus.
+  const correctionsTotal = commandes.reduce((s, c) => s + Number(c.montantCorrections ?? 0), 0);
+  const revenuPlateforme = commissionTotale + correctionsTotal;
   const recentesImprimeries = [...imprimeries].sort((a, b) => b.id - a.id).slice(0, 5);
 
   const shopSearchNormalized = shopSearchQuery.trim().toLowerCase();
@@ -288,6 +292,11 @@ const DashboardAdmin = () => {
               <div className="text-xs text-success mt-1">
                 Commission : {commissionTotale.toFixed(2)}€
               </div>
+              {correctionsTotal > 0 && (
+                <div className="text-xs text-success">
+                  Corrections : {correctionsTotal.toFixed(2)}€
+                </div>
+              )}
             </Card>
             <Card className="p-6">
               <div className="flex items-center justify-between mb-3">
@@ -693,10 +702,17 @@ const DashboardAdmin = () => {
                       <div className="font-display text-2xl font-bold">{caTotal.toFixed(2)}€</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-muted-foreground">Commissions totales</div>
-                      <div className="font-display text-2xl font-bold text-success">
-                        {commissionTotale.toFixed(2)}€
+                      <div className="text-sm text-muted-foreground">
+                        {correctionsTotal > 0 ? "Revenus PrintNow" : "Commissions totales"}
                       </div>
+                      <div className="font-display text-2xl font-bold text-success">
+                        {revenuPlateforme.toFixed(2)}€
+                      </div>
+                      {correctionsTotal > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          dont {correctionsTotal.toFixed(2)}€ de corrections
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

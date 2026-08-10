@@ -21,6 +21,8 @@ export interface CommandeDTO {
   numeroCommande: string;
   statut: string;
   totalTTC: number;
+  /** Vérification orthographique réglée avec la commande : revenu PrintNow. */
+  montantCorrections?: number | null;
   dateCreation: string;
   nomClient: string;
   nomImprimerie: string;
