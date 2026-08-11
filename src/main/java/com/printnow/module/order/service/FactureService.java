@@ -46,6 +46,7 @@ public class FactureService {
             StatutCommande.PRETE, StatutCommande.LIVREE);
 
     private final CommandeRepository commandeRepository;
+    private final DepotFacturesArchivees depotArchives;
 
     @Transactional(readOnly = true)
     public byte[] genererFacture(Long commandeId, Long clientId) {
@@ -61,6 +62,37 @@ public class FactureService {
         }
 
         return construirePdf(commande);
+    }
+
+    /**
+     * Produit la même facture, à destination de l'imprimeur qui a honoré la
+     * commande.
+     *
+     * C'est l'imprimerie qui vend au client et au nom de qui la facture est
+     * émise : elle doit pouvoir en conserver une copie, comme sa comptabilité
+     * l'exige. Le nom du client y figure donc, à la différence du relevé de
+     * vente et de la facture de commission, qui ne concernent qu'elle et
+     * PrintNow.
+     */
+    @Transactional(readOnly = true)
+    public byte[] genererFacturePourImprimeur(Long commandeId, Long gerantId) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Commande non trouvée."));
+
+        if (commande.getImprimerie() == null || commande.getImprimerie().getGerant() == null
+                || !commande.getImprimerie().getGerant().getId().equals(gerantId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cette commande ne concerne pas votre imprimerie.");
+        }
+        if (!STATUTS_FACTURABLES.contains(commande.getStatut())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Aucune facture disponible : cette commande n'est pas encore payée.");
+        }
+
+        // Si le client a supprimé son compte, la facture a été figée avant que
+        // son nom ne disparaisse : c'est cette copie-là qui a valeur comptable,
+        // la régénérer donnerait une facture sans destinataire identifiable.
+        return depotArchives.lire(commande.getNumeroCommande())
+                .orElseGet(() -> construirePdf(commande));
     }
 
     /** Une commande donne-t-elle lieu à une facture ? */

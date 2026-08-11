@@ -54,6 +54,27 @@ export const imprimeurService = {
     URL.revokeObjectURL(url);
   },
 
+  /**
+   * Facture émise au client. L'imprimerie en est le vendeur légal : c'est le
+   * document que sa comptabilité doit conserver, et le seul à porter le nom du
+   * client.
+   */
+  telechargerFactureClient: async (commandeId: number, numeroCommande: string, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/commandes/${commandeId}/facture`, {
+      headers: authHeaders(token),
+    });
+    if (!response.ok) throw new Error("Impossible de télécharger la facture client");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = `facture-${numeroCommande}.pdf`;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    URL.revokeObjectURL(url);
+  },
+
   // ── Fichiers PDF ───────────────────────────────────────────────────────────
   /** Télécharge un PDF protégé et renvoie une URL blob ouvrable */
   downloadFichierPdf: async (fichierId: number, token: string): Promise<string> => {

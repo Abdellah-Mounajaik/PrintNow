@@ -135,6 +135,7 @@ const DashboardImprimeur = () => {
   const [suiviInputs, setSuiviInputs] = useState<Record<number, string>>({});
   const [suiviSaving, setSuiviSaving] = useState<number | null>(null);
   const [downloadingCommissionId, setDownloadingCommissionId] = useState<number | null>(null);
+  const [downloadingFactureId, setDownloadingFactureId] = useState<number | null>(null);
 
   // Un relevé de vente n'existe que pour une commande dont le paiement a
   // bien été confirmé (même condition que côté backend, ReleveVenteService.STATUTS_FACTURABLES).
@@ -149,6 +150,18 @@ const DashboardImprimeur = () => {
       toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
     } finally {
       setDownloadingCommissionId(null);
+    }
+  };
+
+  const handleTelechargerFactureClient = async (commandeId: number, numeroCommande: string) => {
+    if (!token) return;
+    setDownloadingFactureId(commandeId);
+    try {
+      await imprimeurService.telechargerFactureClient(commandeId, numeroCommande, token);
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setDownloadingFactureId(null);
     }
   };
 
@@ -899,6 +912,25 @@ const DashboardImprimeur = () => {
                                     <Download className="h-4 w-4 mr-2" />
                                   )}
                                   Relevé de vente
+                                </Button>
+                              )}
+
+                              {/* La facture émise au client : c'est l'imprimerie
+                                  qui vend, elle doit en garder une copie. */}
+                              {STATUTS_FACTURABLES.has(order.statut) && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full"
+                                  onClick={() => handleTelechargerFactureClient(order.id, order.numeroCommande)}
+                                  disabled={downloadingFactureId === order.id}
+                                >
+                                  {downloadingFactureId === order.id ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Download className="h-4 w-4 mr-2" />
+                                  )}
+                                  Facture client
                                 </Button>
                               )}
 

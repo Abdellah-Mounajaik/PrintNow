@@ -140,17 +140,26 @@ public class CommandeController {
 
     /**
      * GET /api/commandes/{id}/facture
-     * Télécharge la facture PDF d'une commande du client connecté (générée à
-     * la demande, uniquement s'il en est bien le propriétaire et qu'elle est payée).
+     * Télécharge la facture PDF d'une commande payée.
+     *
+     * Accessible au client qui l'a passée, et à l'imprimeur qui l'a honorée :
+     * c'est l'imprimerie qui vend et au nom de qui la facture est émise, elle
+     * doit donc pouvoir en garder une copie pour sa comptabilité. Chacun ne
+     * peut atteindre que les commandes qui le concernent.
      */
     @GetMapping("/{id}/facture")
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasRole('CLIENT') or hasRole('IMPRIMERIE')")
     public ResponseEntity<byte[]> telechargerFacture(@PathVariable Long id) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User client = userRepository.findByEmail(email)
+        User demandeur = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email : " + email));
 
-        byte[] pdf = factureService.genererFacture(id, client.getId());
+        boolean estImprimeur = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_IMPRIMERIE"));
+
+        byte[] pdf = estImprimeur
+                ? factureService.genererFacturePourImprimeur(id, demandeur.getId())
+                : factureService.genererFacture(id, demandeur.getId());
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
