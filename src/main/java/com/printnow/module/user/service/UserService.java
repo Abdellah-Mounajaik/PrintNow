@@ -55,11 +55,24 @@ public class UserService {
         return userMapper.toResponse(user);
     }
 
+    /**
+     * Liste les comptes existants. Les comptes supprimés en sont exclus : leur
+     * ligne subsiste pour que commandes et factures gardent un sens, mais elle
+     * ne contient plus rien d'exploitable (voir SuppressionCompteService).
+     */
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findAll().stream()
+        return userRepository.findByDateSuppressionIsNull().stream()
                 .map(userMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    /** Identifiant du compte connecté, pour les actions qui ne prennent jamais d'id du client. */
+    @Transactional(readOnly = true)
+    public Long idDeLUtilisateur(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé."))
+                .getId();
     }
 
     @Transactional(readOnly = true)
@@ -77,11 +90,16 @@ public class UserService {
         
         return userMapper.toResponse(userRepository.save(user));
     }
+    /**
+     * @deprecated La suppression passe désormais par
+     * {@link com.printnow.module.user.service.SuppressionCompteService}, qui
+     * anonymise le compte au lieu de détruire la ligne — six tables y renvoient,
+     * dont les commandes et les factures.
+     */
+    @Deprecated
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("Impossible de supprimer : Utilisateur non trouvé avec l'id : " + id);
-        }
-        userRepository.deleteById(id);
+        throw new UnsupportedOperationException(
+                "Utiliser SuppressionCompteService.supprimer : une ligne users détruite emporterait ses commandes.");
     }
 
     /**

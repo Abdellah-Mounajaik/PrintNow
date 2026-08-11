@@ -16,6 +16,8 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "../../../components/ui/dialog";
@@ -34,6 +36,8 @@ import {
   XCircle,
   Download,
   Search,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "../../../hooks/use-toast";
 import { useAuth } from "../../auth/context/AuthContext";
@@ -106,6 +110,8 @@ const DashboardAdmin = () => {
   const [shopsPage, setShopsPage] = useState(1);
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [usersPage, setUsersPage] = useState(1);
+  const [userASupprimer, setUserASupprimer] = useState<UserDTO | null>(null);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
   const [commandeSearchQuery, setCommandeSearchQuery] = useState("");
   const [commandesPage, setCommandesPage] = useState(1);
   const [commandes, setCommandes] = useState<CommandeDTO[]>([]);
@@ -140,6 +146,30 @@ const DashboardAdmin = () => {
       toast({ title: "Vérification acceptée" });
     } catch {
       toast({ title: "Erreur", description: "Impossible de valider.", variant: "destructive" });
+    }
+  };
+
+  const handleSupprimerUtilisateur = async () => {
+    if (!token || !userASupprimer) return;
+    setSuppressionEnCours(true);
+    try {
+      await adminService.supprimerUtilisateur(userASupprimer.id, token);
+      setUsers((prev) => prev.filter((u) => u.id !== userASupprimer.id));
+      toast({
+        title: "Compte supprimé",
+        description: "Ses données personnelles ont été effacées ; ses commandes restent enregistrées.",
+      });
+      setUserASupprimer(null);
+    } catch (err) {
+      // Le serveur explique pourquoi il refuse (commandes en cours, dernier
+      // administrateur) : c'est cette phrase-là qui aide, pas un message générique.
+      toast({
+        title: "Suppression impossible",
+        description: err instanceof Error ? err.message : "Réessayez dans un instant.",
+        variant: "destructive",
+      });
+    } finally {
+      setSuppressionEnCours(false);
     }
   };
 
@@ -528,9 +558,20 @@ const DashboardAdmin = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="sm">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                aria-label={`Supprimer le compte de ${user.prenom} ${user.nom}`}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => setUserASupprimer(user)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -863,6 +904,50 @@ const DashboardAdmin = () => {
           </Tabs>
         </div>
       </main>
+
+      {/* Confirmation de suppression d'un compte : l'action est irréversible,
+          elle ne doit pas tenir à un clic malheureux sur une corbeille. */}
+      <Dialog open={!!userASupprimer} onOpenChange={(open) => { if (!open) setUserASupprimer(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
+              <AlertTriangle className="h-7 w-7 text-destructive" />
+            </div>
+            <DialogTitle className="text-center">Supprimer ce compte ?</DialogTitle>
+            <DialogDescription className="text-center">
+              {userASupprimer?.prenom} {userASupprimer?.nom} — {userASupprimer?.email}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>Son nom, son email et son téléphone seront définitivement effacés.</p>
+            <p>
+              Ses commandes et factures sont conservées, comme la loi l'impose, mais ne
+              porteront plus son nom. S'il gère une imprimerie, celle-ci sera fermée.
+            </p>
+            <p className="font-medium text-foreground">Cette action est irréversible.</p>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setUserASupprimer(null)} disabled={suppressionEnCours}>
+              Annuler
+            </Button>
+            <Button variant="destructive" onClick={handleSupprimerUtilisateur} disabled={suppressionEnCours}>
+              {suppressionEnCours ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Suppression...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Supprimer définitivement
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

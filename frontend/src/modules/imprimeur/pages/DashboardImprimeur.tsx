@@ -630,6 +630,9 @@ const DashboardImprimeur = () => {
   const NEXT_STATUT_RETRAIT: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {
     EN_ATTENTE_PAIEMENT: { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
     PAYEE:               { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    // « Prêt à être retiré » clôt volontairement le parcours en retrait magasin :
+    // demander à l'imprimeur de repointer chaque retrait au comptoir produirait
+    // surtout des commandes jamais marquées, donc des données trompeuses.
   };
 
   const NEXT_STATUT_LIVRAISON: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {

@@ -20,6 +20,9 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     
     // Récupérer toutes les commandes d'un client précis
     List<Commande> findByClient_IdOrderByDateCreationDesc(Long clientId);
+
+    // Commandes qui engagent encore l'imprimeur (voir SuppressionCompteService)
+    long countByClient_IdAndStatutIn(Long clientId, java.util.Collection<StatutCommande> statuts);
     
     // Récupérer toutes les commandes d'une imprimerie (pour ton Dashboard Imprimeur !)
     List<Commande> findByImprimerie_IdOrderByDateCreationDesc(Long imprimerieId);

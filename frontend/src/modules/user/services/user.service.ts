@@ -50,6 +50,21 @@ export const userService = {
     if (!response.ok) throw new Error(await readErrorMessage(response, "Impossible de changer le mot de passe"));
   },
 
+  /**
+   * Supprime le compte du client connecté.
+   *
+   * Le serveur efface ses données personnelles et conserve ses commandes, que la
+   * loi impose de garder. Il refuse tant qu'une commande est en cours : son
+   * explication est remontée telle quelle.
+   */
+  supprimerMonCompte: async (token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/users/me`, {
+      method: "DELETE",
+      headers: authHeaders(token),
+    });
+    if (!response.ok) throw new Error(await readErrorMessage(response, "Impossible de supprimer le compte"));
+  },
+
   /** Commandes du client connecté */
   getMesCommandes: async (token: string): Promise<CommandeDTO[]> => {
     const response = await fetch(`${API_URL}/commandes/me`, { headers: authHeaders(token) });

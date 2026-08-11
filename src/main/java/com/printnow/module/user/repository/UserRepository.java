@@ -18,6 +18,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Rechercher tous les utilisateurs actifs (basé sur le champ 'actif' du modèle)
     List<User> findAllByActifTrue();
 
+    // Les comptes supprimés restent en base pour que commandes et factures
+    // gardent un sens, mais n'ont plus à figurer dans les listes.
+    List<User> findByDateSuppressionIsNull();
+
     // Rechercher les utilisateurs par rôle (ex: trouver tous les ADMINS)
     List<User> findByRoleNom(String roleNom);
 }

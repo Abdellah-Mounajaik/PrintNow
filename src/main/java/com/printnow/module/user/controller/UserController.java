@@ -9,6 +9,7 @@ import com.printnow.module.user.dto.ChangePasswordRequestDTO;
 import com.printnow.module.user.dto.UpdateProfileRequestDTO;
 import com.printnow.module.user.dto.UserRequestDTO;
 import com.printnow.module.user.dto.UserResponseDTO;
+import com.printnow.module.user.service.SuppressionCompteService;
 import com.printnow.module.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final SuppressionCompteService suppressionCompteService;
 
     // Les endpoints ci-dessous manipulent un utilisateur par id arbitraire —
     // réservés à l'administration. La modification de son propre profil passe
@@ -53,10 +55,30 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(id, userRequestDTO));
     }
 
+    /**
+     * DELETE /api/users/{id}
+     * Supprime le compte d'un utilisateur (administration).
+     *
+     * La ligne subsiste — commandes et factures y renvoient — mais ses données
+     * personnelles sont effacées et il ne peut plus se connecter.
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+        String admin = SecurityContextHolder.getContext().getAuthentication().getName();
+        suppressionCompteService.supprimer(id, "l'administrateur " + admin);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * DELETE /api/users/me
+     * Permet à un utilisateur de supprimer son propre compte, comme le prévoit
+     * le droit à l'effacement. L'id n'est jamais pris dans la requête.
+     */
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMyAccount() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        suppressionCompteService.supprimer(userService.idDeLUtilisateur(email), "l'intéressé");
         return ResponseEntity.noContent().build();
     }
 

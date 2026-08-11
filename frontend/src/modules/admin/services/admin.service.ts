@@ -17,6 +17,28 @@ export const adminService = {
     return response.json();
   },
 
+  /**
+   * Supprime un compte. Le serveur conserve la ligne — commandes et factures y
+   * renvoient — mais en efface les données personnelles.
+   *
+   * Il refuse dans deux cas (commandes en cours, dernier administrateur) : son
+   * explication est remontée telle quelle pour être affichée.
+   */
+  supprimerUtilisateur: async (id: number, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/users/${id}`, {
+      method: "DELETE",
+      headers: authHeaders(token),
+    });
+    if (!response.ok) {
+      const brut = await response.text();
+      let motif = "Erreur lors de la suppression du compte";
+      try {
+        motif = JSON.parse(brut).message || motif;
+      } catch { if (brut) motif = brut; }
+      throw new Error(motif);
+    }
+  },
+
   getImprimeries: async (): Promise<ImprimerieDTO[]> => {
     const response = await fetch(`${API_URL}/imprimeries`);
     if (!response.ok) throw new Error("Erreur lors de la récupération des imprimeries");
