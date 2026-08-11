@@ -75,6 +75,28 @@ export const imprimeurService = {
     URL.revokeObjectURL(url);
   },
 
+  /**
+   * Supprime le compte de l'imprimeur connecté.
+   *
+   * Le serveur efface ses données personnelles, ferme son imprimerie et refuse
+   * tant qu'une commande reste à imprimer : son explication est remontée telle
+   * quelle.
+   */
+  supprimerMonCompte: async (token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/users/me`, {
+      method: "DELETE",
+      headers: authHeaders(token),
+    });
+    if (!response.ok) {
+      const brut = await response.text();
+      let motif = "Impossible de supprimer le compte";
+      try {
+        motif = JSON.parse(brut).message || motif;
+      } catch { if (brut) motif = brut; }
+      throw new Error(motif);
+    }
+  },
+
   // ── Fichiers PDF ───────────────────────────────────────────────────────────
   /** Télécharge un PDF protégé et renvoie une URL blob ouvrable */
   downloadFichierPdf: async (fichierId: number, token: string): Promise<string> => {

@@ -13,8 +13,12 @@ import {
   Package, Euro, Clock, Star,
   Store, Truck, Layers, Book, Printer,
   Zap, GraduationCap, ChevronDown, ChevronUp,
-  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin, Loader2, Upload, Download, Search
+  FileText, CheckCircle, RotateCcw, Tag, Trash2, MapPin, Loader2, Upload, Download, Search,
+  AlertTriangle, CheckCircle2
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "../../../components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "../../../components/ui/select";
@@ -120,7 +124,35 @@ const initServicesFromProduits = (produits: any[]) => {
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 const DashboardImprimeur = () => {
-  const { user, token } = useAuth();
+  const { user, token, logoutGlobal } = useAuth();
+  const [confirmationSuppression, setConfirmationSuppression] = useState(false);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
+  const [compteSupprime, setCompteSupprime] = useState(false);
+
+  const handleSupprimerMonCompte = async () => {
+    if (!token) return;
+    setSuppressionEnCours(true);
+    try {
+      await imprimeurService.supprimerMonCompte(token);
+      // La confirmation reste dans la fenêtre : la session se ferme juste après,
+      // et une alerte ne survivrait pas au rechargement.
+      setCompteSupprime(true);
+    } catch (e) {
+      toast({ title: "Suppression impossible", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setSuppressionEnCours(false);
+    }
+  };
+
+  /**
+   * Ferme la session et repart de l'accueil, par un rechargement complet : il ne
+   * reste ainsi rien du compte supprimé en mémoire, et la route protégée n'a pas
+   * le temps de renvoyer vers /login.
+   */
+  const quitterApresSuppression = () => {
+    logoutGlobal();
+    window.location.replace("/");
+  };
 
   const [shop, setShop] = useState<ImprimerieDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -1478,6 +1510,21 @@ const DashboardImprimeur = () => {
                   </div>
                 </div>
               </Card>
+
+              <Card className="p-6 border-destructive/30">
+                <h3 className="font-display font-semibold text-lg mb-2 flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive" /> Supprimer mon compte
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Vos données personnelles seront définitivement effacées et votre boutique
+                  fermera : elle disparaîtra du catalogue et ne recevra plus de commandes.
+                  Vos factures sont conservées, comme la loi l'impose.
+                </p>
+                <Button variant="destructive" onClick={() => setConfirmationSuppression(true)}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Supprimer mon compte
+                </Button>
+              </Card>
             </TabsContent>
 
             {/* CODES PROMO */}
@@ -1565,6 +1612,83 @@ const DashboardImprimeur = () => {
           </Tabs>
         </div>
       </main>
+
+      {/* La suppression est irréversible : elle mérite une confirmation explicite. */}
+      <Dialog
+        open={confirmationSuppression}
+        onOpenChange={(open) => {
+          if (open) return;
+          // Une fois le compte supprimé, refermer mène au même endroit que le
+          // bouton : cet espace n'existe plus.
+          if (compteSupprime) quitterApresSuppression();
+          else setConfirmationSuppression(false);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          {compteSupprime ? (
+            <>
+              <DialogHeader>
+                <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <CheckCircle2 className="h-7 w-7 text-primary" />
+                </div>
+                <DialogTitle className="text-center">Votre compte a été supprimé</DialogTitle>
+                <DialogDescription className="text-center">
+                  Vos données personnelles ont été effacées et votre boutique est fermée.
+                  Merci d'avoir été partenaire PrintNow.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button className="w-full" onClick={quitterApresSuppression}>
+                  Retour à l'accueil
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
+                  <AlertTriangle className="h-7 w-7 text-destructive" />
+                </div>
+                <DialogTitle className="text-center">Supprimer votre compte ?</DialogTitle>
+                <DialogDescription className="text-center">
+                  Cette action est définitive et ne peut pas être annulée.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p>Votre nom, votre email et votre téléphone seront effacés.</p>
+                <p>
+                  Votre boutique fermera : elle disparaîtra du catalogue et ne recevra plus
+                  aucune commande.
+                </p>
+                <p>
+                  Vos factures sont conservées sept ans, comme la loi l'impose, et restent
+                  téléchargeables jusque-là.
+                </p>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="outline" onClick={() => setConfirmationSuppression(false)} disabled={suppressionEnCours}>
+                  Annuler
+                </Button>
+                <Button variant="destructive" onClick={handleSupprimerMonCompte} disabled={suppressionEnCours}>
+                  {suppressionEnCours ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Suppression...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Oui, supprimer mon compte
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
