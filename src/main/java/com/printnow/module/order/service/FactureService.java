@@ -60,6 +60,27 @@ public class FactureService {
                     "Aucune facture disponible : cette commande n'est pas encore payée.");
         }
 
+        return construirePdf(commande);
+    }
+
+    /** Une commande donne-t-elle lieu à une facture ? */
+    public boolean estFacturable(Commande commande) {
+        return STATUTS_FACTURABLES.contains(commande.getStatut());
+    }
+
+    /**
+     * Produit la facture sans contrôler à qui elle appartient.
+     *
+     * Réservé à l'archivage au moment de la suppression d'un compte : la facture
+     * doit y être figée telle qu'elle est, avant que le nom du client ne
+     * disparaisse de la base (voir ArchiveFactureService).
+     */
+    @Transactional(readOnly = true)
+    public byte[] genererPourArchivage(Commande commande) {
+        return construirePdf(commande);
+    }
+
+    private byte[] construirePdf(Commande commande) {
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);

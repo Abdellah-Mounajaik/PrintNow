@@ -154,7 +154,12 @@ const DashboardAdmin = () => {
     setSuppressionEnCours(true);
     try {
       await adminService.supprimerUtilisateur(userASupprimer.id, token);
-      setUsers((prev) => prev.filter((u) => u.id !== userASupprimer.id));
+      // La ligne reste affichée, marquée comme supprimée : c'est ce qui permet
+      // de comprendre à qui renvoient les commandes « Compte supprimé ».
+      setUsers((prev) => prev.map((u) => (u.id === userASupprimer.id
+        ? { ...u, prenom: "Compte", nom: "supprimé", email: `supprime-${u.id}@printnow.invalid`,
+            telephone: "", actif: false, dateSuppression: new Date().toISOString() }
+        : u)));
       toast({
         title: "Compte supprimé",
         description: "Ses données personnelles ont été effacées ; ses commandes restent enregistrées.",
@@ -296,8 +301,18 @@ const DashboardAdmin = () => {
                 <Users className="h-8 w-8 text-primary" />
                 <TrendingUp className="h-4 w-4 text-success" />
               </div>
-              <div className="font-display text-3xl font-bold">{users.length}</div>
+              {/* Les comptes supprimés restent listés plus bas, mais ne comptent
+                  pas ici : ce chiffre doit dire combien de personnes utilisent
+                  PrintNow, pas combien de lignes existent en base. */}
+              <div className="font-display text-3xl font-bold">
+                {users.filter((u) => !u.dateSuppression).length}
+              </div>
               <div className="text-sm text-muted-foreground">Utilisateurs</div>
+              {users.some((u) => u.dateSuppression) && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  {users.filter((u) => u.dateSuppression).length} compte(s) supprimé(s)
+                </div>
+              )}
             </Card>
             <Card className="p-6">
               <div className="flex items-center justify-between mb-3">
@@ -553,24 +568,34 @@ const DashboardAdmin = () => {
                             <Badge variant="outline">{user.roleNom}</Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className={user.actif ? "status-open" : "status-closed"}>
-                              {user.actif ? "Actif" : "Inactif"}
-                            </Badge>
+                            {/* Supprimé passe avant actif/inactif : c'est l'état qui
+                                explique pourquoi le compte ne sert plus à rien. */}
+                            {user.dateSuppression ? (
+                              <Badge variant="outline" className="text-destructive border-destructive/30">
+                                Supprimé le {new Date(user.dateSuppression).toLocaleDateString("fr-BE")}
+                              </Badge>
+                            ) : (
+                              <Badge className={user.actif ? "status-open" : "status-closed"}>
+                                {user.actif ? "Actif" : "Inactif"}
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Button variant="ghost" size="sm">
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                aria-label={`Supprimer le compte de ${user.prenom} ${user.nom}`}
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={() => setUserASupprimer(user)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {!user.dateSuppression && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  aria-label={`Supprimer le compte de ${user.prenom} ${user.nom}`}
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => setUserASupprimer(user)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>

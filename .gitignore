@@ -1,5 +1,8 @@
 HELP.md
 uploads/
+# Factures conservees pour l'obligation legale : elles nomment leurs
+# destinataires et n'ont rien a faire dans le depot.
+archives/
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

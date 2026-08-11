@@ -73,7 +73,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/horaires/**").permitAll()
                 .requestMatchers("/api/partners/register").permitAll() // L'inscription des partenaires est publique
                 .requestMatchers("/api/uploads/**").permitAll() // Upload du logo pendant l'inscription (avant authentification)
-                .requestMatchers("/uploads/**").permitAll() // Fichiers publics servis statiquement (logos)
+                // Seuls les logos des imprimeries sont publics. Le reste de ce
+                // dossier contient les documents des clients et les cartes
+                // étudiantes : les servir librement revenait à les publier à qui
+                // connaissait — ou devinait — leur chemin.
+                .requestMatchers("/uploads/logos/**").permitAll()
+                .requestMatchers("/uploads/**").authenticated()
                 // Déclaré avant la règle publique ci-dessous : réclamer un
                 // remboursement suppose de savoir qui le demande.
                 .requestMatchers(HttpMethod.POST, "/api/payments/abandon").authenticated()

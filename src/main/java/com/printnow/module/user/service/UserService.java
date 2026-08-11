@@ -56,13 +56,16 @@ public class UserService {
     }
 
     /**
-     * Liste les comptes existants. Les comptes supprimés en sont exclus : leur
-     * ligne subsiste pour que commandes et factures gardent un sens, mais elle
-     * ne contient plus rien d'exploitable (voir SuppressionCompteService).
+     * Liste les comptes, y compris ceux qui ont été supprimés.
+     *
+     * Ces derniers ne contiennent plus rien de personnel, mais les masquer
+     * laisserait l'administration sans explication : les commandes d'un compte
+     * supprimé s'affichent au nom de « Compte supprimé », et il faut pouvoir
+     * retrouver la ligne à laquelle elles renvoient.
      */
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findByDateSuppressionIsNull().stream()
+        return userRepository.findAll().stream()
                 .map(userMapper::toResponse)
                 .collect(Collectors.toList());
     }

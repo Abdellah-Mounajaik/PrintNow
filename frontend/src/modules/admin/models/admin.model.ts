@@ -6,6 +6,8 @@ export interface UserDTO {
   telephone: string;
   actif: boolean;
   roleNom: string;
+  /** Renseignée si le compte a été supprimé — ses données ont alors été effacées. */
+  dateSuppression: string | null;
 }
 
 export interface ImprimerieDTO {

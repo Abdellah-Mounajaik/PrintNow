@@ -1,7 +1,10 @@
 package com.printnow.module.user.service;
 
 import com.printnow.module.order.enums.StatutCommande;
+import com.printnow.module.order.model.AdresseLivraison;
+import com.printnow.module.order.model.Commande;
 import com.printnow.module.order.repository.CommandeRepository;
+import com.printnow.module.order.service.ArchiveFactureService;
 import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.repository.ImprimerieRepository;
 import com.printnow.module.user.model.User;
@@ -49,10 +52,15 @@ public class SuppressionCompteService {
     /** Domaine réservé par la RFC 2606 : aucun message ne pourra jamais y partir. */
     private static final String DOMAINE_NEUTRE = "@printnow.invalid";
 
+    /** Les colonnes d'adresse sont non nulles : on les vide sans les annuler. */
+    private static final String CHAMP_EFFACE = "-";
+    private static final String DESTINATAIRE_EFFACE = "Destinataire supprimé";
+
     private final UserRepository userRepository;
     private final CommandeRepository commandeRepository;
     private final ImprimerieRepository imprimerieRepository;
     private final JetonReinitialisationRepository jetonRepository;
+    private final ArchiveFactureService archiveFactureService;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -71,6 +79,12 @@ public class SuppressionCompteService {
         refuserSiDernierAdmin(utilisateur);
         refuserSiCommandesEnCours(utilisateur);
         fermerLesImprimeriesGerees(utilisateur);
+
+        // Les factures sont figées avant l'effacement : elles doivent porter le
+        // nom du client pendant sept ans, alors qu'elles sont d'ordinaire
+        // reconstruites depuis des données qui vont disparaître.
+        archiveFactureService.archiverLesFacturesDe(utilisateur);
+        anonymiserLesAdressesDeLivraison(utilisateur);
 
         // Les liens de réinitialisation encore valables deviendraient sinon un
         // moyen de reprendre la main sur un compte supprimé.
@@ -127,6 +141,38 @@ public class SuppressionCompteService {
                 log.info("Imprimerie {} fermée : son gérant {} a été supprimé",
                         imprimerie.getId(), utilisateur.getId());
             }
+        }
+    }
+
+    /**
+     * Efface ce qui désigne la personne dans ses adresses de livraison.
+     *
+     * Anonymiser le compte sans y toucher ne servirait à rien : le nom, le
+     * téléphone et l'adresse exacte y subsistent et suffisent à identifier
+     * quelqu'un. La commune et le code postal sont conservés — ils ne désignent
+     * personne et gardent leur utilité statistique.
+     */
+    private void anonymiserLesAdressesDeLivraison(User utilisateur) {
+        List<Commande> commandes = commandeRepository.findByClient_IdOrderByDateCreationDesc(utilisateur.getId());
+        int anonymisees = 0;
+
+        for (Commande commande : commandes) {
+            AdresseLivraison adresse = commande.getAdresseLivraison();
+            if (adresse == null) continue; // retrait en magasin
+
+            adresse.setNomDestinataire(DESTINATAIRE_EFFACE);
+            adresse.setTelephone(CHAMP_EFFACE);
+            adresse.setRue(CHAMP_EFFACE);
+            adresse.setNumero(CHAMP_EFFACE);
+            // Les coordonnées pointeraient sinon le domicile au mètre près.
+            adresse.setLatitude(null);
+            adresse.setLongitude(null);
+            commandeRepository.save(commande);
+            anonymisees++;
+        }
+
+        if (anonymisees > 0) {
+            log.info("{} adresse(s) de livraison anonymisée(s) pour le compte {}", anonymisees, utilisateur.getId());
         }
     }
 
