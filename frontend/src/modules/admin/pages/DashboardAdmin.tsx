@@ -112,6 +112,30 @@ const DashboardAdmin = () => {
   const [usersPage, setUsersPage] = useState(1);
   const [userASupprimer, setUserASupprimer] = useState<UserDTO | null>(null);
   const [suppressionEnCours, setSuppressionEnCours] = useState(false);
+  const [imprimerieAFermer, setImprimerieAFermer] = useState<ImprimerieDTO | null>(null);
+  const [fermetureEnCours, setFermetureEnCours] = useState(false);
+
+  const handleFermerImprimerie = async () => {
+    if (!token || !imprimerieAFermer) return;
+    setFermetureEnCours(true);
+    try {
+      await adminService.fermerImprimerie(imprimerieAFermer.id, token);
+      setImprimeries((prev) => prev.map((i) => (i.id === imprimerieAFermer.id ? { ...i, actif: false } : i)));
+      toast({
+        title: "Imprimerie fermée",
+        description: "Elle ne figure plus au catalogue et ne recevra plus de commandes.",
+      });
+      setImprimerieAFermer(null);
+    } catch (err) {
+      toast({
+        title: "Fermeture impossible",
+        description: err instanceof Error ? err.message : "Réessayez dans un instant.",
+        variant: "destructive",
+      });
+    } finally {
+      setFermetureEnCours(false);
+    }
+  };
   const [commandeSearchQuery, setCommandeSearchQuery] = useState("");
   const [commandesPage, setCommandesPage] = useState(1);
   const [commandes, setCommandes] = useState<CommandeDTO[]>([]);
@@ -472,9 +496,23 @@ const DashboardAdmin = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="sm">
-                              <Settings className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="sm">
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                              {/* Une boutique déjà fermée n'a plus rien à fermer. */}
+                              {shop.actif && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  aria-label={`Fermer l'imprimerie ${shop.nom}`}
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => setImprimerieAFermer(shop)}
+                                >
+                                  <Store className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -967,6 +1005,50 @@ const DashboardAdmin = () => {
                 <>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Supprimer définitivement
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Fermeture d'une imprimerie : le commerce disparaît du catalogue, ça ne
+          doit pas tenir à un clic malheureux. */}
+      <Dialog open={!!imprimerieAFermer} onOpenChange={(open) => { if (!open) setImprimerieAFermer(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
+              <AlertTriangle className="h-7 w-7 text-destructive" />
+            </div>
+            <DialogTitle className="text-center">Fermer cette imprimerie ?</DialogTitle>
+            <DialogDescription className="text-center">
+              {imprimerieAFermer?.nom}{imprimerieAFermer?.ville ? ` — ${imprimerieAFermer.ville}` : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>Elle disparaîtra du catalogue et ne recevra plus aucune commande.</p>
+            <p>
+              Ses commandes en cours et ses factures restent intactes, et son gérant
+              conserve l'accès à son espace pour les honorer.
+            </p>
+            <p>Vous pourrez la rouvrir en la réactivant.</p>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setImprimerieAFermer(null)} disabled={fermetureEnCours}>
+              Annuler
+            </Button>
+            <Button variant="destructive" onClick={handleFermerImprimerie} disabled={fermetureEnCours}>
+              {fermetureEnCours ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Fermeture...
+                </>
+              ) : (
+                <>
+                  <Store className="h-4 w-4 mr-2" />
+                  Fermer l'imprimerie
                 </>
               )}
             </Button>

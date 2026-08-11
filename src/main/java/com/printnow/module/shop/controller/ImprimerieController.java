@@ -2,22 +2,31 @@ package com.printnow.module.shop.controller;
 
 import com.printnow.module.shop.dto.ImprimerieRequestDTO;
 import com.printnow.module.shop.dto.ImprimerieResponseDTO;
+import com.printnow.module.shop.service.DroitsImprimerieService;
 import com.printnow.module.shop.service.ImprimerieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Le catalogue se consulte librement ; le modifier ne regarde que le gérant de
+ * la boutique et l'administration. Les inscriptions de partenaires passent par
+ * /api/partners/register, qui reste public.
+ */
 @RestController
 @RequestMapping("/api/imprimeries")
 @RequiredArgsConstructor
 public class ImprimerieController {
 
     private final ImprimerieService imprimerieService;
+    private final DroitsImprimerieService droits;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ImprimerieResponseDTO> createImprimerie(@RequestBody ImprimerieRequestDTO dto) {
         return new ResponseEntity<>(imprimerieService.createImprimerie(dto), HttpStatus.CREATED);
     }
@@ -47,12 +56,20 @@ public class ImprimerieController {
         return ResponseEntity.ok(imprimerieService.getImprimerieByGerantId(idGerant));
     }
 
+    /** Modification réservée au gérant de cette boutique, ou à l'administration. */
     @PutMapping("/{id}")
     public ResponseEntity<ImprimerieResponseDTO> updateImprimerie(@PathVariable Long id, @RequestBody ImprimerieRequestDTO dto) {
+        droits.verifierAccesImprimerie(id);
         return ResponseEntity.ok(imprimerieService.updateImprimerie(id, dto));
     }
 
+    /**
+     * DELETE /api/imprimeries/{id}
+     * Ferme une boutique : elle quitte le catalogue et ne reçoit plus de
+     * commandes. Ses données restent en base — ses commandes passées y renvoient.
+     */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteImprimerie(@PathVariable Long id) {
         imprimerieService.deleteImprimerie(id);
         return ResponseEntity.noContent().build();

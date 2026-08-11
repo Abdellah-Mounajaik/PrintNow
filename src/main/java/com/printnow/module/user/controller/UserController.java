@@ -66,7 +66,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         String admin = SecurityContextHolder.getContext().getAuthentication().getName();
-        suppressionCompteService.supprimer(id, "l'administrateur " + admin);
+        suppressionCompteService.supprimer(id, userService.idDeLUtilisateur(admin), "l'administrateur " + admin);
         return ResponseEntity.noContent().build();
     }
 
@@ -78,7 +78,8 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteMyAccount() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        suppressionCompteService.supprimer(userService.idDeLUtilisateur(email), "l'intéressé");
+        Long moi = userService.idDeLUtilisateur(email);
+        suppressionCompteService.supprimer(moi, moi, "l'intéressé");
         return ResponseEntity.noContent().build();
     }
 

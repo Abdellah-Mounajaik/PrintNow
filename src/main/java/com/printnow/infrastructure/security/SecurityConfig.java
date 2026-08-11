@@ -68,9 +68,17 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll() // Redispatch d'erreur : évite que 400/403/409 soient transformés en 401
                 .requestMatchers("/api/auth/**").permitAll() // L'authentification est publique
-                .requestMatchers("/api/imprimeries/**").permitAll() // Le catalogue est public
-                .requestMatchers("/api/produits/**").permitAll()
-                .requestMatchers("/api/horaires/**").permitAll()
+                // Le catalogue se CONSULTE librement. Les écritures, elles, ne
+                // l'étaient que par ricochet d'une règle écrite pour la lecture :
+                // n'importe qui pouvait fermer une imprimerie ou changer ses
+                // tarifs. Qui a le droit de modifier quoi est vérifié ensuite,
+                // boutique par boutique (DroitsImprimerieService).
+                .requestMatchers(HttpMethod.GET, "/api/imprimeries/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/produits/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/horaires/**").permitAll()
+                .requestMatchers("/api/imprimeries/**").authenticated()
+                .requestMatchers("/api/produits/**").authenticated()
+                .requestMatchers("/api/horaires/**").authenticated()
                 .requestMatchers("/api/partners/register").permitAll() // L'inscription des partenaires est publique
                 .requestMatchers("/api/uploads/**").permitAll() // Upload du logo pendant l'inscription (avant authentification)
                 // Seuls les logos des imprimeries sont publics. Le reste de ce

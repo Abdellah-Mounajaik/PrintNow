@@ -70,12 +70,13 @@ public class SuppressionCompteService {
      * @throws ResponseStatusException 409 s'il reste des commandes en cours
      */
     @Transactional
-    public void supprimer(Long userId, String demandePar) {
+    public void supprimer(Long userId, Long demandeurId, String demandePar) {
         User utilisateur = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable."));
 
         if (utilisateur.estSupprime()) return; // déjà fait : rien à refaire
 
+        refuserSiAdminSeSupprime(utilisateur, demandeurId);
         refuserSiDernierAdmin(utilisateur);
         refuserSiCommandesEnCours(utilisateur);
         fermerLesImprimeriesGerees(utilisateur);
@@ -97,12 +98,27 @@ public class SuppressionCompteService {
     }
 
     /**
+     * Un administrateur ne supprime pas son propre compte.
+     *
+     * L'administration n'est pas un compte personnel dont on dispose à sa
+     * guise : c'est une fonction, et la retirer doit passer par quelqu'un
+     * d'autre. Un autre administrateur peut le faire à sa place.
+     */
+    private void refuserSiAdminSeSupprime(User utilisateur, Long demandeurId) {
+        if (!estAdmin(utilisateur) || !utilisateur.getId().equals(demandeurId)) return;
+
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Un administrateur ne peut pas supprimer son propre compte. "
+                        + "Demandez à un autre administrateur de le faire.");
+    }
+
+    /**
      * Empêche la disparition du dernier administrateur : plus personne ne
      * pourrait alors accéder au tableau de bord, ni rendre la main à qui que ce
      * soit.
      */
     private void refuserSiDernierAdmin(User utilisateur) {
-        if (utilisateur.getRole() == null || !"ADMIN".equalsIgnoreCase(utilisateur.getRole().getNom())) return;
+        if (!estAdmin(utilisateur)) return;
 
         long autresAdmins = userRepository.findByRoleNom("ADMIN").stream()
                 .filter(admin -> !admin.getId().equals(utilisateur.getId()))
@@ -114,6 +130,10 @@ public class SuppressionCompteService {
                     "C'est le dernier compte administrateur : le supprimer fermerait l'accès au tableau de bord. "
                             + "Créez un autre administrateur d'abord.");
         }
+    }
+
+    private boolean estAdmin(User utilisateur) {
+        return utilisateur.getRole() != null && "ADMIN".equalsIgnoreCase(utilisateur.getRole().getNom());
     }
 
     private void refuserSiCommandesEnCours(User utilisateur) {

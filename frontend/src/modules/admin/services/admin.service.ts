@@ -39,6 +39,25 @@ export const adminService = {
     }
   },
 
+  /**
+   * Ferme une imprimerie : elle quitte le catalogue et ne reçoit plus de
+   * commandes. Ses données restent en base — ses commandes passées y renvoient.
+   */
+  fermerImprimerie: async (id: number, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/imprimeries/${id}`, {
+      method: "DELETE",
+      headers: authHeaders(token),
+    });
+    if (!response.ok) {
+      const brut = await response.text();
+      let motif = "Erreur lors de la fermeture de l'imprimerie";
+      try {
+        motif = JSON.parse(brut).message || motif;
+      } catch { if (brut) motif = brut; }
+      throw new Error(motif);
+    }
+  },
+
   getImprimeries: async (): Promise<ImprimerieDTO[]> => {
     const response = await fetch(`${API_URL}/imprimeries`);
     if (!response.ok) throw new Error("Erreur lors de la récupération des imprimeries");
