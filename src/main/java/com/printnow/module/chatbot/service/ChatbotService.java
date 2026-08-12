@@ -65,8 +65,24 @@ public class ChatbotService {
         - Depuis l'onglet « Profil » de son espace personnel, le client peut modifier son prénom,
           son nom, son email et son téléphone, ainsi que changer son mot de passe (l'ancien mot
           de passe est alors demandé).
-        - Il n'existe pas de fonction « mot de passe oublié » : en cas de perte, il faut écrire
-          au support via la page Contact.
+
+        MOT DE PASSE OUBLIÉ
+        - Un lien « Oublié ? » sur la page de connexion permet de recevoir par email un lien de
+          réinitialisation, sans passer par le support.
+        - Ce lien est valable 30 minutes et ne peut servir qu'une seule fois. Passé ce délai, il
+          suffit d'en demander un nouveau.
+        - Par sécurité, le même message de confirmation s'affiche que l'adresse soit connue ou non.
+        - Cela fonctionne pour les clients comme pour les imprimeurs partenaires.
+
+        SUPPRIMER SON COMPTE
+        - Le client peut supprimer son compte lui-même depuis l'onglet « Profil » de son espace ;
+          l'imprimeur partenaire depuis l'onglet « Ma boutique » de son espace professionnel.
+        - La suppression est définitive : nom, email et téléphone sont effacés, et la connexion
+          devient impossible. L'adresse email redevient libre pour une éventuelle réinscription.
+        - Les factures sont conservées, comme la loi l'impose, mais ne portent plus le nom du client.
+        - La suppression est refusée s'il reste une commande en cours d'impression.
+        - Pour un imprimeur, supprimer son compte ferme aussi sa boutique : elle quitte le
+          catalogue et ne reçoit plus de commandes.
 
         TROUVER UNE IMPRIMERIE
         Le catalogue est accessible depuis la page « Imprimeries », sans être connecté.
@@ -84,9 +100,12 @@ public class ChatbotService {
         2. Déposer un ou plusieurs fichiers PDF (seul format accepté).
         3. Configurer chaque fichier : type de produit, nombre de copies, couleur ou noir et
            blanc, recto-verso, reliure, plastification.
-        4. Choisir le retrait en magasin ou la livraison à domicile.
-        5. Payer en ligne par carte bancaire (paiement sécurisé via Stripe).
+        4. Facultatif : faire corriger les fautes du document (voir CORRECTION ORTHOGRAPHIQUE).
+        5. Choisir le retrait en magasin ou la livraison à domicile.
+        6. Payer en ligne par carte bancaire (paiement sécurisé via Stripe).
         La commande n'est transmise à l'imprimerie qu'une fois le paiement confirmé.
+        Le format du fichier est vérifié avant le paiement : un document qui ne correspond pas au
+        produit choisi (par exemple un A4 commandé en carte de visite) est refusé à ce moment-là.
 
         FICHIERS
         - Seul le format PDF est accepté pour les documents à imprimer.
@@ -105,6 +124,27 @@ public class ChatbotService {
           la configuration, avant tout paiement.
         - Le recto-verso n'est pas proposé sur les affiches.
 
+        CORRECTION ORTHOGRAPHIQUE (service PrintNow)
+        - Au moment de configurer un fichier, le client peut demander une correction des fautes
+          d'orthographe et de grammaire de son PDF avant impression. C'est facultatif.
+        - L'analyse est GRATUITE : elle indique combien de fautes ont été trouvées et le prix,
+          sans rien engager. Le client ne paie que s'il décide de faire corriger.
+        - Tarif : 2,90 € pour un document jusqu'à 10 pages, puis 0,20 € par page supplémentaire.
+          Exemple : 15 pages coûtent 3,90 €.
+        - Trois langues sont reconnues : français, néerlandais et anglais, et elles seules. La
+          langue est détectée automatiquement. Si on t'interroge sur une autre langue (espagnol,
+          allemand, italien…), réponds que la correction ne la prend pas en charge — c'est bien
+          une question sur PrintNow, pas un hors-sujet.
+        - Limite de 100 pages par document analysé.
+        - Le client garde la main : avant de payer, il voit chaque faute avec la correction
+          proposée, et peut en écarter celles qu'il ne veut pas (un nom propre, par exemple).
+        - Un aperçu montre le document corrigé, les corrections surlignées, avant décision.
+        - Une fois payée, c'est la version corrigée du PDF qui est transmise à l'imprimerie.
+        - La mise en page d'origine est préservée : seuls les mots concernés sont remplacés.
+        - Ce service est vendu par PrintNow, pas par l'imprimerie. Son montant apparaît donc à
+          part sur le récapitulatif de paiement et n'entre pas dans le total de la commande.
+        - Il n'est pas soumis à la TVA, à la différence de l'impression.
+
         PRIX ET TVA
         - Le prix dépend du nombre de pages, du type de produit, du format, des options
           choisies et de l'imprimerie sélectionnée.
@@ -113,8 +153,8 @@ public class ChatbotService {
           ou en montant fixe), s'ils sont proposés par l'imprimerie.
 
         RETRAIT ET LIVRAISON
-        - Retrait en magasin : gratuit. Le client est prévenu dès que la commande passe au
-          statut « Prêt à être retiré ».
+        - Retrait en magasin : gratuit. Le client reçoit un email dès que la commande passe au
+          statut « Prêt à être retiré », avec l'adresse où la récupérer.
         - Livraison : proposée par les imprimeries qui l'activent, avec des frais qu'elles
           fixent elles-mêmes. Un numéro de suivi bpost est communiqué une fois le colis expédié.
         - Option express 2h : proposée par certaines imprimeries, à un tarif qu'elles fixent.
@@ -136,8 +176,17 @@ public class ChatbotService {
         Contact.
 
         FACTURES
-        Chaque commande payée génère automatiquement une facture PDF, téléchargeable depuis
-        l'onglet Factures de l'espace personnel.
+        - Chaque commande payée génère automatiquement une facture PDF, téléchargeable depuis
+          l'onglet Factures de l'espace personnel.
+        - L'imprimerie est le vendeur : la facture est émise en son nom, et elle peut en
+          télécharger une copie depuis son espace professionnel.
+
+        PAIEMENT ET REMBOURSEMENT
+        - Le paiement est encaissé avant l'enregistrement de la commande. Si celle-ci ne peut
+          finalement pas être enregistrée, le client est remboursé automatiquement et en est
+          informé à l'écran.
+        - Le montant réellement débité comprend l'impression et, le cas échéant, la correction
+          orthographique.
 
         AVIS ET NOTES
         - Les clients peuvent noter une imprimerie de 1 à 5 étoiles et laisser un commentaire,
@@ -168,8 +217,14 @@ public class ChatbotService {
           espace professionnel, où il télécharge aussi ses relevés de vente.
 
         EMAILS AUTOMATIQUES
-        PrintNow envoie un email lors de l'inscription d'un client, de l'inscription d'un
-        imprimeur partenaire, et lorsqu'une demande de tarif étudiant est acceptée ou refusée.
+        PrintNow envoie un email dans les cas suivants :
+        - inscription d'un client, et inscription d'un imprimeur partenaire ;
+        - demande de tarif étudiant acceptée ou refusée (avec le motif en cas de refus) ;
+        - demande de réinitialisation de mot de passe ;
+        - commande prête à être retirée EN MAGASIN uniquement : le client reçoit le numéro de
+          commande et l'adresse de l'imprimerie où la récupérer. Aucun email de ce type n'est
+          envoyé pour une commande en livraison ; celle-ci se suit avec le numéro bpost depuis
+          l'espace personnel.
 
         SUPPORT
         Pour toute demande non couverte ici, le visiteur peut écrire via la page Contact :
