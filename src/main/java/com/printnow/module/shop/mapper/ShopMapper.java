@@ -28,12 +28,19 @@ public abstract class ShopMapper {
     public abstract Imprimerie toEntity(ImprimerieRequestDTO dto);
 
     /**
-     * Les coordonnées GPS sont calculées par le serveur à partir de l'adresse et
-     * ne figurent jamais dans ce que le navigateur renvoie. Sans ces deux
-     * exclusions, MapStruct les remettait à null à chaque enregistrement :
-     * modifier une simple option effaçait la position de l'imprimerie, qui
-     * disparaissait alors du filtrage par distance.
+     * Une modification ne touche que les champs effectivement transmis.
+     *
+     * Sans IGNORE, MapStruct remettait à null tout ce que la requête ne
+     * mentionnait pas : une mise à jour portant sur le seul nom effaçait
+     * l'adresse, le logo, les tarifs et les options de l'imprimerie. Les deux
+     * autres mises à jour de ce mapper s'en protégeaient déjà ; celle-ci ne le
+     * faisait pas.
+     *
+     * Les coordonnées GPS restent exclues à part : calculées par le serveur
+     * depuis l'adresse, elles ne figurent jamais dans ce que le navigateur
+     * renvoie.
      */
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "latitude", ignore = true)
     @Mapping(target = "longitude", ignore = true)
