@@ -17,17 +17,21 @@ import com.printnow.module.promo.model.CodePromo;
 import com.printnow.module.etudiant.enums.StatutEtudiant;
 import com.printnow.module.etudiant.repository.VerificationEtudiantRepository;
 import com.printnow.module.promo.service.CodePromoService;
+import com.printnow.module.shop.enums.TypePlastification;
 import com.printnow.module.shop.enums.TypeProduit;
+import com.printnow.module.shop.enums.TypeReliure;
 import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.model.Produit;
 import com.printnow.module.shop.repository.ProduitRepository;
 import com.printnow.module.user.model.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import com.printnow.module.correction.service.CorrectionCommandeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -40,7 +44,13 @@ import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommandeService {
+
+    private static final BigDecimal CENTIMES = new BigDecimal("100");
+
+    /** Un centime d'écart reste imputable aux arrondis, pas à un désaccord de calcul. */
+    private static final long TOLERANCE_CENTIMES = 1;
 
     private final CommandeRepository commandeRepository;
     private final EmailService emailService;
@@ -77,7 +87,41 @@ public class CommandeService {
         if (montantCorrections.signum() > 0) {
             commande = enregistrerMontantCorrections(commande.getId(), montantCorrections);
         }
+
+        if (paiementConfirme) verifierMontantRegle(commande, montantCorrections, montantRegle);
         return commande;
+    }
+
+    /**
+     * Compare la somme encaissée au total que le serveur vient de calculer.
+     *
+     * Le montant débité est décidé par le navigateur : tant que personne ne les
+     * confronte, un désaccord entre les deux calculs passe inaperçu — c'est
+     * ainsi que les options de reliure et de finition ont pu être facturées aux
+     * clients sans jamais figurer dans les commandes.
+     *
+     * @throws RuntimeException si le règlement ne couvre pas la commande ; le
+     *         contrôleur la refuse alors et rembourse.
+     */
+    private void verifierMontantRegle(CommandeResponseDTO commande, BigDecimal montantCorrections, Long montantRegle) {
+        if (montantRegle == null) return;
+
+        long duEnCentimes = commande.getTotalTTC().add(montantCorrections)
+                .multiply(CENTIMES).setScale(0, RoundingMode.HALF_UP).longValue();
+        long ecart = montantRegle - duEnCentimes;
+
+        if (ecart < -TOLERANCE_CENTIMES) {
+            throw new RuntimeException(String.format(
+                    "Le paiement de %.2f € ne couvre pas cette commande (%.2f € dus).",
+                    montantRegle / 100.0, duEnCentimes / 100.0));
+        }
+        if (ecart > TOLERANCE_CENTIMES) {
+            // On n'annule pas : la commande est payée et honorable. Mais l'écart
+            // signale un calcul divergent entre le navigateur et le serveur.
+            log.error("Commande {} : {} centimes encaissés de trop ({} attendus). "
+                            + "Les deux calculs de prix divergent — à corriger avant que d'autres clients ne surpaient.",
+                    commande.getNumeroCommande(), ecart, duEnCentimes);
+        }
     }
 
     /**
@@ -195,21 +239,13 @@ public class CommandeService {
                 prixU = prixU.subtract(remiseRV).max(BigDecimal.ZERO);
             }
 
-            // Ajout du prix de la Reliure
-            if (item.getReliure() != null && !item.getReliure().equals("AUCUNE") && produit.getPrixParTypeReliure() != null) {
-                Object prixRel = produit.getPrixParTypeReliure().get(item.getReliure());
-                if (prixRel != null) {
-                    prixU = prixU.add(new BigDecimal(prixRel.toString()));
-                }
-            }
-            
-            // Ajout du prix de la Finition / Plastification
-            if (item.getFinition() != null && !item.getFinition().equals("AUCUNE") && produit.getPrixParTypePlastification() != null) {
-                Object prixFin = produit.getPrixParTypePlastification().get(item.getFinition());
-                if (prixFin != null) {
-                    prixU = prixU.add(new BigDecimal(prixFin.toString()));
-                }
-            }
+            // Reliure et finition sont indexées par leur énumération, pas par leur
+            // nom : chercher avec la chaîne reçue renvoyait toujours null, et ces
+            // options étaient facturées au client sans jamais entrer dans le total.
+            prixU = prixU.add(prixOption(produit.getPrixParTypeReliure(),
+                    item.getReliure(), TypeReliure.class, "reliure"));
+            prixU = prixU.add(prixOption(produit.getPrixParTypePlastification(),
+                    item.getFinition(), TypePlastification.class, "finition"));
 
             // Construction de la ligne de commande
             LigneCommande ligne = LigneCommande.builder()
@@ -335,6 +371,37 @@ public class CommandeService {
                 .stream()
                 .map(commandeMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Prix d'une option choisie (reliure, finition), 0 si aucune.
+     *
+     * Les tarifs sont indexés par l'énumération de l'option ; la commande, elle,
+     * la désigne par son nom. C'est cette conversion qui manquait, et le prix
+     * cherché avec une chaîne restait introuvable sans que rien ne le signale.
+     *
+     * @throws RuntimeException si l'option demandée n'existe pas, ou si
+     *         l'imprimerie ne l'a pas tarifée — mieux vaut refuser la commande
+     *         que la facturer au client sans la comptabiliser.
+     */
+    private <T extends Enum<T>> BigDecimal prixOption(Map<T, Double> tarifs, String optionDemandee,
+                                                      Class<T> typeOption, String libelle) {
+        if (optionDemandee == null || optionDemandee.isBlank() || optionDemandee.equals("AUCUNE")) {
+            return BigDecimal.ZERO;
+        }
+
+        T option;
+        try {
+            option = Enum.valueOf(typeOption, optionDemandee);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Option de " + libelle + " inconnue : " + optionDemandee);
+        }
+
+        Double prix = tarifs != null ? tarifs.get(option) : null;
+        if (prix == null) {
+            throw new RuntimeException("Cette imprimerie ne propose pas la " + libelle + " « " + optionDemandee + " ».");
+        }
+        return BigDecimal.valueOf(prix);
     }
 
     /**
