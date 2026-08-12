@@ -17,16 +17,18 @@ const MESSAGE_ACCUEIL =
 const questionsFrequentes = [
   "Comment passer une commande ?",
   "Comment le prix est-il calculé ?",
+  // Placée haut : c'est le service le plus distinctif, et celui qu'un visiteur
+  // ne peut deviner nulle part ailleurs sur cette page.
+  "Pouvez-vous corriger les fautes de mon document ?",
   "Quels formats de fichiers acceptez-vous ?",
   "Livraison ou retrait en magasin ?",
+  "Puis-je modifier ou annuler ma commande ?",
+  "Quels sont les délais d'impression ?",
   "Y a-t-il un tarif étudiant ?",
   "Comment utiliser un code promo ?",
-  "Quels moyens de paiement acceptez-vous ?",
-  "Où trouver mes factures ?",
   "Comment suivre ma commande ?",
   "Comment devenir imprimeur partenaire ?",
   "Quelle commission prend PrintNow ?",
-  "Mes documents sont-ils confidentiels ?",
 ];
 
 const suggestions = questionsFrequentes.slice(0, 5);

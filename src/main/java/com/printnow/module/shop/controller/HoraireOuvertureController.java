@@ -16,7 +16,7 @@ public class HoraireOuvertureController {
     private final HoraireOuvertureService horaireService;
     private final DroitsImprimerieService droits;
 
-    /** Seul le gérant de la boutique — ou l'administration — change ses horaires. */
+    /** Seul le gérant de la boutique change ses horaires. */
     @PutMapping("/{id}")
     public ResponseEntity<HoraireOuvertureResponseDTO> updateHoraire(
             @PathVariable Long id,
