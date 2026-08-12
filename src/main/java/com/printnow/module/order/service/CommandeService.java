@@ -308,7 +308,8 @@ public class CommandeService {
         BigDecimal montantReduction = BigDecimal.ZERO;
         if (request.getCodePromo() != null && !request.getCodePromo().isBlank()) {
             BigDecimal totalTTCAvantPromo = totalHT.multiply(new BigDecimal("1.20"));
-            CodePromo promo = codePromoService.appliquerCode(request.getCodePromo(), totalTTCAvantPromo, client.getId());
+            CodePromo promo = codePromoService.appliquerCode(request.getCodePromo(), totalTTCAvantPromo,
+                    client.getId(), commande.getImprimerie() != null ? commande.getImprimerie().getId() : null);
             if (promo.getTypeReduction() == TypeReduction.POURCENTAGE) {
                 montantReduction = totalHT.multiply(promo.getValeurReduction()).divide(new BigDecimal("100"));
             } else {

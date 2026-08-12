@@ -23,15 +23,20 @@ public class CodePromoController {
     private final CodePromoService codePromoService;
     private final UserRepository userRepository;
 
+    /**
+     * @param imprimerieId imprimerie chez qui la commande est en cours ; un code
+     *                     ne vaut que chez celle qui l'a créé.
+     */
     @GetMapping("/valider")
     public ResponseEntity<?> valider(
             @RequestParam String code,
-            @RequestParam BigDecimal montant) {
+            @RequestParam BigDecimal montant,
+            @RequestParam(required = false) Long imprimerieId) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User client = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Utilisateur non trouvé"));
         try {
-            return ResponseEntity.ok(codePromoService.validerCode(code, montant, client.getId()));
+            return ResponseEntity.ok(codePromoService.validerCode(code, montant, client.getId(), imprimerieId));
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode())
                     .body(Map.of("message", e.getReason() != null ? e.getReason() : "Code invalide"));

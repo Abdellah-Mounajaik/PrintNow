@@ -499,7 +499,8 @@ const Order = () => {
     setPromoError(null);
     try {
       const totalTTCAvantPromo = totalAvantPromo * 1.21;
-      const res = await fetch(`http://localhost:8080/api/promos/valider?code=${encodeURIComponent(code)}&montant=${totalTTCAvantPromo.toFixed(2)}`, {
+      // L'imprimerie est transmise : un code ne vaut que chez celle qui l'a créé.
+      const res = await fetch(`http://localhost:8080/api/promos/valider?code=${encodeURIComponent(code)}&montant=${totalTTCAvantPromo.toFixed(2)}&imprimerieId=${shop?.id ?? ""}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {

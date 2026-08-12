@@ -27,14 +27,16 @@ public class CodePromoService {
     private final ImprimerieRepository imprimerieRepository;
     private final CommandeRepository commandeRepository;
 
-    public CodePromoResponseDTO validerCode(String code, BigDecimal montantCommande, Long clientId) {
-        CodePromo promo = findAndValidate(code, montantCommande, clientId);
+    public CodePromoResponseDTO validerCode(String code, BigDecimal montantCommande, Long clientId,
+                                            Long imprimerieId) {
+        CodePromo promo = findAndValidate(code, montantCommande, clientId, imprimerieId);
         return toDto(promo);
     }
 
     @Transactional
-    public CodePromo appliquerCode(String code, BigDecimal montantCommande, Long clientId) {
-        CodePromo promo = findAndValidate(code, montantCommande, clientId);
+    public CodePromo appliquerCode(String code, BigDecimal montantCommande, Long clientId,
+                                   Long imprimerieId) {
+        CodePromo promo = findAndValidate(code, montantCommande, clientId, imprimerieId);
         promo.setUtilisationCourante(promo.getUtilisationCourante() + 1);
         return codePromoRepository.save(promo);
     }
@@ -88,9 +90,20 @@ public class CodePromoService {
         codePromoRepository.save(promo);
     }
 
-    private CodePromo findAndValidate(String code, BigDecimal montantCommande, Long clientId) {
+    private CodePromo findAndValidate(String code, BigDecimal montantCommande, Long clientId,
+                                      Long imprimerieId) {
         CodePromo promo = codePromoRepository.findByCodeIgnoreCaseAndActifTrueAndSupprimeFalse(code)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Code promo invalide ou inexistant"));
+
+        // Un code appartient à l'imprimerie qui l'a créé et ne vaut que chez
+        // elle : c'est elle qui en supporte la remise. Sans ce contrôle, le code
+        // d'une imprimerie réduisait la facture de n'importe quelle autre, aux
+        // frais d'un commerçant qui n'avait jamais rien promis.
+        if (promo.getImprimerie() != null && imprimerieId != null
+                && !promo.getImprimerie().getId().equals(imprimerieId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Ce code promo n'est pas valable chez cette imprimerie.");
+        }
 
         LocalDateTime now = LocalDateTime.now();
         if (promo.getDateDebut() != null && now.isBefore(promo.getDateDebut()))

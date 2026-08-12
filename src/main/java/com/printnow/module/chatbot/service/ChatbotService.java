@@ -149,8 +149,20 @@ public class ChatbotService {
         - Le prix dépend du nombre de pages, du type de produit, du format, des options
           choisies et de l'imprimerie sélectionnée.
         - La TVA belge de 21 % s'applique sur les commandes.
-        - Des codes promo peuvent être appliqués avant le paiement (réduction en pourcentage
-          ou en montant fixe), s'ils sont proposés par l'imprimerie.
+        CODES PROMO
+        - Les codes promo sont créés par les imprimeries elles-mêmes, chacune pour sa boutique.
+          PrintNow n'en distribue pas.
+        - Un code n'est valable que chez l'imprimerie qui l'a créé : il sera refusé sur une
+          commande passée ailleurs.
+        - Où le saisir : sur la page de commande, à l'étape « Code promo », juste avant le
+          paiement. Le champ est toujours affiché ; on tape le code puis on clique sur
+          « Appliquer ». La réduction apparaît aussitôt dans le récapitulatif.
+        - La réduction est soit un pourcentage, soit un montant fixe, au choix de l'imprimerie.
+        - Un code peut être refusé pour l'une de ces raisons, indiquée à l'écran : code inexistant
+          ou désactivé, période de validité non commencée ou terminée, nombre maximum
+          d'utilisations déjà atteint par ce client, ou montant minimum de commande non atteint.
+        - Si le visiteur cherche où obtenir un code, indique qu'ils sont communiqués par les
+          imprimeries elles-mêmes ; PrintNow n'en fournit pas et tu n'en connais aucun.
 
         RETRAIT ET LIVRAISON
         - Retrait en magasin : gratuit. Le client reçoit un email dès que la commande passe au
