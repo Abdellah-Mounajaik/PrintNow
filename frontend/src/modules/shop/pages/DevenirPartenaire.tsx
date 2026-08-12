@@ -11,6 +11,8 @@ import { Badge } from "../../../components/ui/badge";
 import Header from "../../../components/layout/Header";
 import { toast } from "../../../hooks/use-toast";
 import { API_URL, SERVER_URL } from "../../../lib/api";
+import { adresseService, LONGUEUR_MINIMALE } from "../../../services/adresse.service";
+import type { SuggestionAdresse } from "../../../models/adresse.model";
 
 import { partnerService } from "../services/partner.service";
 import { type PartnerRegistrationRequest } from "../models/partner.model";
@@ -147,16 +149,7 @@ const DevenirPartenaire = () => {
   };
 
   // ── Autocomplétion d'adresse (Photon / OpenStreetMap, gratuit) ──────────────
-  // Nominatim interdit explicitement l'autocomplétion "au fil de la frappe" dans sa
-  // politique d'usage ; Photon est construit sur les mêmes données OSM mais est
-  // spécifiquement prévu pour ce cas d'usage.
-  interface AddressSuggestion {
-    label: string;
-    adresse: string;
-    ville: string;
-    pays: string;
-  }
-  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [addressSuggestions, setAddressSuggestions] = useState<SuggestionAdresse[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -168,40 +161,16 @@ const DevenirPartenaire = () => {
       addressSelectedRef.current = false;
       return;
     }
-    if (address.trim().length < 4) {
+    if (address.trim().length < LONGUEUR_MINIMALE) {
       setAddressSuggestions([]);
       return;
     }
 
     const timeoutId = setTimeout(async () => {
       setIsSearchingAddress(true);
-      try {
-        const res = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=5&lang=fr`
-        );
-        const data = await res.json();
-        const suggestions: AddressSuggestion[] = (data.features || [])
-          .map((f: any) => {
-            const p = f.properties;
-            const rue = [p.housenumber, p.street || p.name].filter(Boolean).join(" ");
-            const ville = p.city || p.town || p.village || "";
-            const pays = p.country || "";
-            if (!rue || !ville) return null;
-            return {
-              label: [rue, p.postcode, ville].filter(Boolean).join(", "),
-              adresse: [rue, p.postcode].filter(Boolean).join(" "),
-              ville,
-              pays,
-            };
-          })
-          .filter(Boolean);
-        setAddressSuggestions(suggestions);
-        setShowSuggestions(true);
-      } catch {
-        setAddressSuggestions([]);
-      } finally {
-        setIsSearchingAddress(false);
-      }
+      setAddressSuggestions(await adresseService.rechercher(address));
+      setShowSuggestions(true);
+      setIsSearchingAddress(false);
     }, 500); // debounce : on attend que le client arrête de taper
 
     return () => clearTimeout(timeoutId);
@@ -218,7 +187,7 @@ const DevenirPartenaire = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectSuggestion = (s: AddressSuggestion) => {
+  const handleSelectSuggestion = (s: SuggestionAdresse) => {
     addressSelectedRef.current = true;
     setAddress(s.adresse);
     setVille(s.ville);

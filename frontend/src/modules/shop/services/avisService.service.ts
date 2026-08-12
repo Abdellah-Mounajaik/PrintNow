@@ -1,21 +1,7 @@
 import { API_URL as API_BASE_URL } from "../../../lib/api";
+import type { AvisImprimerie, AvisRequest, AvisResponse } from "../models/avis.model";
 
-export interface AvisResponse {
-  id: number;
-  userId: number;
-  nomClient: string;
-  note: number;
-  commentaire: string | null;
-  dateCreation: string;
-}
 
-export interface AvisImprimerie {
-  noteMoyenne: number | null;
-  nombreAvis: number;
-  peutNoter: boolean;
-  dejaNote: boolean;
-  avis: AvisResponse[];
-}
 
 export const avisService = {
   getAvisImprimerie: async (imprimerieId: number, token?: string | null): Promise<AvisImprimerie> => {
@@ -27,7 +13,7 @@ export const avisService = {
   },
 
   creerAvis: async (
-    dto: { imprimerieId: number; note: number; commentaire: string },
+    dto: AvisRequest,
     token: string
   ): Promise<AvisResponse> => {
     const response = await fetch(`${API_BASE_URL}/avis`, {

@@ -42,9 +42,10 @@ import { promoService } from "../services/promo.service";
 import { correctionService } from "../services/correction.service";
 import { userService } from "../../user/services/user.service";
 import type { ImprimerieDetail } from "../models/Imprimerie.model";
-import type { CommandeCreee, CommandeRequest } from "../models/commande.model";
+import type { CommandeCreee, CommandeRequest, AdresseLivraisonRequest } from "../models/commande.model";
+import type { EtatCorrection } from "../models/correction.model";
 import { useAuth } from "../../auth/context/AuthContext";
-import CorrectionOrthographe, { type EtatCorrection } from "../components/CorrectionOrthographe";
+import CorrectionOrthographe from "../components/CorrectionOrthographe";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
@@ -106,15 +107,6 @@ const formatReconnu = (fileDims: { width: number; height: number }): boolean =>
   Object.keys(FORMAT_DIMENSIONS_MM).some((cle) => formatMatchesDimensions(cle, fileDims));
 
 
-interface DeliveryAddress {
-  nomDestinataire: string;
-  rue: string;
-  numero: string;
-  codePostal: string;
-  ville: string;
-  pays: string;
-  telephone: string;
-}
 
 interface OrderConfirmation {
   numeroCommande: string;
@@ -290,7 +282,7 @@ const Order = () => {
   const [promoError, setPromoError] = useState<string | null>(null);
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; typeReduction: string; valeurReduction: number; montantMinimum?: number } | null>(null);
 
-  const [address, setAddress] = useState<DeliveryAddress>({
+  const [address, setAddress] = useState<AdresseLivraisonRequest>({
     nomDestinataire: "", rue: "", numero: "", codePostal: "", ville: "", pays: "Belgique", telephone: "",
   });
 

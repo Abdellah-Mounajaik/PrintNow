@@ -47,3 +47,26 @@ export interface ImprimerieDetail {
   horaires?: Horaire[];
   produits: Produit[];
 }
+/**
+ * Modification d'une imprimerie : tous les champs sont facultatifs, seuls ceux
+ * transmis sont enregistres.
+ */
+export interface ImprimerieUpdateDTO {
+  idGerant?: number;
+  nom?: string;
+  description?: string;
+  logoUrl?: string | null;
+  emailContact?: string;
+  telephoneContact?: string;
+  adresse?: string;
+  ville?: string;
+  pays?: string;
+  latitude?: number;
+  longitude?: number;
+  proposeExpress2h?: boolean;
+  pourcentageRemiseEtudiant?: number;
+  prixExpress2h?: number;
+  livraisonActive?: boolean;
+  proposeTarifEtudiant?: boolean;
+  numeroTva?: string;
+}

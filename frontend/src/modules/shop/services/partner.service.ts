@@ -1,4 +1,5 @@
 import { API_URL } from "../../../lib/api";
+import type { ImprimerieDetail } from "../models/Imprimerie.model";
 
 const PARTNERS_API_URL = `${API_URL}/partners`;
 const IMPRIMERIES_API_URL = `${API_URL}/imprimeries`; // Catalogue public
@@ -59,14 +60,15 @@ export const partnerService = {
       return rawData; // Si ça échoue, on renvoie le texte brut tel quel
     }  },
 
-  getAllActive: async () => {
+  /** Catalogue public des imprimeries actives. */
+  getAllActive: async (): Promise<ImprimerieDetail[]> => {
     const response = await fetch(IMPRIMERIES_API_URL);
-    
+
     if (!response.ok) {
       throw new Error("Erreur lors de la récupération des imprimeries");
     }
-    
-    return response.json(); // On renvoie la liste au format JSON
+
+    return response.json();
   }
 
 };

@@ -7,7 +7,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "../../../components/ui/select";
 import { toast } from "../../../hooks/use-toast";
-import { avisService, type AvisImprimerie } from "../services/avisService.service";
+import { avisService } from "../services/avisService.service";
+import type { AvisImprimerie } from "../models/avis.model";
 
 // Affichage d'une note en étoiles (lecture seule)
 const StarDisplay = ({ note, size = 16 }: { note: number; size?: number }) => (

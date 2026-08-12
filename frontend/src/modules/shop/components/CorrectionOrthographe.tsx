@@ -11,40 +11,12 @@ import {
 } from "lucide-react";
 
 import { API_URL } from "../../../lib/api";
+import type { EtatCorrection } from "../models/correction.model";
 
 const API = `${API_URL}/corrections`;
 
-export interface Faute {
-  page: number;
-  motFautif: string;
-  correction: string | null;
-  suggestions: string[] | null;
-  message: string;
-  contexte: string;
-  corrigeeDansPdf: boolean;
-}
 
-export interface Verification {
-  id: number;
-  nomFichier: string;
-  nbPages: number;
-  nbFautes: number;
-  /** Langue reconnue dans le document (« français », « néerlandais », « anglais »). */
-  langue?: string;
-  prix: number;
-  payee: boolean;
-  nbCorrigees: number | null;
-  fautes: Faute[] | null;
-}
 
-/** Ce que le tunnel de commande doit retenir pour facturer et appliquer la correction. */
-export interface EtatCorrection {
-  verification: Verification;
-  active: boolean;
-  fautesIgnorees: number[];
-  /** Position de la faute → suggestion retenue, quand elle diffère de celle par défaut. */
-  remplacementsChoisis: Record<number, string>;
-}
 
 interface Props {
   file: File;

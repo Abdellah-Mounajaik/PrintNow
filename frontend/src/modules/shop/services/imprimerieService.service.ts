@@ -1,25 +1,6 @@
-import type { ImprimerieDetail } from "../models/Imprimerie.model";
+import type { ImprimerieDetail, ImprimerieUpdateDTO } from "../models/Imprimerie.model";
 import { API_URL as API_BASE_URL } from "../../../lib/api";
 
-export interface ImprimerieUpdateDTO {
-  idGerant?: number;
-  nom?: string;
-  description?: string;
-  logoUrl?: string | null;
-  emailContact?: string;
-  telephoneContact?: string;
-  adresse?: string;
-  ville?: string;
-  pays?: string;
-  latitude?: number;
-  longitude?: number;
-  proposeExpress2h?: boolean;
-  pourcentageRemiseEtudiant?: number;
-  prixExpress2h?: number;
-  livraisonActive?: boolean;
-  proposeTarifEtudiant?: boolean;
-  numeroTva?: string;
-}
 
 export const imprimerieService = {
   getImprimerieById: async (id: string): Promise<ImprimerieDetail> => {

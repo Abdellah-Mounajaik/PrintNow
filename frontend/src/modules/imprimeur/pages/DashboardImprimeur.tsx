@@ -24,6 +24,8 @@ import {
 } from "../../../components/ui/select";
 import { toast } from "../../../hooks/use-toast";
 import { SERVER_URL } from "../../../lib/api";
+import { adresseService, LONGUEUR_MINIMALE } from "../../../services/adresse.service";
+import type { SuggestionAdresse } from "../../../models/adresse.model";
 
 import { imprimerieService } from "../../shop/services/imprimerieService.service";
 import { partnerService } from "../../shop/services/partner.service";
@@ -444,13 +446,7 @@ const DashboardImprimeur = () => {
   };
 
   // ── Autocomplétion d'adresse  ──
-  interface AddressSuggestion {
-    label: string;
-    adresse: string;
-    ville: string;
-    pays: string;
-  }
-  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [addressSuggestions, setAddressSuggestions] = useState<SuggestionAdresse[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -461,40 +457,17 @@ const DashboardImprimeur = () => {
       addressSelectedRef.current = false;
       return;
     }
-    if (shopForm.adresse.trim().length < 4) {
+    if (shopForm.adresse.trim().length < LONGUEUR_MINIMALE) {
       setAddressSuggestions([]);
       return;
     }
 
+    // On attend que le gérant arrête de taper avant d'interroger le service.
     const timeoutId = setTimeout(async () => {
       setIsSearchingAddress(true);
-      try {
-        const res = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(shopForm.adresse)}&limit=5&lang=fr`
-        );
-        const data = await res.json();
-        const suggestions: AddressSuggestion[] = (data.features || [])
-          .map((f: any) => {
-            const p = f.properties;
-            const rue = [p.housenumber, p.street || p.name].filter(Boolean).join(" ");
-            const ville = p.city || p.town || p.village || "";
-            const pays = p.country || "";
-            if (!rue || !ville) return null;
-            return {
-              label: [rue, p.postcode, ville].filter(Boolean).join(", "),
-              adresse: [rue, p.postcode].filter(Boolean).join(" "),
-              ville,
-              pays,
-            };
-          })
-          .filter(Boolean);
-        setAddressSuggestions(suggestions);
-        setShowSuggestions(true);
-      } catch {
-        setAddressSuggestions([]);
-      } finally {
-        setIsSearchingAddress(false);
-      }
+      setAddressSuggestions(await adresseService.rechercher(shopForm.adresse));
+      setShowSuggestions(true);
+      setIsSearchingAddress(false);
     }, 500);
 
     return () => clearTimeout(timeoutId);
@@ -510,7 +483,7 @@ const DashboardImprimeur = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectSuggestion = (s: AddressSuggestion) => {
+  const handleSelectSuggestion = (s: SuggestionAdresse) => {
     addressSelectedRef.current = true;
     setShopForm(f => ({ ...f, adresse: s.adresse, ville: s.ville, pays: s.pays || f.pays }));
     setShowSuggestions(false);
