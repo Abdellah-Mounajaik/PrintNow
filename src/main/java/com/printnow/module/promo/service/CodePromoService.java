@@ -1,5 +1,6 @@
 package com.printnow.module.promo.service;
 
+import com.printnow.infrastructure.security.UtilisateurCourant;
 import com.printnow.module.order.repository.CommandeRepository;
 import com.printnow.module.promo.dto.CodePromoRequestDTO;
 import com.printnow.module.promo.dto.CodePromoResponseDTO;
@@ -26,6 +27,7 @@ public class CodePromoService {
     private final CodePromoRepository codePromoRepository;
     private final ImprimerieRepository imprimerieRepository;
     private final CommandeRepository commandeRepository;
+    private final UtilisateurCourant utilisateurCourant;
 
     public CodePromoResponseDTO validerCode(String code, BigDecimal montantCommande, Long clientId,
                                             Long imprimerieId) {
@@ -41,13 +43,16 @@ public class CodePromoService {
         return codePromoRepository.save(promo);
     }
 
+    @Transactional(readOnly = true)
     public List<CodePromoResponseDTO> getCodesForImprimerie(Long imprimerieId) {
+        refuserSiCeNestPasSaBoutique(imprimerieId);
         return codePromoRepository.findByImprimerie_IdAndSupprimeFalseOrderByIdDesc(imprimerieId)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Transactional
     public CodePromoResponseDTO creerCode(CodePromoRequestDTO dto) {
+        refuserSiCeNestPasSaBoutique(dto.getImprimerieId());
         Imprimerie imprimerie = imprimerieRepository.findById(dto.getImprimerieId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Imprimerie introuvable"));
 
@@ -74,20 +79,58 @@ public class CodePromoService {
 
     @Transactional
     public CodePromoResponseDTO toggleActif(Long id) {
-        CodePromo promo = codePromoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Code promo introuvable"));
+        CodePromo promo = charger(id);
+        refuserSiCeNestPasSaBoutique(promo);
         promo.setActif(!promo.getActif());
         return toDto(codePromoRepository.save(promo));
     }
 
     @Transactional
     public void supprimerCode(Long id) {
-        CodePromo promo = codePromoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Code promo introuvable"));
+        CodePromo promo = charger(id);
+        refuserSiCeNestPasSaBoutique(promo);
         promo.setSupprime(true);
         promo.setActif(false);
         promo.setCode(promo.getCode() + "_DEL_" + System.currentTimeMillis());
         codePromoRepository.save(promo);
+    }
+
+    private CodePromo charger(Long id) {
+        return codePromoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Code promo introuvable"));
+    }
+
+    /**
+     * Réserve la gestion des codes au gérant de la boutique.
+     *
+     * Aucune dérogation pour l'administration, contrairement aux autres contrôles
+     * du projet : une réduction est consentie par le commerçant et sortie de sa
+     * poche. Le contrôle vit ici, dans le service, et non dans le contrôleur :
+     * ainsi il s'applique quel que soit le chemin par lequel on arrive.
+     *
+     * Sans lui, n'importe quel compte connecté pouvait s'émettre un code chez
+     * l'imprimerie de son choix — et un compte s'ouvre en trois champs.
+     */
+    private void refuserSiCeNestPasSaBoutique(Long imprimerieId) {
+        if (imprimerieId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'imprimerie est obligatoire.");
+        }
+        refuserSiCeNestPasSaBoutique(imprimerieRepository.findById(imprimerieId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Imprimerie introuvable")));
+    }
+
+    /** Un code appartient à la boutique qui l'a émis : c'est elle qui en décide. */
+    private void refuserSiCeNestPasSaBoutique(CodePromo promo) {
+        refuserSiCeNestPasSaBoutique(promo.getImprimerie());
+    }
+
+    private void refuserSiCeNestPasSaBoutique(Imprimerie imprimerie) {
+        Long moi = utilisateurCourant.id();
+        if (imprimerie == null || imprimerie.getGerant() == null
+                || !imprimerie.getGerant().getId().equals(moi)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Les codes promo d'une boutique ne se gèrent que depuis celle-ci.");
+        }
     }
 
     private CodePromo findAndValidate(String code, BigDecimal montantCommande, Long clientId,

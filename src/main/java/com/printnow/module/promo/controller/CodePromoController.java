@@ -43,6 +43,10 @@ public class CodePromoController {
         }
     }
 
+    /**
+     * Les routes de gestion ci-dessous sont réservées au gérant de la boutique
+     * concernée ; le contrôle est fait par {@link CodePromoService} lui-même.
+     */
     @GetMapping("/imprimerie/{imprimerieId}")
     public ResponseEntity<List<CodePromoResponseDTO>> getCodesImprimerie(@PathVariable Long imprimerieId) {
         return ResponseEntity.ok(codePromoService.getCodesForImprimerie(imprimerieId));

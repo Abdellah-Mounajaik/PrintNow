@@ -36,8 +36,13 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -406,6 +411,26 @@ public class CommandeService {
     }
 
     /**
+     * Ce vers quoi chaque statut peut évoluer.
+     *
+     * Deux parcours cohabitent : le retrait en magasin, où la commande passe
+     * directement à « prête », et la livraison, qui passe par l'impression puis
+     * l'expédition. La table réunit les deux — c'est le mode de retrait, pas
+     * cette table, qui détermine lequel s'applique.
+     *
+     * LIVREE et ANNULEE n'ont pas de suite : une commande terminée le reste.
+     */
+    private static final Map<StatutCommande, Set<StatutCommande>> SUITES_POSSIBLES = Map.of(
+            StatutCommande.EN_ATTENTE_PAIEMENT, EnumSet.of(StatutCommande.PAYEE,
+                    StatutCommande.EN_COURS_IMPRESSION, StatutCommande.PRETE, StatutCommande.ANNULEE),
+            StatutCommande.PAYEE, EnumSet.of(StatutCommande.EN_COURS_IMPRESSION,
+                    StatutCommande.PRETE, StatutCommande.ANNULEE),
+            StatutCommande.EN_COURS_IMPRESSION, EnumSet.of(StatutCommande.PRETE, StatutCommande.ANNULEE),
+            StatutCommande.PRETE, EnumSet.of(StatutCommande.LIVREE, StatutCommande.ANNULEE),
+            StatutCommande.LIVREE, EnumSet.noneOf(StatutCommande.class),
+            StatutCommande.ANNULEE, EnumSet.noneOf(StatutCommande.class));
+
+    /**
      * Met à jour le statut d'une commande (ex: PAYEE → EN_COURS_IMPRESSION → PRETE)
      */
     @Transactional
@@ -414,12 +439,39 @@ public class CommandeService {
                 .orElseThrow(() -> new RuntimeException("Commande non trouvée: " + id));
 
         StatutCommande ancien = commande.getStatut();
-        StatutCommande statut = StatutCommande.valueOf(nouveauStatut);
+        StatutCommande statut = lireStatut(nouveauStatut);
+        verifierTransition(ancien, statut);
+
         commande.setStatut(statut);
         CommandeResponseDTO dto = commandeMapper.toDto(commandeRepository.save(commande));
 
         if (statut != ancien) previenirSiPreteARetirer(commande, statut);
         return dto;
+    }
+
+    private StatutCommande lireStatut(String nouveauStatut) {
+        try {
+            return StatutCommande.valueOf(nouveauStatut);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Statut inconnu : " + nouveauStatut);
+        }
+    }
+
+    /**
+     * Refuse les sauts qui ne veulent rien dire.
+     *
+     * Rien n'empêchait jusqu'ici de ramener une commande livrée à « en attente
+     * de paiement », ni de faire revivre une commande annulée. Reposer le même
+     * statut reste permis : un double clic ne doit pas produire d'erreur.
+     */
+    private void verifierTransition(StatutCommande ancien, StatutCommande nouveau) {
+        if (ancien == nouveau) return;
+
+        if (!SUITES_POSSIBLES.getOrDefault(ancien, EnumSet.noneOf(StatutCommande.class)).contains(nouveau)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format(
+                    "Une commande « %s » ne peut pas passer à « %s ».", ancien, nouveau));
+        }
     }
 
     /**

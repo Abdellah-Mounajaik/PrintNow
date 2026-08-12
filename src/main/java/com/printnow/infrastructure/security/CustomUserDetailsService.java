@@ -20,8 +20,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé avec l'email : " + email));
-                System.out.println("DEBUG DATABASE - Email trouvé: " + user.getEmail());
-    System.out.println("DEBUG DATABASE - Hash en base: " + user.getMotDePasse());
 
         // On convertit notre Role en "GrantedAuthority" pour Spring Security
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().getNom().toUpperCase());

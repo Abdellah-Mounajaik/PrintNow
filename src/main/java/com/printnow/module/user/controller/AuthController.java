@@ -23,7 +23,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder; // Ajouté
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,30 +34,19 @@ public class AuthController {
     private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder; // Ajouté pour le test de match
     private final ReinitialisationMotDePasseService reinitialisationService;
 
+    /**
+     * Un bloc de mise au point imprimait ici le mot de passe reçu en clair, puis
+     * son empreinte en base, à chaque tentative de connexion. Il refaisait au
+     * passage la vérification que Spring Security effectue juste en dessous.
+     *
+     * Un mot de passe n'a rien à faire dans une console ou un fichier de log :
+     * ceux-ci se conservent, se recopient et se partagent bien plus facilement
+     * que la base de données.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequestDTO loginRequest) {
-
-        // --- DEBUT DU DEBUG ---
-        System.out.println("=== DEBUG AUTHENTICATION ===");
-        System.out.println("1. Tentative de login pour : " + loginRequest.getEmail());
-        System.out.println("2. Mot de passe reçu du front : [" + loginRequest.getPassword() + "]");
-
-        // On vérifie manuellement ce qu'il y a en base
-        userRepository.findByEmail(loginRequest.getEmail()).ifPresentOrElse(user -> {
-            System.out.println("3. Utilisateur trouvé en base !");
-            System.out.println("4. Hash stocké en base : " + user.getMotDePasse());
-            System.out.println("5. Compte actif en base ? : " + user.getActif());
-            
-            boolean isMatch = passwordEncoder.matches(loginRequest.getPassword(), user.getMotDePasse());
-            System.out.println("6. Est-ce que le mot de passe match le hash ? " + (isMatch ? "OUI ✅" : "NON ❌"));
-        }, () -> {
-            System.out.println("3. ERREUR : Aucun utilisateur trouvé avec cet email en base !");
-        });
-        // --- FIN DU DEBUG ---
-
         try {
             // 1. Spring Security vérifie l'email et le mot de passe
             Authentication authentication = authenticationManager.authenticate(
@@ -78,11 +66,9 @@ public class AuthController {
                     .map(GrantedAuthority::getAuthority)
                     .findFirst().orElse("");
 
-            System.out.println("7. AUTHENTIFICATION RÉUSSIE ! Génération du token...");
             return ResponseEntity.ok(new JwtResponseDTO(jwt, user.getId(), user.getEmail(), role));
 
         } catch (Exception e) {
-            System.out.println("7. ÉCHEC AUTHENTIFICATION : " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou mot de passe incorrect");
         }
     }
