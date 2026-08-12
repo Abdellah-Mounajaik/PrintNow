@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { API_URL } from "@/lib/api";
+import { contactService } from "@/services/contact.service";
 import {
   Mail,
   Phone,
@@ -63,16 +63,7 @@ const Contact = () => {
 
     setSending(true);
     try {
-      const response = await fetch(`${API_URL}/contact`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.message || "Impossible d'envoyer le message.");
-      }
+      await contactService.envoyerMessage(form);
 
       setSent(true);
       toast({

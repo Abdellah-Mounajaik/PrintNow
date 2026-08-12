@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bot, Send, User, Sparkle, RotateCcw, Printer } from "lucide-react";
-import { API_URL } from "@/lib/api";
+import { chatbotService } from "@/services/chatbot.service";
+import type { MessageChat } from "@/models/chatbot.model";
 
 type Message = { id: string; role: "bot" | "user"; text: string };
 
@@ -32,9 +33,6 @@ const questionsFrequentes = [
 ];
 
 const suggestions = questionsFrequentes.slice(0, 5);
-
-/** Nombre de messages d'historique envoyés au backend (qui en accepte 20 max). */
-const MAX_HISTORIQUE = 10;
 
 const FAQ = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -67,35 +65,18 @@ const FAQ = () => {
     setTyping(true);
 
     try {
-      const response = await fetch(`${API_URL}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: conversation
-            .filter((m) => m.id !== "welcome")
-            .slice(-MAX_HISTORIQUE)
-            .map((m) => ({
-              role: m.role === "bot" ? "assistant" : "user",
-              content: m.text.slice(0, 500),
-            })),
-        }),
-      });
+      // Le message d'accueil n'a pas été écrit par l'assistant : l'envoyer
+      // reviendrait à lui faire croire qu'il l'a dit.
+      const historique: MessageChat[] = conversation
+        .filter((m) => m.id !== "welcome")
+        .map((m) => ({ role: m.role === "bot" ? "assistant" : "user", content: m.text }));
 
-      const data = await response.json().catch(() => null);
-      const texte = response.ok
-        ? data?.reply
-        : data?.message ?? "L'assistant est momentanément indisponible.";
-
+      const reponse = await chatbotService.demander(historique);
+      setMessages((prev) => [...prev, { id: `b-${Date.now()}`, role: "bot", text: reponse }]);
+    } catch (e) {
+      // Le service formule déjà un message compréhensible par le visiteur.
+      const texte = e instanceof Error ? e.message : "L'assistant est momentanément indisponible.";
       setMessages((prev) => [...prev, { id: `b-${Date.now()}`, role: "bot", text: texte }]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `b-${Date.now()}`,
-          role: "bot",
-          text: "Je n'arrive pas à joindre le serveur pour le moment. Réessayez dans un instant ou écrivez-nous via la page Contact.",
-        },
-      ]);
     } finally {
       setTyping(false);
       inputRef.current?.focus();
