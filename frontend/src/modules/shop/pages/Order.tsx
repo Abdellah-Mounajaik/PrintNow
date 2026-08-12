@@ -9,7 +9,6 @@ import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { Badge } from "../../../components/ui/badge";
 import { toast } from "../../../hooks/use-toast";
-import { API_URL } from "../../../lib/api";
 import {
   Select,
   SelectContent,
@@ -36,7 +35,14 @@ import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 import { imprimerieService } from "../services/imprimerieService.service";
+import { paiementService } from "../services/paiement.service";
+import { commandeService } from "../services/commande.service";
+import { fichierPdfService } from "../services/fichierPdf.service";
+import { promoService } from "../services/promo.service";
+import { correctionService } from "../services/correction.service";
+import { userService } from "../../user/services/user.service";
 import type { ImprimerieDetail } from "../models/Imprimerie.model";
+import type { CommandeCreee, CommandeRequest } from "../models/commande.model";
 import { useAuth } from "../../auth/context/AuthContext";
 import CorrectionOrthographe, { type EtatCorrection } from "../components/CorrectionOrthographe";
 
@@ -156,6 +162,12 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       toast({ title: "Erreur", description: "Stripe n'est pas chargé. Vérifiez votre clé publique.", variant: "destructive" });
       return;
     }
+    // La page entière est déjà réservée aux clients connectés ; ce contrôle
+    // n'existe que pour que le jeton soit certainement présent ici.
+    if (!token) {
+      toast({ title: "Session expirée", description: "Reconnectez-vous pour finaliser votre commande.", variant: "destructive" });
+      return;
+    }
     if (!canPay) {
       toast({
         title: "Commande incomplète",
@@ -182,13 +194,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       await verifierFormats();
 
       // 1. Create PaymentIntent on the backend
-      const piRes = await fetch(`${API_URL}/payments/create-payment-intent`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({ amount: Math.round(total * 100) }),
-      });
-      if (!piRes.ok) throw new Error("Erreur lors de la création du paiement.");
-      const { clientSecret } = await piRes.json();
+      const clientSecret = await paiementService.creerIntention(total, token);
 
       // 2. Confirm with real card via Stripe.js
       const cardElement = elements.getElement(CardElement);
@@ -311,13 +317,11 @@ const Order = () => {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`${API_URL}/verifications-etudiants/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(res => {
-      if (res.status === 204) return null;
-      return res.json();
-    }).then(data => {
-      if (data && data.statut === "ACCEPTE" && data.valableJusquA && new Date(data.valableJusquA) > new Date()) {
+    // Le service du module « user » couvrait déjà cet appel : la page le
+    // refaisait à la main.
+    userService.getMaVerification(token).then(verification => {
+      if (verification && verification.statut === "ACCEPTE" && verification.valableJusquA
+          && new Date(verification.valableJusquA) > new Date()) {
         setStudentVerified(true);
       }
     }).catch(() => {});
@@ -500,17 +504,7 @@ const Order = () => {
     setPromoError(null);
     try {
       const totalTTCAvantPromo = totalAvantPromo * 1.21;
-      // L'imprimerie est transmise : un code ne vaut que chez celle qui l'a créé.
-      const res = await fetch(`${API_URL}/promos/valider?code=${encodeURIComponent(code)}&montant=${totalTTCAvantPromo.toFixed(2)}&imprimerieId=${shop?.id ?? ""}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        let msg = "Code invalide ou inexistant.";
-        try { const err = await res.json(); msg = err.message || err.detail || msg; } catch { /* ignore */ }
-        setPromoError(msg);
-        return;
-      }
-      const promo = await res.json();
+      const promo = await promoService.valider(code, totalTTCAvantPromo, shop?.id, token);
       setAppliedPromo({
         code: promo.code,
         typeReduction: promo.typeReduction,
@@ -519,8 +513,10 @@ const Order = () => {
       });
       setPromoError(null);
       toast({ title: "Code appliqué !", description: promo.typeReduction === "POURCENTAGE" ? `Réduction de ${promo.valeurReduction}%` : `Réduction de ${Number(promo.valeurReduction).toFixed(2)}€` });
-    } catch {
-      setPromoError("Impossible de vérifier le code. Vérifiez votre connexion.");
+    } catch (e) {
+      // Le serveur dit pourquoi il refuse (code expiré, mauvaise imprimerie,
+      // montant minimum…) : c'est cette phrase qui aide, pas un message générique.
+      setPromoError(e instanceof Error ? e.message : "Impossible de vérifier le code.");
     }
   };
 
@@ -557,23 +553,11 @@ const Order = () => {
    * L'échec de cette réclamation n'est pas propagé : elle n'est qu'un secours,
    * et c'est l'échec de la commande qui doit être annoncé au client.
    */
-  const reclamerLeRemboursement = async (paymentIntentId: string) => {
-    try {
-      const res = await fetch(`${API_URL}/payments/abandon`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({ paymentIntentId }),
-      });
-      if (!res.ok) console.error("Remboursement refusé par le serveur :", res.status);
-      return res.ok;
-    } catch (e) {
-      console.error("Remboursement injoignable :", e);
-      return false;
-    }
-  };
+  const reclamerLeRemboursement = (paymentIntentId: string) =>
+    paiementService.abandonner(paymentIntentId, token);
 
   const handleCreateOrder = async (paymentIntentId: string) => {
-    const payload = {
+    const payload: CommandeRequest = {
       paymentIntentId,
       modeRetrait: fulfillment === "pickup" ? "RETRAIT_MAGASIN" : "LIVRAISON",
       express2h: expressOption,
@@ -604,40 +588,14 @@ const Order = () => {
       })),
     };
 
-    const envoyerLaCommande = async () => {
-      const response = await fetch(`${API_URL}/commandes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const brut = await response.text();
-        // Le serveur répond en JSON ({"message": "..."}) : sans cette lecture,
-        // le client verrait l'objet entier s'afficher dans l'alerte.
-        let motif = brut;
-        try {
-          motif = JSON.parse(brut).message || brut;
-        } catch { /* texte brut, on le garde tel quel */ }
-
-        const erreur = new Error(motif || "Erreur lors de la création de la commande");
-        // Un refus argumenté du serveur ne changera pas d'avis, et il l'a déjà
-        // remboursé lui-même ; une panne (5xx), elle, mérite d'être réessayée.
-        (erreur as Error & { definitif?: boolean }).definitif = response.status < 500;
-        throw erreur;
-      }
-      return response.json();
-    };
-
     // La carte est déjà débitée : plutôt que d'abandonner à la première coupure,
     // on réessaie, et on ne renonce qu'après avoir récupéré l'argent du client.
-    let data;
+    // Le service distingue un refus définitif (déjà remboursé par le serveur)
+    // d'une panne passagère.
+    let data: CommandeCreee;
     for (let tentative = 1; ; tentative++) {
       try {
-        data = await envoyerLaCommande();
+        data = await commandeService.passerCommande(payload, token);
         break;
       } catch (e) {
         const definitif = (e as Error & { definitif?: boolean }).definitif;
@@ -657,7 +615,7 @@ const Order = () => {
       }
     }
 
-    const lignes: any[] = data.lignes ?? [];
+    const lignes = data.lignes ?? [];
     const uploadResults = await Promise.allSettled(
       files.map(async (uploadedFile, i) => {
         const ligneId = lignes[i]?.id;
@@ -665,50 +623,18 @@ const Order = () => {
 
         // Si une correction a été réglée pour ce fichier, c'est la version
         // corrigée — générée par le serveur au moment du paiement — qui est
-        // transmise à l'imprimerie.
+        // transmise à l'imprimerie. En cas d'échec, on imprime l'original
+        // plutôt que de bloquer la commande.
         let aEnvoyer = uploadedFile.file;
         const correction = corrections[i];
         if (correction?.active) {
-          try {
-            const pdfRes = await fetch(
-              `${API_URL}/corrections/${correction.verification.id}/pdf`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-            if (pdfRes.ok) {
-              aEnvoyer = new File([await pdfRes.blob()], uploadedFile.file.name, { type: "application/pdf" });
-            }
-          } catch {
-            // En cas d'échec, on imprime l'original plutôt que de bloquer la commande.
-          }
+          const corrige = await correctionService.telechargerPdfCorrige(
+            correction.verification.id, uploadedFile.file.name, token);
+          if (corrige) aEnvoyer = corrige;
         }
 
-        const envoyer = async () => {
-          const formData = new FormData();
-          formData.append("file", aEnvoyer);
-          formData.append("ligneCommandeId", ligneId.toString());
-          formData.append("nbPages", uploadedFile.pageCount.toString());
-          const res = await fetch(`${API_URL}/fichiers-pdf`, {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${token}` },
-            body: formData,
-          });
-          if (!res.ok) {
-            const txt = await res.text();
-            const message = (() => {
-              try {
-                return JSON.parse(txt).message as string;
-              } catch {
-                return null;
-              }
-            })();
-            const erreur = new Error(message || `Upload échoué (${res.status})`);
-            // Un refus du serveur ne s'arrangera pas en réessayant ; une panne
-            // passagère, si.
-            (erreur as Error & { definitif?: boolean }).definitif = res.status < 500;
-            throw erreur;
-          }
-          return res.json();
-        };
+        const envoyer = () =>
+          fichierPdfService.envoyer(aEnvoyer, ligneId, uploadedFile.pageCount, token);
 
         // Le paiement est déjà encaissé : plutôt que d'abandonner à la première
         // coupure, on réessaie brièvement avant de renoncer.
@@ -785,20 +711,7 @@ const Order = () => {
    */
   const verifierFormats = async () => {
     for (const fichier of files) {
-      const formData = new FormData();
-      formData.append("file", fichier.file);
-      formData.append("produitId", String(fichier.options.productId));
-
-      const res = await fetch(`${API_URL}/fichiers-pdf/verifier-format`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!res.ok) {
-        const corps = await res.json().catch(() => null);
-        throw new Error(corps?.message
-          ?? `Le fichier « ${fichier.file.name} » ne convient pas au produit choisi.`);
-      }
+      await fichierPdfService.verifierFormat(fichier.file, fichier.options.productId, token);
     }
   };
 
