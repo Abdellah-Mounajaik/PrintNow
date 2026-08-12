@@ -5,12 +5,8 @@ import { Badge } from "../ui/badge";
 import PrintShopCard, { type PrintShop, type TravelTimeState } from "./PrintShopCard";
 import { partnerService } from "../../modules/shop/services/partner.service";
 import { toast } from "../../hooks/use-toast";
-import {
-  resolveFileUrl,
-  haversineDistanceKm,
-  fetchDrivingDurationMin,
-  fetchWalkingDurationMin,
-} from "../../lib/utils";
+import { resolveFileUrl, haversineDistanceKm } from "../../lib/utils";
+import { itineraireService } from "../../services/itineraire.service";
 import ShopsMapDialog from "./ShopsMapDialog";
 
 import {
@@ -313,10 +309,10 @@ const PrintShopsSection = () => {
 
     toFetch.forEach((shop) => {
       const destination = { lat: shop.latitude as number, lng: shop.longitude as number };
-      fetchWalkingDurationMin(userLocation, destination).then((minutes) => {
+      itineraireService.dureeAPiedMin(userLocation, destination).then((minutes) => {
         setWalkTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
       });
-      fetchDrivingDurationMin(userLocation, destination).then((minutes) => {
+      itineraireService.dureeEnVoitureMin(userLocation, destination).then((minutes) => {
         setDriveTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
       });
     });

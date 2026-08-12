@@ -11,7 +11,8 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Map as MapIcon, Footprints, Car, Loader2 } from "lucide-react";
-import { formatDuration, fetchDrivingDurationMin, fetchWalkingDurationMin } from "../../lib/utils";
+import { formatDuration } from "../../lib/utils";
+import { itineraireService } from "../../services/itineraire.service";
 
 interface ShopMapPoint {
   id: string;
@@ -60,14 +61,14 @@ const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
 
     if (driveTimes[shop.id] === undefined) {
       setDriveTimes((prev) => ({ ...prev, [shop.id]: "loading" }));
-      fetchDrivingDurationMin(userLocation, destination).then((minutes) => {
+      itineraireService.dureeEnVoitureMin(userLocation, destination).then((minutes) => {
         setDriveTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
       });
     }
 
     if (walkTimes[shop.id] === undefined) {
       setWalkTimes((prev) => ({ ...prev, [shop.id]: "loading" }));
-      fetchWalkingDurationMin(userLocation, destination).then((minutes) => {
+      itineraireService.dureeAPiedMin(userLocation, destination).then((minutes) => {
         setWalkTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
       });
     }
