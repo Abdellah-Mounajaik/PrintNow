@@ -117,7 +117,7 @@ export const adminService = {
     const url = URL.createObjectURL(blob);
     const lien = document.createElement("a");
     lien.href = url;
-    lien.download = `commission-${numeroCommande}.pdf`;
+    lien.download = `revenus-${numeroCommande}.pdf`;
     document.body.appendChild(lien);
     lien.click();
     lien.remove();

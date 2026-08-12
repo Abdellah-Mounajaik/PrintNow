@@ -749,6 +749,8 @@ const DashboardAdmin = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                aria-label={`Relevé des revenus de la commande ${c.numeroCommande}`}
+                                title="Relevé des revenus PrintNow"
                                 onClick={() => handleTelechargerCommission(c.id, c.numeroCommande)}
                                 disabled={downloadingCommissionId === c.id}
                               >

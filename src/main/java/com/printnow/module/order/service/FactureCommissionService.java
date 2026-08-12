@@ -26,10 +26,13 @@ import java.util.Set;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.*;
 
 /**
- * Génère la facture de commission PDF d'une commande, côté PrintNow : le
- * document qui montre ce que la plateforme a gagné sur cette commande
- * (sa commission), indépendamment du montant reversé à l'imprimerie.
- * Réservée à l'admin.
+ * Récapitule ce que PrintNow a gagné sur une commande : sa commission, et la
+ * vérification orthographique lorsqu'elle a été vendue.
+ *
+ * C'est un relevé, pas une facture : ces deux revenus n'ont pas le même
+ * débiteur — la commission est due par l'imprimerie, la correction a déjà été
+ * réglée par le client. Aucun document ne pourrait donc en réclamer la somme à
+ * quiconque. Réservé à l'admin.
  */
 @Service
 @RequiredArgsConstructor
@@ -48,7 +51,7 @@ public class FactureCommissionService {
 
         if (!STATUTS_FACTURABLES.contains(commande.getStatut())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Aucune facture disponible : cette commande n'est pas encore payée.");
+                    "Aucun relevé disponible : cette commande n'est pas encore payée.");
         }
 
         try (PDDocument document = new PDDocument()) {
@@ -83,7 +86,7 @@ public class FactureCommissionService {
         if (logoPrintNow != null) {
             c.dessinerImage(logoPrintNow, MARGE, c.y - hauteurEntete, hauteurEntete);
         }
-        c.texteCouleurDroiteA(FONT_BOLD, 18, MARGE + largeurUtile, c.y - 16, "FACTURE COMMISSION", NAVY);
+        c.texteCouleurDroiteA(FONT_BOLD, 18, MARGE + largeurUtile, c.y - 16, "RELEVÉ DES REVENUS", NAVY);
         c.texteCouleurDroiteA(FONT, 10, MARGE + largeurUtile, c.y - 32,
                 "N° " + numeroFacture + "  ·  " + formatDateFacture(commande), GRIS_TEXTE);
 
@@ -102,7 +105,11 @@ public class FactureCommissionService {
         c.texteA(FONT, 10, MARGE, yBloc - 40, "contact@printnow.be");
         c.texteA(FONT, 10, MARGE, yBloc - 53, "Bruxelles, Belgique");
 
-        c.texteCouleurA(FONT_BOLD, 10, colonneDroite, yBloc, "DESTINATAIRE (IMPRIMEUR)", GRIS_TEXTE);
+        // « Imprimerie concernée », et non « destinataire » : ce relevé n'est
+        // adressé à personne. Il récapitule deux revenus aux débiteurs distincts
+        // — la commission due par l'imprimerie, la correction déjà réglée par le
+        // client —, ce qu'une facture ne pourrait pas réclamer d'un seul tenant.
+        c.texteCouleurA(FONT_BOLD, 10, colonneDroite, yBloc, "IMPRIMERIE CONCERNÉE", GRIS_TEXTE);
         c.texteA(FONT_BOLD, 10, colonneDroite, yBloc - 14, nonVide(imprimerie.getNom()));
         c.texteA(FONT, 10, colonneDroite, yBloc - 27, nonVide(imprimerie.getAdresse()));
         c.texteA(FONT, 10, colonneDroite, yBloc - 40, nonVide(imprimerie.getVille()) + ", " + nonVide(imprimerie.getPays()));
@@ -133,30 +140,42 @@ public class FactureCommissionService {
         c.texte(FONT, 10, xTotal, formatMontant(montantCommission));
         c.avancer(13);
         c.texteCouleur(FONT, 8, xDesignation,
-                "Commande N° " + commande.getNumeroCommande() + "  ·  Taux : 10 %  ·  Base de calcul : " + formatMontant(commande.getTotalTTC()) + " (Vente TTC)",
+                "Commande N° " + commande.getNumeroCommande() + "  ·  Taux : 10 %  ·  Base de calcul : " + formatMontant(commande.getTotalTTC()) + " (Vente TTC)"
+                        + "  ·  Due par l'imprimerie",
                 GRIS_TEXTE);
         c.avancer(24);
+
+        // La vérification orthographique est un service vendu par PrintNow au
+        // client : elle ne transite pas par l'imprimerie et n'entre donc ni dans
+        // le total de la commande, ni dans l'assiette de la commission.
+        BigDecimal montantCorrections = commande.getMontantCorrections() != null
+                ? commande.getMontantCorrections() : BigDecimal.ZERO;
+        if (montantCorrections.signum() > 0) {
+            c.texte(FONT, 10, xDesignation, "Vérification orthographique");
+            c.texte(FONT, 10, xQuantite, "1");
+            c.texte(FONT, 10, xPrixUnitaire, formatMontant(montantCorrections));
+            c.texte(FONT, 10, xTotal, formatMontant(montantCorrections));
+            c.avancer(13);
+            c.texteCouleur(FONT, 8, xDesignation,
+                    "Service PrintNow  ·  Déjà réglé par le client avec sa commande", GRIS_TEXTE);
+            c.avancer(24);
+        }
 
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
         c.avancer(20);
 
-        // PrintNow est sous le régime de la franchise de la taxe (art. 56bis CTVA) :
-        // pas de TVA sur ses propres prestations, d'où l'absence de ligne TVA ici
-        // (à la différence de la facture client, où le vendeur est l'imprimerie).
+        // Aucune ligne de TVA : PrintNow n'en applique pas sur ses propres
+        // prestations, à la différence de la facture client où le vendeur est
+        // l'imprimerie.
         float xLabelTotal = MARGE + largeurUtile - 220;
-        c.texteCouleur(FONT_BOLD, 12, xLabelTotal, "Total Commission", ORANGE);
-        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(montantCommission), ORANGE);
-        c.avancer(28);
-
-        c.texteCouleur(FONT, 8, MARGE, "Petite entreprise soumise au régime de la franchise de la taxe.", GRIS_TEXTE);
-        c.avancer(11);
-        c.texteCouleur(FONT, 8, MARGE, "TVA non applicable (art. 56bis, CTVA).", GRIS_TEXTE);
+        c.texteCouleur(FONT_BOLD, 12, xLabelTotal, "Total perçu par PrintNow", ORANGE);
+        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(montantCommission.add(montantCorrections)), ORANGE);
         c.avancer(30);
 
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
         c.avancer(16);
-        float largeurNote = FONT.getStringWidth("Facture générée automatiquement par la plateforme PrintNow.") / 1000f * 8;
-        c.texteCouleurA(FONT, 8, MARGE + (largeurUtile - largeurNote) / 2, c.y,
-                "Facture générée automatiquement par la plateforme PrintNow.", GRIS_TEXTE);
+        String note = "Document interne. Ne vaut pas facture : ces revenus n'ont pas le même débiteur.";
+        float largeurNote = FONT.getStringWidth(note) / 1000f * 8;
+        c.texteCouleurA(FONT, 8, MARGE + (largeurUtile - largeurNote) / 2, c.y, note, GRIS_TEXTE);
     }
 }
