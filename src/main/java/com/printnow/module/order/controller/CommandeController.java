@@ -4,10 +4,12 @@ package com.printnow.module.order.controller;
 import com.printnow.module.order.dto.CommandeRequestDTO;
 import com.printnow.module.order.dto.CommandeResponseDTO;
 import com.printnow.module.order.service.CommandeService;
+import com.printnow.module.order.service.DroitsCommandeService;
 import com.printnow.module.order.service.FactureCommissionService;
 import com.printnow.module.order.service.FactureService;
 import com.printnow.module.order.service.ReleveVenteService;
 import com.printnow.module.payment.service.RemboursementService;
+import com.printnow.module.shop.service.DroitsImprimerieService;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
 import com.stripe.exception.StripeException;
@@ -34,6 +36,8 @@ public class CommandeController {
     private final FactureCommissionService factureCommissionService;
     private final ReleveVenteService releveVenteService;
     private final RemboursementService remboursementService;
+    private final DroitsCommandeService droits;
+    private final DroitsImprimerieService droitsImprimerie;
     private final UserRepository userRepository;
 
     /**
@@ -98,9 +102,14 @@ public class CommandeController {
     /**
      * GET /api/commandes/imprimerie/{id}
      * Permet de récupérer toutes les commandes d'une imprimerie spécifique (pour le Dashboard Pro).
+     *
+     * Réservé au gérant de cette boutique et à l'administration : le carnet de
+     * commandes d'une imprimerie renseigne aussi bien ses clients que son
+     * chiffre d'affaires.
      */
     @GetMapping("/imprimerie/{id}")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesImprimeur(@PathVariable Long id) {
+        droitsImprimerie.verifierAccesImprimerie(id);
         List<CommandeResponseDTO> commandes = commandeService.getCommandesForImprimerie(id);
         return ResponseEntity.ok(commandes);
     }
@@ -108,11 +117,15 @@ public class CommandeController {
     /**
      * PATCH /api/commandes/{id}/statut
      * Permet à l'imprimeur de faire avancer le statut d'une commande.
+     *
+     * Seul celui qui imprime — ou l'administration — fait avancer une commande :
+     * le passage à « prête » prévient le client par courriel.
      */
     @PatchMapping("/{id}/statut")
     public ResponseEntity<CommandeResponseDTO> updateStatut(
             @PathVariable Long id,
             @RequestParam String statut) {
+        droits.verifierGestionCommande(id);
         return ResponseEntity.ok(commandeService.updateStatut(id, statut));
     }
 
@@ -121,6 +134,7 @@ public class CommandeController {
      * Récupère toutes les commandes (Dashboard Admin).
      */
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CommandeResponseDTO>> getAllCommandes() {
         return ResponseEntity.ok(commandeService.getAllCommandes());
     }

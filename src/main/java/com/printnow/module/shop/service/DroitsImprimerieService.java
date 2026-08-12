@@ -1,15 +1,12 @@
 package com.printnow.module.shop.service;
 
+import com.printnow.infrastructure.security.UtilisateurCourant;
 import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.repository.HoraireOuvertureRepository;
 import com.printnow.module.shop.repository.ImprimerieRepository;
 import com.printnow.module.shop.repository.ProduitRepository;
-import com.printnow.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,7 +25,7 @@ public class DroitsImprimerieService {
     private final ImprimerieRepository imprimerieRepository;
     private final ProduitRepository produitRepository;
     private final HoraireOuvertureRepository horaireRepository;
-    private final UserRepository userRepository;
+    private final UtilisateurCourant utilisateurCourant;
 
     /** @throws ResponseStatusException 403 si la boutique n'est pas la sienne */
     @Transactional(readOnly = true)
@@ -59,7 +56,7 @@ public class DroitsImprimerieService {
     }
 
     private void refuserSiCeNestPasSonImprimerie(Imprimerie imprimerie) {
-        Long moi = idDuDemandeur();
+        Long moi = utilisateurCourant.id();
         if (imprimerie == null || imprimerie.getGerant() == null
                 || !imprimerie.getGerant().getId().equals(moi)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cette boutique n'est pas la vôtre.");
@@ -67,18 +64,6 @@ public class DroitsImprimerieService {
     }
 
     private boolean estAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch("ROLE_ADMIN"::equals);
-    }
-
-    private Long idDuDemandeur() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentification requise.");
-
-        return userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Compte introuvable."))
-                .getId();
+        return utilisateurCourant.estAdmin();
     }
 }

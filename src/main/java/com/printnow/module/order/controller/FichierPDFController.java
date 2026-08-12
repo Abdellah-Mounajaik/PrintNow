@@ -1,6 +1,7 @@
 package com.printnow.module.order.controller;
 
 import com.printnow.module.order.dto.FichierPDFResponseDTO;
+import com.printnow.module.order.service.DroitsCommandeService;
 import com.printnow.module.order.service.FichierPDFService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -15,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class FichierPDFController {
 
     private final FichierPDFService fichierPDFService;
+    private final DroitsCommandeService droits;
 
     /**
      * POST /api/fichiers-pdf
@@ -44,9 +46,14 @@ public class FichierPDFController {
     /**
      * GET /api/fichiers-pdf/{id}/download
      * Télécharge / affiche un PDF dans le navigateur.
+     *
+     * Réservé au client qui l'a déposé, à l'imprimeur qui doit l'imprimer et à
+     * l'administration. Les identifiants se suivent : sans ce contrôle, il
+     * suffisait de compter de 1 à n pour récupérer les documents de tout le site.
      */
     @GetMapping("/{id}/download")
     public ResponseEntity<Resource> download(@PathVariable Long id) {
+        droits.verifierAccesFichier(id);
         return fichierPDFService.downloadFichier(id);
     }
 }
