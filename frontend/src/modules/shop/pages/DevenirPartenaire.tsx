@@ -10,7 +10,8 @@ import { Separator } from "../../../components/ui/separator";
 import { Badge } from "../../../components/ui/badge";
 import Header from "../../../components/layout/Header";
 import { toast } from "../../../hooks/use-toast";
-import { API_URL, SERVER_URL } from "../../../lib/api";
+import { SERVER_URL } from "../../../lib/api";
+import { paiementService } from "../services/paiement.service";
 import { adresseService, LONGUEUR_MINIMALE } from "../../../services/adresse.service";
 import type { SuggestionAdresse } from "../../../models/adresse.model";
 
@@ -50,17 +51,10 @@ const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) =
 
     try {
       // 1. Créer le PaymentIntent — aucune donnée n'est encore écrite en base à ce stade
-      const intentResponse = await fetch(`${API_URL}/payments/create-payment-intent`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: Math.round(amount * 100) })
-      });
-
-      if (!intentResponse.ok) throw new Error("Erreur lors de l'initialisation du paiement");
-      const intentData = await intentResponse.json();
+      const clientSecret = await paiementService.creerIntention(amount);
 
       // 2. Confirmer le paiement par carte
-      const result = await stripe.confirmCardPayment(intentData.clientSecret, {
+      const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: elements.getElement(CardElement)!,
         }

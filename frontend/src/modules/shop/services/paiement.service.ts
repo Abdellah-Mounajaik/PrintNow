@@ -8,11 +8,16 @@ export const paiementService = {
    * confirmer depuis le navigateur.
    *
    * @param montantEuros montant à débiter, en euros (converti en centimes ici)
+   * @param token facultatif : l'inscription d'un partenaire est réglée avant
+   *              même que son compte n'existe
    */
-  creerIntention: async (montantEuros: number, token: string): Promise<string> => {
+  creerIntention: async (montantEuros: number, token?: string | null): Promise<string> => {
     const response = await fetch(`${API_URL}/payments/create-payment-intent`, {
       method: "POST",
-      headers: { ...authHeaders(token), "Content-Type": "application/json" },
+      headers: {
+        ...(token ? authHeaders(token) : {}),
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ amount: Math.round(montantEuros * 100) }),
     });
     if (!response.ok) throw new Error("Erreur lors de la création du paiement.");

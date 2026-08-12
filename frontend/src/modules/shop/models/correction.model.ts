@@ -1,3 +1,15 @@
+/** Où en est l'analyse, telle que le serveur la publie pendant qu'il travaille. */
+export interface EtapeAnalyse {
+  pourcentage: number;
+  libelle: string;
+}
+
+/** Les choix du client, transmis pour que l'aperçu montre ce qu'il recevra. */
+export interface ChoixCorrection {
+  fautesIgnorees: number[];
+  remplacementsChoisis: Record<number, string>;
+}
+
 /** Une faute repérée dans le document, avec la correction proposée. */
 export interface Faute {
   page: number;

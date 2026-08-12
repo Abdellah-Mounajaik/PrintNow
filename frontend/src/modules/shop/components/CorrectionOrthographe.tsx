@@ -10,10 +10,8 @@ import {
   SpellCheck2, Loader2, CheckCircle2, AlertTriangle, Sparkles, Undo2, Eye, Lock,
 } from "lucide-react";
 
-import { API_URL } from "../../../lib/api";
-import type { EtatCorrection } from "../models/correction.model";
-
-const API = `${API_URL}/corrections`;
+import { correctionService } from "../services/correction.service";
+import type { ChoixCorrection, EtatCorrection } from "../models/correction.model";
 
 
 
@@ -54,20 +52,15 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
     try {
       // On transmet les choix en cours pour que l'aperçu montre exactement ce
       // que le client recevra, y compris les suggestions qu'il a modifiées.
-      const choix = JSON.stringify({
+      const choix: ChoixCorrection = {
         fautesIgnorees: etat.fautesIgnorees,
         remplacementsChoisis: etat.remplacementsChoisis,
-      });
+      };
 
       const pages: string[] = [];
       for (let page = 1; page <= etat.verification.nbPages; page++) {
-        const res = await fetch(`${API}/${etat.verification.id}/apercu?page=${page}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: choix,
-        });
-        if (!res.ok) throw new Error("Aperçu indisponible.");
-        pages.push(URL.createObjectURL(await res.blob()));
+        const image = await correctionService.apercuPage(etat.verification.id, page, choix, token);
+        pages.push(URL.createObjectURL(image));
         setApercuPages([...pages]);
       }
     } catch (e) {
@@ -88,21 +81,14 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
     setAvancement({ cible: 0, affiche: 0, libelle: "Envoi du document" });
 
     const sondage = window.setInterval(async () => {
-      try {
-        const res = await fetch(`${API}/progression/${suivi}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.status !== 200) return; // analyse terminée ou pas encore commencée
-        const etape = await res.json();
-        setAvancement((a) => ({
-          cible: etape.pourcentage,
-          // La barre ne revient jamais en arrière.
-          affiche: Math.max(a?.affiche ?? 0, etape.pourcentage),
-          libelle: etape.libelle,
-        }));
-      } catch {
-        // Une consultation manquée n'a pas d'importance : la suivante suivra.
-      }
+      const etape = await correctionService.progression(suivi, token);
+      if (!etape) return; // analyse terminée, pas encore commencée, ou consultation manquée
+      setAvancement((a) => ({
+        cible: etape.pourcentage,
+        // La barre ne revient jamais en arrière.
+        affiche: Math.max(a?.affiche ?? 0, etape.pourcentage),
+        libelle: etape.libelle,
+      }));
     }, 500);
 
     // Entre deux étapes, la barre avance d'elle-même, sans jamais dépasser de
@@ -114,17 +100,7 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
     }, 400);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("suivi", suivi);
-
-      const res = await fetch(`${API}/analyser`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.message ?? "Analyse impossible.");
+      const data = await correctionService.analyser(file, suivi, token);
 
       // La correction est proposée activée si des fautes ont été trouvées.
       onChange({ verification: data, active: data.nbFautes > 0, fautesIgnorees: [], remplacementsChoisis: {} });

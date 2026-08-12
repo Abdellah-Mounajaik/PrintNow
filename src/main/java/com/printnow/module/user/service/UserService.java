@@ -18,7 +18,6 @@ import com.printnow.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.printnow.module.user.model.Role;
-import com.printnow.module.user.dto.SignupRequestDTO;
 
 import java.util.List;
 import java.util.Optional;
