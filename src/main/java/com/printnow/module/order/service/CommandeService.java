@@ -1,5 +1,6 @@
 package com.printnow.module.order.service;
 
+import com.printnow.infrastructure.email.EmailService;
 import com.printnow.module.order.dto.CommandeRequestDTO;
 import com.printnow.module.order.dto.CommandeResponseDTO;
 import com.printnow.module.order.dto.LigneCommandeRequestDTO;
@@ -35,12 +36,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class CommandeService {
 
     private final CommandeRepository commandeRepository;
+    private final EmailService emailService;
     private final ProduitRepository produitRepository;
     private final CommandeMapper commandeMapper;
     private final AdresseLivraisonMapper adresseLivraisonMapper;
@@ -341,8 +344,48 @@ public class CommandeService {
     public CommandeResponseDTO updateStatut(Long id, String nouveauStatut) {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Commande non trouvée: " + id));
-        commande.setStatut(StatutCommande.valueOf(nouveauStatut));
-        return commandeMapper.toDto(commandeRepository.save(commande));
+
+        StatutCommande ancien = commande.getStatut();
+        StatutCommande statut = StatutCommande.valueOf(nouveauStatut);
+        commande.setStatut(statut);
+        CommandeResponseDTO dto = commandeMapper.toDto(commandeRepository.save(commande));
+
+        if (statut != ancien) previenirSiPreteARetirer(commande, statut);
+        return dto;
+    }
+
+    /**
+     * Prévient le client que sa commande l'attend en magasin.
+     *
+     * Uniquement pour un retrait : en livraison, ce même statut signifie
+     * « expédiée », et annoncer au client de venir la chercher serait faux.
+     * L'envoi n'a lieu qu'au changement de statut, pour qu'un imprimeur qui
+     * repasse par là ne renvoie pas le message.
+     */
+    private void previenirSiPreteARetirer(Commande commande, StatutCommande statut) {
+        if (statut != StatutCommande.PRETE || commande.getModeRetrait() != ModeRetrait.RETRAIT_MAGASIN) return;
+
+        User client = commande.getClient();
+        // Un compte supprimé porte une adresse volontairement inexistante : lui
+        // écrire ne ferait qu'accumuler des échecs dans les journaux.
+        if (client == null || client.estSupprime() || client.getEmail() == null) return;
+
+        Imprimerie imprimerie = commande.getImprimerie();
+        emailService.envoyerCommandePrete(
+                client.getEmail(),
+                client.getPrenom(),
+                commande.getNumeroCommande(),
+                imprimerie != null ? imprimerie.getNom() : "votre imprimerie",
+                adressePostale(imprimerie),
+                imprimerie != null ? imprimerie.getTelephoneContact() : null);
+    }
+
+    /** « Rue de la Loi 12, 1000 Bruxelles », en ignorant les champs absents. */
+    private String adressePostale(Imprimerie imprimerie) {
+        if (imprimerie == null) return "";
+        return Stream.of(imprimerie.getAdresse(), imprimerie.getVille())
+                .filter(champ -> champ != null && !champ.isBlank())
+                .collect(Collectors.joining(", "));
     }
 
     /**
