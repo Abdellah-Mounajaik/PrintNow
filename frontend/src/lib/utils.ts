@@ -1,11 +1,12 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { SERVER_URL } from "./api"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-const API_HOST = "http://localhost:8080";
+const API_HOST = SERVER_URL;
 
 /**
  * Le backend renvoie des chemins relatifs pour les fichiers uploadés (ex: logos

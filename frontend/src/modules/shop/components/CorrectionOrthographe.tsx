@@ -10,7 +10,9 @@ import {
   SpellCheck2, Loader2, CheckCircle2, AlertTriangle, Sparkles, Undo2, Eye, Lock,
 } from "lucide-react";
 
-const API = "http://localhost:8080/api/corrections";
+import { API_URL } from "../../../lib/api";
+
+const API = `${API_URL}/corrections`;
 
 export interface Faute {
   page: number;

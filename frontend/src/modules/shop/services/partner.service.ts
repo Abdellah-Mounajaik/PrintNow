@@ -1,6 +1,8 @@
-const PARTNERS_API_URL = "http://localhost:8080/api/partners";
-const IMPRIMERIES_API_URL = "http://localhost:8080/api/imprimeries"; // 👈 Nouvelle URL pour le catalogue
-const UPLOADS_API_URL = "http://localhost:8080/api/uploads";
+import { API_URL } from "../../../lib/api";
+
+const PARTNERS_API_URL = `${API_URL}/partners`;
+const IMPRIMERIES_API_URL = `${API_URL}/imprimeries`; // Catalogue public
+const UPLOADS_API_URL = `${API_URL}/uploads`;
 
 export const partnerService = {
 

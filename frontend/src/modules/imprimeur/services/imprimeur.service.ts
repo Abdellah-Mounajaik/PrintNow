@@ -1,6 +1,5 @@
 import type { CommandeImprimeurDTO, PromoDTO, PromoRequest } from "../models/imprimeur.model";
-
-const API_URL = "http://localhost:8080/api";
+import { API_URL } from "../../../lib/api";
 
 const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
 

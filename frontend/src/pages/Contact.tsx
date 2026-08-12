@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { API_URL } from "@/lib/api";
 import {
   Mail,
   Phone,
@@ -62,7 +63,7 @@ const Contact = () => {
 
     setSending(true);
     try {
-      const response = await fetch("http://localhost:8080/api/contact", {
+      const response = await fetch(`${API_URL}/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bot, Send, User, Sparkle, RotateCcw, Printer } from "lucide-react";
+import { API_URL } from "@/lib/api";
 
 type Message = { id: string; role: "bot" | "user"; text: string };
 
@@ -17,8 +18,7 @@ const MESSAGE_ACCUEIL =
 const questionsFrequentes = [
   "Comment passer une commande ?",
   "Comment le prix est-il calculé ?",
-  // Placée haut : c'est le service le plus distinctif, et celui qu'un visiteur
-  // ne peut deviner nulle part ailleurs sur cette page.
+
   "Pouvez-vous corriger les fautes de mon document ?",
   "Quels formats de fichiers acceptez-vous ?",
   "Livraison ou retrait en magasin ?",
@@ -67,7 +67,7 @@ const FAQ = () => {
     setTyping(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/chat", {
+      const response = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

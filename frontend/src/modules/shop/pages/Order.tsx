@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { Badge } from "../../../components/ui/badge";
 import { toast } from "../../../hooks/use-toast";
+import { API_URL } from "../../../lib/api";
 import {
   Select,
   SelectContent,
@@ -181,7 +182,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       await verifierFormats();
 
       // 1. Create PaymentIntent on the backend
-      const piRes = await fetch("http://localhost:8080/api/payments/create-payment-intent", {
+      const piRes = await fetch(`${API_URL}/payments/create-payment-intent`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ amount: Math.round(total * 100) }),
@@ -310,7 +311,7 @@ const Order = () => {
 
   useEffect(() => {
     if (!token) return;
-    fetch("http://localhost:8080/api/verifications-etudiants/me", {
+    fetch(`${API_URL}/verifications-etudiants/me`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then(res => {
       if (res.status === 204) return null;
@@ -500,7 +501,7 @@ const Order = () => {
     try {
       const totalTTCAvantPromo = totalAvantPromo * 1.21;
       // L'imprimerie est transmise : un code ne vaut que chez celle qui l'a créé.
-      const res = await fetch(`http://localhost:8080/api/promos/valider?code=${encodeURIComponent(code)}&montant=${totalTTCAvantPromo.toFixed(2)}&imprimerieId=${shop?.id ?? ""}`, {
+      const res = await fetch(`${API_URL}/promos/valider?code=${encodeURIComponent(code)}&montant=${totalTTCAvantPromo.toFixed(2)}&imprimerieId=${shop?.id ?? ""}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -558,7 +559,7 @@ const Order = () => {
    */
   const reclamerLeRemboursement = async (paymentIntentId: string) => {
     try {
-      const res = await fetch("http://localhost:8080/api/payments/abandon", {
+      const res = await fetch(`${API_URL}/payments/abandon`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ paymentIntentId }),
@@ -604,7 +605,7 @@ const Order = () => {
     };
 
     const envoyerLaCommande = async () => {
-      const response = await fetch("http://localhost:8080/api/commandes", {
+      const response = await fetch(`${API_URL}/commandes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -670,7 +671,7 @@ const Order = () => {
         if (correction?.active) {
           try {
             const pdfRes = await fetch(
-              `http://localhost:8080/api/corrections/${correction.verification.id}/pdf`,
+              `${API_URL}/corrections/${correction.verification.id}/pdf`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
             if (pdfRes.ok) {
@@ -686,7 +687,7 @@ const Order = () => {
           formData.append("file", aEnvoyer);
           formData.append("ligneCommandeId", ligneId.toString());
           formData.append("nbPages", uploadedFile.pageCount.toString());
-          const res = await fetch("http://localhost:8080/api/fichiers-pdf", {
+          const res = await fetch(`${API_URL}/fichiers-pdf`, {
             method: "POST",
             headers: { "Authorization": `Bearer ${token}` },
             body: formData,
@@ -788,7 +789,7 @@ const Order = () => {
       formData.append("file", fichier.file);
       formData.append("produitId", String(fichier.options.productId));
 
-      const res = await fetch("http://localhost:8080/api/fichiers-pdf/verifier-format", {
+      const res = await fetch(`${API_URL}/fichiers-pdf/verifier-format`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

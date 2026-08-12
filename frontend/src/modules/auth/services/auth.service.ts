@@ -1,6 +1,7 @@
 import type { SignupRequest, LoginRequest, AuthResponse } from '../models/auth.model';
+import { API_URL as API_BASE } from "../../../lib/api";
 
-const API_URL = "http://localhost:8080/api/auth";
+const API_URL = `${API_BASE}/auth`;
 
 /** Le backend renvoie soit du JSON {message: "..."} (validation), soit du texte brut. */
 const messageDErreur = async (response: Response, defaut: string): Promise<string> => {

@@ -10,6 +10,7 @@ import { Separator } from "../../../components/ui/separator";
 import { Badge } from "../../../components/ui/badge";
 import Header from "../../../components/layout/Header";
 import { toast } from "../../../hooks/use-toast";
+import { API_URL, SERVER_URL } from "../../../lib/api";
 
 import { partnerService } from "../services/partner.service";
 import { type PartnerRegistrationRequest } from "../models/partner.model";
@@ -47,7 +48,7 @@ const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) =
 
     try {
       // 1. Créer le PaymentIntent — aucune donnée n'est encore écrite en base à ce stade
-      const intentResponse = await fetch("http://localhost:8080/api/payments/create-payment-intent", {
+      const intentResponse = await fetch(`${API_URL}/payments/create-payment-intent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: Math.round(amount * 100) })
@@ -628,7 +629,7 @@ const DevenirPartenaire = () => {
                     ) : logoUrl ? (
                       <div className="flex flex-col items-center gap-2">
                         <img
-                          src={`http://localhost:8080${logoUrl}`}
+                          src={`${SERVER_URL}${logoUrl}`}
                           alt="Logo de l'imprimerie"
                           className="h-16 w-16 object-contain rounded-md border border-border bg-background"
                         />

@@ -23,6 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "../../../components/ui/select";
 import { toast } from "../../../hooks/use-toast";
+import { SERVER_URL } from "../../../lib/api";
 
 import { imprimerieService } from "../../shop/services/imprimerieService.service";
 import { partnerService } from "../../shop/services/partner.service";
@@ -1413,7 +1414,7 @@ const DashboardImprimeur = () => {
                         ) : shopForm.logoUrl ? (
                           <>
                             <img
-                              src={`http://localhost:8080${shopForm.logoUrl}`}
+                              src={`${SERVER_URL}${shopForm.logoUrl}`}
                               alt="Logo de l'imprimerie"
                               className="h-16 w-16 object-contain rounded-md border border-border bg-background"
                             />
@@ -1428,7 +1429,7 @@ const DashboardImprimeur = () => {
                       </label>
                     ) : shopForm.logoUrl ? (
                       <img
-                        src={`http://localhost:8080${shopForm.logoUrl}`}
+                        src={`${SERVER_URL}${shopForm.logoUrl}`}
                         alt="Logo de l'imprimerie"
                         className="h-16 w-16 object-contain rounded-md border border-border bg-muted/40"
                       />
