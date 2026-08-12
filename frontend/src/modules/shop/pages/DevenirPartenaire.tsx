@@ -10,7 +10,7 @@ import { Separator } from "../../../components/ui/separator";
 import { Badge } from "../../../components/ui/badge";
 import Header from "../../../components/layout/Header";
 import { toast } from "../../../hooks/use-toast";
-import { SERVER_URL } from "../../../lib/api";
+import { SERVER_URL, STRIPE_PUBLIC_KEY } from "../../../lib/api";
 import { paiementService } from "../services/paiement.service";
 import { adresseService, LONGUEUR_MINIMALE } from "../../../services/adresse.service";
 import type { SuggestionAdresse } from "../../../models/adresse.model";
@@ -31,7 +31,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
 // 👇 Initialisation de Stripe 
-const stripePromise = loadStripe("pk_test_51TTGFb2cg3RhdI8F1DZMf8XiWANwLYoDPQGDEfqARAwnDN4gvIBxQyioyQFUuxMvoVtJJHwdT6tJP2IdBIlOMdES00ZAsXr92a");
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 // =========================================================================
 // SOUS-COMPOSANT : Formulaire Stripe sécurisé

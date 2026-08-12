@@ -13,38 +13,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDuration } from "../../lib/utils";
+import type { PrintShop, TravelTimeState } from "../../models/catalogue.model";
 
-/** Produit actif d'une imprimerie, avec le nécessaire pour estimer un prix (voir tri par prix). */
-export interface PrintShopProduit {
-  typeProduit: string;
-  actif: boolean;
-  prixBase: number | null;
-}
 
-export interface PrintShop {
-  id: string;
-  name: string;
-  /** Adresse lisible de la fiche ; l'identifiant sert de repli. */
-  slug?: string;
-  address: string;
-  distance: string;
-  latitude: number | null;
-  longitude: number | null;
-  distanceKm?: number;
-  rating: number;
-  reviewCount: number;
-  isOpen: boolean;
-  openingHours: string;
-  image: string;
-  services: string[];
-  produits: PrintShopProduit[];
-  hasExpressOption: boolean;
-  hasStudentDiscount: boolean;
-  hasDelivery: boolean;
-}
 
-/** Temps de trajet réel (OSRM/Valhalla) : nombre de minutes, en cours de calcul, ou indisponible. */
-export type TravelTimeState = number | "loading" | "error";
 
 interface PrintShopCardProps {
   shop: PrintShop;

@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { Badge } from "../../../components/ui/badge";
 import { toast } from "../../../hooks/use-toast";
+import { STRIPE_PUBLIC_KEY } from "../../../lib/api";
 import {
   Select,
   SelectContent,
@@ -49,7 +50,7 @@ import CorrectionOrthographe from "../components/CorrectionOrthographe";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "");
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 interface FileOptions {
   productId: number | "";

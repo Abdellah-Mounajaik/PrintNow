@@ -13,27 +13,17 @@ import { Button } from "../ui/button";
 import { Map as MapIcon, Footprints, Car, Loader2 } from "lucide-react";
 import { formatDuration } from "../../lib/utils";
 import { itineraireService } from "../../services/itineraire.service";
+import type { ShopMapPoint, TravelTimeState } from "../../models/catalogue.model";
+import type { PointGps } from "../../models/itineraire.model";
 
-interface ShopMapPoint {
-  id: string;
-  name: string;
-  /** Adresse lisible de la fiche ; l'identifiant sert de repli. */
-  slug?: string;
-  address: string;
-  latitude: number | null;
-  longitude: number | null;
-  isOpen: boolean;
-  distanceKm?: number;
-}
 
 interface ShopsMapDialogProps {
   shops: ShopMapPoint[];
-  userLocation?: { lat: number; lng: number } | null;
+  userLocation?: PointGps | null;
 }
 
 const BELGIUM_CENTER: [number, number] = [50.5039, 4.4699];
 
-type TravelTimeState = number | "loading" | "error";
 
 const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
   const [open, setOpen] = useState(false);
