@@ -29,7 +29,6 @@ import {
   CheckCircle2,
   Eye,
   Shield,
-  Settings,
   Loader2,
   ShoppingCart,
   GraduationCap,
@@ -504,9 +503,6 @@ const DashboardAdmin = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <Button variant="ghost" size="sm">
-                                <Settings className="h-4 w-4" />
-                              </Button>
                               {/* Une boutique déjà fermée n'a plus rien à fermer. */}
                               {shop.actif && (
                                 <Button
@@ -649,9 +645,6 @@ const DashboardAdmin = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <Button variant="ghost" size="sm">
-                                <Eye className="h-4 w-4" />
-                              </Button>
                               {!user.dateSuppression && (
                                 <Button
                                   variant="ghost"
