@@ -109,6 +109,11 @@ const DashboardAdmin = () => {
   const [shopSearchQuery, setShopSearchQuery] = useState("");
   const [shopsPage, setShopsPage] = useState(1);
   const [userSearchQuery, setUserSearchQuery] = useState("");
+  // Filtre par rôle : « Utilisateurs » gère TOUS les comptes (clients, imprimeurs,
+  // admins), car c'est le seul endroit où l'on peut les supprimer. Ce filtre
+  // permet d'isoler un rôle à la demande — par ex. ne voir que les clients —
+  // sans perdre l'accès aux autres.
+  const [userRoleFilter, setUserRoleFilter] = useState<"TOUS" | "CLIENT" | "IMPRIMERIE">("TOUS");
   const [usersPage, setUsersPage] = useState(1);
   const [userASupprimer, setUserASupprimer] = useState<UserDTO | null>(null);
   const [suppressionEnCours, setSuppressionEnCours] = useState(false);
@@ -253,12 +258,14 @@ const DashboardAdmin = () => {
   );
 
   const userSearchNormalized = userSearchQuery.trim().toLowerCase();
-  const filteredUsers = userSearchNormalized
-    ? users.filter((u) =>
-        `${u.prenom ?? ""} ${u.nom ?? ""}`.toLowerCase().includes(userSearchNormalized) ||
-        u.email?.toLowerCase().includes(userSearchNormalized)
-      )
-    : users;
+  const filteredUsers = users.filter((u) => {
+    const correspondRole = userRoleFilter === "TOUS" || u.roleNom === userRoleFilter;
+    const correspondRecherche =
+      !userSearchNormalized ||
+      `${u.prenom ?? ""} ${u.nom ?? ""}`.toLowerCase().includes(userSearchNormalized) ||
+      (u.email?.toLowerCase().includes(userSearchNormalized) ?? false);
+    return correspondRole && correspondRecherche;
+  });
 
   // La page demandée est ramenée dans les bornes valides si la recherche a
   // réduit le nombre de résultats entre-temps.
@@ -574,13 +581,35 @@ const DashboardAdmin = () => {
                     </div>
                   )}
                 </div>
+                {users.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {([
+                      { value: "TOUS", label: "Tous" },
+                      { value: "CLIENT", label: "Clients" },
+                      { value: "IMPRIMERIE", label: "Imprimeurs" },
+                    ] as const).map((filtre) => (
+                      <Button
+                        key={filtre.value}
+                        variant={userRoleFilter === filtre.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => { setUserRoleFilter(filtre.value); setUsersPage(1); }}
+                      >
+                        {filtre.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
                 {users.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Aucun utilisateur.</p>
                 ) : filteredUsers.length === 0 ? (
                   <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                     <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
                     <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
-                    <p className="text-muted-foreground text-sm">Aucun utilisateur ne correspond à "{userSearchQuery}".</p>
+                    <p className="text-muted-foreground text-sm">
+                      {userSearchNormalized
+                        ? `Aucun utilisateur ne correspond à "${userSearchQuery}".`
+                        : "Aucun utilisateur pour ce rôle."}
+                    </p>
                   </div>
                 ) : (
                   <Table>
