@@ -10,6 +10,7 @@ import com.printnow.module.promo.model.CodePromo;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -37,6 +38,14 @@ public class Commande {
 
     private LocalDateTime dateCreation;
     private LocalDateTime datePaiement;
+
+    /**
+     * Dernière modification de la commande, mise à jour automatiquement à chaque
+     * changement — notamment au passage à « livrée ». Sert de point de départ au
+     * délai de conservation des fichiers clients (voir PurgeFichiersClientsService).
+     */
+    @UpdateTimestamp
+    private LocalDateTime dateMiseAJour;
 
     /**
      * Paiement Stripe correspondant à cette commande.
