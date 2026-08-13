@@ -1,6 +1,8 @@
 package com.printnow.module.order.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.printnow.module.order.enums.StatutCommande;
@@ -36,4 +38,35 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
 
     // Vérifie qu'un client a au moins une commande livrée chez une imprimerie (pour autoriser un avis)
     boolean existsByClient_IdAndImprimerie_IdAndStatut(Long clientId, Long imprimerieId, StatutCommande statut);
+
+    /*
+     * Requêtes des tableaux de bord (client, imprimeur, admin).
+     *
+     * Sans elles, afficher une liste de commandes déclenchait une cinquantaine
+     * d'allers-retours vers la base — un par commande pour son client, son
+     * imprimerie, sa livraison, ses lignes, etc. Chaque aller-retour coûte cher
+     * (base dans Docker), d'où plusieurs secondes d'attente.
+     *
+     * Ici tout est ramené en une seule requête : commande + lignes + produit +
+     * client + imprimerie + livraison + adresse. Seuls les fichiers (2ᵉ
+     * collection, qui provoquerait un produit cartésien avec les lignes) sont
+     * laissés au regroupement par lots (hibernate.default_batch_fetch_size).
+     */
+    String FETCH_TABLEAU_DE_BORD =
+            "SELECT DISTINCT c FROM Commande c " +
+            "LEFT JOIN FETCH c.lignes l " +
+            "LEFT JOIN FETCH l.produit " +
+            "LEFT JOIN FETCH c.client " +
+            "LEFT JOIN FETCH c.imprimerie im " +
+            "LEFT JOIN FETCH c.livraison " +
+            "LEFT JOIN FETCH c.adresseLivraison ";
+
+    @Query(FETCH_TABLEAU_DE_BORD + "ORDER BY c.dateCreation DESC")
+    List<Commande> findAllPourTableauDeBord();
+
+    @Query(FETCH_TABLEAU_DE_BORD + "WHERE im.id = :imprimerieId ORDER BY c.dateCreation DESC")
+    List<Commande> findParImprimeriePourTableauDeBord(@Param("imprimerieId") Long imprimerieId);
+
+    @Query(FETCH_TABLEAU_DE_BORD + "WHERE c.client.id = :clientId ORDER BY c.dateCreation DESC")
+    List<Commande> findParClientPourTableauDeBord(@Param("clientId") Long clientId);
 }

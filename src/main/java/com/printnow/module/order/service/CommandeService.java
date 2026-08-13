@@ -373,7 +373,7 @@ public class CommandeService {
      * Récupère l'historique des commandes pour une imprimerie (Dashboard Pro)
      */
     public List<CommandeResponseDTO> getCommandesForImprimerie(Long imprimerieId) {
-        return commandeRepository.findByImprimerie_IdOrderByDateCreationDesc(imprimerieId)
+        return commandeRepository.findParImprimeriePourTableauDeBord(imprimerieId)
                 .stream()
                 .map(commandeMapper::toDto)
                 .collect(Collectors.toList());
@@ -512,14 +512,14 @@ public class CommandeService {
      * Récupère l'historique des commandes d'un client (Dashboard Client)
      */
     public List<CommandeResponseDTO> getCommandesForClient(Long clientId) {
-        return commandeRepository.findByClient_IdOrderByDateCreationDesc(clientId)
+        return commandeRepository.findParClientPourTableauDeBord(clientId)
                 .stream()
                 .map(commandeMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     public List<CommandeResponseDTO> getAllCommandes() {
-        return commandeRepository.findAllByOrderByDateCreationDesc()
+        return commandeRepository.findAllPourTableauDeBord()
                 .stream()
                 .map(commandeMapper::toDto)
                 .collect(Collectors.toList());
