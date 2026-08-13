@@ -1,6 +1,19 @@
 import type { ImprimerieDetail, ImprimerieUpdateDTO } from "../models/Imprimerie.model";
 import { API_URL as API_BASE_URL } from "../../../lib/api";
 
+/**
+ * Jeton d'authentification pour les écritures (modifier une boutique, ses
+ * produits, ses horaires). Ces routes sont réservées au gérant depuis le
+ * durcissement de la sécurité : sans ce en-tête, le serveur répond 401 et la
+ * sauvegarde échoue silencieusement. On lit le jeton là où AuthContext le
+ * range, pour couvrir tous les appels sans modifier chaque page.
+ *
+ * Les lectures (fiche, slug, gérant) restent publiques : elles n'en ont pas besoin.
+ */
+const authHeaders = (): Record<string, string> => {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export const imprimerieService = {
   getImprimerieById: async (id: string): Promise<ImprimerieDetail> => {
@@ -30,7 +43,7 @@ export const imprimerieService = {
   updateImprimerie: async (id: string, dto: ImprimerieUpdateDTO): Promise<ImprimerieDetail> => {
     const response = await fetch(`${API_BASE_URL}/imprimeries/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(dto),
     });
     if (!response.ok) throw new Error("Erreur lors de la mise à jour de l'imprimerie");
@@ -40,7 +53,7 @@ export const imprimerieService = {
   createProduit: async (dto: Record<string, unknown>): Promise<unknown> => {
     const response = await fetch(`${API_BASE_URL}/produits`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(dto),
     });
     if (!response.ok) throw new Error("Erreur lors de la création du produit");
@@ -48,14 +61,17 @@ export const imprimerieService = {
   },
 
   deleteProduit: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/produits/${id}`, { method: "DELETE" });
+    const response = await fetch(`${API_BASE_URL}/produits/${id}`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
     if (!response.ok) throw new Error("Erreur lors de la désactivation du produit");
   },
 
   updateProduit: async (id: number, dto: Record<string, unknown>): Promise<unknown> => {
     const response = await fetch(`${API_BASE_URL}/produits/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(dto),
     });
     if (!response.ok) throw new Error("Erreur lors de la mise à jour du produit");
@@ -65,7 +81,7 @@ export const imprimerieService = {
   updateHoraire: async (id: number, dto: Record<string, unknown>): Promise<unknown> => {
     const response = await fetch(`${API_BASE_URL}/horaires/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(dto),
     });
     if (!response.ok) throw new Error("Erreur lors de la mise à jour de l'horaire");
