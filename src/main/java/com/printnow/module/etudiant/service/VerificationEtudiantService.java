@@ -8,6 +8,7 @@ import com.printnow.module.etudiant.model.VerificationEtudiant;
 import com.printnow.module.etudiant.repository.VerificationEtudiantRepository;
 import com.printnow.module.user.model.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VerificationEtudiantService {
 
     @Value("${app.upload.dir:uploads}")
@@ -54,6 +56,10 @@ public class VerificationEtudiantService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Votre demande est déjà en attente de vérification.");
             }
         }
+
+        // Une nouvelle soumission remplace la précédente : on efface d'abord ses
+        // images, sinon elles restent sur le disque sans plus servir à rien.
+        effacerLesJustificatifs(verification);
 
         try {
             Path dir = Paths.get(uploadDir, "verifications", user.getId().toString());
@@ -106,6 +112,8 @@ public class VerificationEtudiantService {
         v.setStatut(StatutEtudiant.ACCEPTE);
         v.setDateValidation(LocalDateTime.now());
         v.setValableJusquA(calculerExpiration());
+        // La décision prise, les pièces ont rempli leur rôle : on ne garde que le verdict.
+        effacerLesJustificatifs(v);
         VerificationEtudiantResponseDTO dto = mapper.toDto(repository.save(v));
 
         emailService.envoyerVerificationAcceptee(v.getUser().getEmail(), v.getUser().getPrenom());
@@ -123,6 +131,8 @@ public class VerificationEtudiantService {
         v.setStatut(StatutEtudiant.REFUSE);
         v.setDateValidation(LocalDateTime.now());
         v.setMotifRefus(motifRefus);
+        // Refus aussi définitif qu'une acceptation : les pièces n'ont plus lieu d'être.
+        effacerLesJustificatifs(v);
         VerificationEtudiantResponseDTO dto = mapper.toDto(repository.save(v));
 
         emailService.envoyerVerificationRefusee(v.getUser().getEmail(), v.getUser().getPrenom(), motifRefus);
@@ -147,6 +157,33 @@ public class VerificationEtudiantService {
                     .body(resource);
         } catch (IOException e) {
             throw new RuntimeException("Erreur lecture image", e);
+        }
+    }
+
+    /**
+     * Efface les deux pièces justificatives et coupe les références en base.
+     *
+     * Ces images ne servent qu'à comparer la carte étudiante à la carte
+     * d'identité au moment de la vérification. La décision rendue — ou une
+     * nouvelle soumission déposée — leur finalité est remplie et le RGPD impose
+     * de les effacer (art. 5.1.e), d'autant qu'une carte d'identité porte le
+     * numéro de registre national, spécialement protégé en Belgique. On ne
+     * conserve que le verdict : statut, date et validité.
+     */
+    private void effacerLesJustificatifs(VerificationEtudiant v) {
+        effacerDuDisque(v.getCarteEtudiantePath());
+        effacerDuDisque(v.getCarteIdentitePath());
+        v.setCarteEtudiantePath(null);
+        v.setCarteIdentitePath(null);
+    }
+
+    private void effacerDuDisque(String chemin) {
+        if (chemin == null || chemin.isBlank()) return;
+        try {
+            Files.deleteIfExists(Paths.get(chemin));
+        } catch (IOException e) {
+            // Un fichier déjà absent ou verrouillé ne doit pas bloquer la décision de l'admin.
+            log.warn("Justificatif étudiant impossible à effacer ({}) : {}", chemin, e.getMessage());
         }
     }
 
