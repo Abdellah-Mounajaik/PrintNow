@@ -41,6 +41,21 @@ const cgvSections = [
     ],
   },
   {
+    title: "Options, réductions et codes promo",
+    content: [
+      "Selon l'imprimeur partenaire, des options payantes peuvent être proposées, comme l'impression express (délai raccourci) moyennant un supplément affiché avant paiement.",
+      "Une réduction étudiante peut être appliquée après vérification de votre statut. Cette vérification suppose la transmission d'une carte étudiante et d'une pièce d'identité, traitées conformément à notre politique de confidentialité.",
+      "Un imprimeur partenaire peut émettre des codes promotionnels. Un code n'est valable que chez l'imprimerie qui l'a émis et dans les conditions qu'elle a fixées (période, montant minimum, nombre d'utilisations).",
+    ],
+  },
+  {
+    title: "Correction orthographique",
+    content: [
+      "PrintNow propose un service optionnel et payant de correction orthographique de vos documents, réglé en même temps que la commande. L'analyse et l'aperçu des fautes sont gratuits ; seule l'application des corrections est facturée.",
+      "Ce service repose sur une intelligence artificielle : le contenu du document est transmis à un prestataire spécialisé le temps du traitement. Le montant de la correction revient à PrintNow et n'entre pas dans la part reversée à l'imprimeur.",
+    ],
+  },
+  {
     title: "Livraison et retrait",
     content: [
       "Le client peut choisir entre le retrait en magasin et la livraison. Les délais et modalités de livraison sont indiqués par l'imprimeur partenaire. Les frais de livraison éventuels sont à la charge du client, sauf offre promotionnelle spécifique.",
@@ -62,6 +77,12 @@ const cgvSections = [
     title: "Propriété intellectuelle",
     content: [
       "Le client garantit détenir tous les droits nécessaires sur les fichiers et contenus transmis. PrintNow et l'imprimeur partenaire ne pourront être tenus responsables d'une éventuelle violation de droits de propriété intellectuelle par le client.",
+    ],
+  },
+  {
+    title: "Avis clients",
+    content: [
+      "Un client ayant reçu une commande peut laisser un avis sur l'imprimerie concernée, à raison d'un avis par imprimerie. Les avis sont soumis à une modération automatique : tout propos injurieux ou inapproprié est refusé. PrintNow peut retirer un avis manifestement abusif.",
     ],
   },
   {
