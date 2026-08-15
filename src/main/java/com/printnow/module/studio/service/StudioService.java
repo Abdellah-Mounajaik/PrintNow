@@ -61,7 +61,7 @@ public class StudioService {
     @Transactional
     public GenerationResponseDTO generer(GenererRequestDTO requete) {
         TypeSupport type = lireType(requete.getType());
-        Gabarit gabarit = gabaritPour(type);
+        List<Gabarit> maquettes = maquettesPour(type);
 
         String brief = requete.getBrief() == null ? "" : requete.getBrief().trim();
         if (brief.isBlank()) {
@@ -82,20 +82,22 @@ public class StudioService {
                 .build());
 
         try {
-            // Le contenu est généré une fois (commun aux 3 rendus) ; les couleurs
-            // des 3 propositions sont choisies à part, d'après le brief.
-            String contenuJson = iaService.genererJson(gabarit.promptSysteme(), brief);
+            // Le contenu est généré une fois (commun aux propositions) ; chaque
+            // proposition reçoit ensuite une maquette et une palette différentes.
+            String contenuJson = iaService.genererJson(maquettes.get(0).promptSysteme(), brief);
             List<Style> styles = styleService.troisStyles(brief);
 
-            for (Style style : styles) {
-                byte[] pdf = gabarit.rendre(contenuJson, style);   // parse + valide + dessine
+            for (int i = 0; i < styles.size(); i++) {
+                Gabarit maquette = maquettes.get(i % maquettes.size());
+                Style style = styles.get(i);
+                byte[] pdf = maquette.rendre(contenuJson, style);   // parse + valide + dessine
                 String base = UUID.randomUUID().toString();
                 Path cheminPdf = ecrire(base + ".pdf", pdf);
                 Path cheminApercu = ecrire(base + ".png", apercu(pdf));
 
                 PropositionSupport proposition = propositionRepository.save(PropositionSupport.builder()
                         .generation(generation)
-                        .gabaritCode(gabarit.code())
+                        .gabaritCode(maquette.code())
                         .paletteCode(style.code())
                         .policeCode(style.police().code())
                         .contenuJson(contenuJson)
@@ -138,12 +140,16 @@ public class StudioService {
 
     // --- interne ---------------------------------------------------------------
 
-    private Gabarit gabaritPour(TypeSupport type) {
-        return gabarits.stream()
+    /** Toutes les maquettes disponibles pour un type (≥ 1) ; les propositions les alternent. */
+    private List<Gabarit> maquettesPour(TypeSupport type) {
+        List<Gabarit> maquettes = gabarits.stream()
                 .filter(g -> g.type() == type)
-                .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
-                        "Ce type de support n'est pas encore disponible."));
+                .toList();
+        if (maquettes.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
+                    "Ce type de support n'est pas encore disponible.");
+        }
+        return maquettes;
     }
 
     private GenerationSupport chargerAMoi(Long id) {

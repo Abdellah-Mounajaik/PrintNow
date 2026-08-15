@@ -21,6 +21,30 @@ public record ContenuCv(
         List<Formation> formations,
         List<String> langues
 ) {
+    /** Consigne partagée par toutes les maquettes de CV : elles produisent le même JSON. */
+    public static final String PROMPT = """
+            Tu es un assistant qui met en forme des CV. À partir de la description
+            fournie par l'utilisateur, produis un CV structuré, en français.
+
+            Réponds UNIQUEMENT par un objet JSON valide, sans texte autour, sans
+            balises Markdown, exactement à ce format :
+            {
+              "nom": "",
+              "titrePro": "",
+              "contact": { "email": "", "telephone": "", "ville": "" },
+              "competences": [],
+              "experiences": [ { "poste": "", "entreprise": "", "periode": "", "description": "" } ],
+              "formations": [ { "diplome": "", "ecole": "", "annee": "" } ],
+              "langues": []
+            }
+
+            Règles :
+            - N'invente aucun fait : n'utilise que ce que la description contient.
+            - Améliore la formulation (style professionnel), sans mentir.
+            - Laisse une chaîne vide ou une liste vide quand l'information manque.
+            - "titrePro" est un intitulé court (ex : « Développeur Full-Stack »).
+            """;
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Contact(String email, String telephone, String ville) {}
 

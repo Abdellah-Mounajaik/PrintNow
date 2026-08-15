@@ -8,7 +8,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -18,24 +17,29 @@ import java.util.List;
 
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.eclaircir;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.envelopper;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.foncer;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.joindre;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.motLePlusLong;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.vide;
 
 /**
- * Dessine un CV moderne à deux colonnes : une colonne latérale colorée (nom,
+ * Maquette « moderne » à deux colonnes : une colonne latérale colorée (nom,
  * titre, contact, compétences, langues, en blanc sur l'aplat) et une colonne
- * principale sur fond blanc (expériences, formations). Le contenu remplit des
- * emplacements fixes ; ce sont le style (couleurs + police) et cette mise en
- * page qui font l'allure.
+ * principale sur fond blanc (expériences, formations).
  */
 @Component
 @RequiredArgsConstructor
-public class CvGabarit implements Gabarit {
+public class CvModerneGabarit implements Gabarit {
 
     public static final String CODE = "cv-moderne";
 
     private static final float LARGEUR_PAGE = PDRectangle.A4.getWidth();   // 595
     private static final float HAUTEUR_PAGE = PDRectangle.A4.getHeight();  // 842
 
-    // Colonne latérale colorée à gauche, colonne principale à droite.
     private static final float SIDEBAR_W = 200f;
     private static final float PAD = 24f;
     private static final float COL_G_X = PAD;                       // texte de la colonne latérale
@@ -62,28 +66,7 @@ public class CvGabarit implements Gabarit {
 
     @Override
     public String promptSysteme() {
-        return """
-            Tu es un assistant qui met en forme des CV. À partir de la description
-            fournie par l'utilisateur, produis un CV structuré, en français.
-
-            Réponds UNIQUEMENT par un objet JSON valide, sans texte autour, sans
-            balises Markdown, exactement à ce format :
-            {
-              "nom": "",
-              "titrePro": "",
-              "contact": { "email": "", "telephone": "", "ville": "" },
-              "competences": [],
-              "experiences": [ { "poste": "", "entreprise": "", "periode": "", "description": "" } ],
-              "formations": [ { "diplome": "", "ecole": "", "annee": "" } ],
-              "langues": []
-            }
-
-            Règles :
-            - N'invente aucun fait : n'utilise que ce que la description contient.
-            - Améliore la formulation (style professionnel), sans mentir.
-            - Laisse une chaîne vide ou une liste vide quand l'information manque.
-            - "titrePro" est un intitulé court (ex : « Développeur Full-Stack »).
-            """;
+        return ContenuCv.PROMPT;
     }
 
     @Override
@@ -242,8 +225,6 @@ public class CvGabarit implements Gabarit {
         d.avancer(16);
     }
 
-    // --- outils ----------------------------------------------------------------
-
     private List<String> contactLignes(ContenuCv.Contact contact) {
         List<String> lignes = new ArrayList<>();
         if (contact == null) return lignes;
@@ -251,77 +232,5 @@ public class CvGabarit implements Gabarit {
         if (rempli(contact.telephone())) lignes.add(contact.telephone());
         if (rempli(contact.ville())) lignes.add(contact.ville());
         return lignes;
-    }
-
-    /** Coupe un texte en lignes qui tiennent dans la largeur donnée. */
-    private List<String> envelopper(PDType1Font font, float taille, String texte, float largeurMax) throws IOException {
-        List<String> lignes = new ArrayList<>();
-        if (!rempli(texte)) return lignes;
-        StringBuilder courante = new StringBuilder();
-        for (String mot : texte.split("\\s+")) {
-            String essai = courante.isEmpty() ? mot : courante + " " + mot;
-            if (font.getStringWidth(essai) / 1000f * taille > largeurMax && courante.length() > 0) {
-                lignes.add(courante.toString());
-                courante = new StringBuilder(mot);
-            } else {
-                courante = new StringBuilder(essai);
-            }
-        }
-        if (courante.length() > 0) lignes.add(courante.toString());
-        return lignes;
-    }
-
-    /** Plus grande taille (entre min et préférée) à laquelle le texte tient dans la largeur. */
-    private float tailleQuiTient(PDType1Font font, String texte, float taillePref, float tailleMin, float largeurMax) throws IOException {
-        float taille = taillePref;
-        while (taille > tailleMin && font.getStringWidth(texte) / 1000f * taille > largeurMax) {
-            taille -= 0.5f;
-        }
-        return taille;
-    }
-
-    private String motLePlusLong(String texte) {
-        String max = "";
-        for (String mot : texte.split("\\s+")) {
-            if (mot.length() > max.length()) max = mot;
-        }
-        return max.isBlank() ? texte : max;
-    }
-
-    /** Assombrit une couleur jusqu'à une luminance cible, pour garantir du texte blanc lisible dessus. */
-    private int[] foncer(int[] rgb, double lumMax) {
-        double r = rgb[0], v = rgb[1], b = rgb[2];
-        double lum = 0.2126 * r + 0.7152 * v + 0.0722 * b;
-        if (lum > lumMax && lum > 0) {
-            double f = lumMax / lum;
-            r *= f; v *= f; b *= f;
-        }
-        return new int[]{(int) Math.round(r), (int) Math.round(v), (int) Math.round(b)};
-    }
-
-    /** Éclaircit une couleur jusqu'à une luminance cible, pour qu'elle ressorte sur l'aplat sombre. */
-    private int[] eclaircir(int[] rgb, double lumMin) {
-        double r = rgb[0], v = rgb[1], b = rgb[2];
-        double lum = 0.2126 * r + 0.7152 * v + 0.0722 * b;
-        if (lum <= 0) return new int[]{(int) lumMin, (int) lumMin, (int) lumMin};
-        if (lum < lumMin) {
-            double f = lumMin / lum;
-            r = Math.min(255, r * f); v = Math.min(255, v * f); b = Math.min(255, b * f);
-        }
-        return new int[]{(int) Math.round(r), (int) Math.round(v), (int) Math.round(b)};
-    }
-
-    private String joindre(String sep, String a, String b) {
-        boolean ra = rempli(a), rb = rempli(b);
-        if (ra && rb) return a + sep + b;
-        return ra ? a : (rb ? b : "");
-    }
-
-    private boolean rempli(String s) {
-        return s != null && !s.isBlank();
-    }
-
-    private boolean vide(List<?> liste) {
-        return liste == null || liste.isEmpty();
     }
 }
