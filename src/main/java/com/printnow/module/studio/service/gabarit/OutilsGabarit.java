@@ -88,6 +88,15 @@ final class OutilsGabarit {
         return new int[]{arrondi(r), arrondi(v), arrondi(b)};
     }
 
+    /** Mélange une couleur vers le blanc (fraction 0..1) : sert à éclaircir un aplat déjà sombre. */
+    static int[] melerBlanc(int[] rgb, double fraction) {
+        return new int[]{
+                arrondi(rgb[0] + (255 - rgb[0]) * fraction),
+                arrondi(rgb[1] + (255 - rgb[1]) * fraction),
+                arrondi(rgb[2] + (255 - rgb[2]) * fraction)
+        };
+    }
+
     private static double luminance(double r, double v, double b) {
         return 0.2126 * r + 0.7152 * v + 0.0722 * b;
     }
