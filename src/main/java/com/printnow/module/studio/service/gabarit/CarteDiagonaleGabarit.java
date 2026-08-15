@@ -15,26 +15,27 @@ import java.io.IOException;
 
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.eclaircir;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.foncer;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
 
 /**
- * Maquette « bandeau bas » : identité (nom, fonction, entreprise) en haut sur
- * fond blanc ; coordonnées en blanc sur une bande colorée en pied.
+ * Maquette « diagonale » (moderne) : bande colorée en pied avec un bord supérieur
+ * incliné, identité en haut sur blanc, coordonnées à puces sur la bande.
  */
 @Component
 @RequiredArgsConstructor
-public class CarteBandeauBasGabarit implements Gabarit {
+public class CarteDiagonaleGabarit implements Gabarit {
 
-    public static final String CODE = "carte-bandeau";
+    public static final String CODE = "carte-diagonale";
 
     private static final float MM = 72f / 25.4f;
     private static final float LARGEUR = 85 * MM;
     private static final float HAUTEUR = 55 * MM;
     private static final float X = 18;
-    private static final float BANDE_H = HAUTEUR * 0.42f;
 
-    private static final int[] CLAIR = {226, 229, 236};
+    private static final int[] BLANC = {255, 255, 255};
 
     private final ObjectMapper mapper;
 
@@ -67,29 +68,41 @@ public class CarteBandeauBasGabarit implements Gabarit {
             PDPage page = new PDPage(new PDRectangle(LARGEUR, HAUTEUR));
             document.addPage(page);
 
-            int[] fond = foncer(s.primaire(), 74);
+            int[] fond = foncer(s.primaire(), 76);
+            int[] accentClair = eclaircir(s.accent(), 200);
+
+            float gauche = HAUTEUR * 0.40f;   // hauteur de bande côté gauche
+            float droite = HAUTEUR * 0.50f;   // hauteur de bande côté droit (bord incliné)
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
-                Cursor c = new Cursor(cs, HAUTEUR - 26);
+                Cursor c = new Cursor(cs, HAUTEUR);
+
+                // Bande colorée en pied, bord supérieur incliné
+                Formes.polygone(cs, new float[]{0, LARGEUR, LARGEUR, 0}, new float[]{0, 0, droite, gauche}, fond);
+                // Fin liseré d'accent le long de l'inclinaison
+                Formes.polygone(cs, new float[]{0, LARGEUR, LARGEUR, 0},
+                        new float[]{gauche + 3, droite + 3, droite + 6, gauche + 6}, s.accent());
 
                 // Identité en haut, sur blanc
-                c.texteCouleur(s.gras(), 13, X, nonVide(carte.nom()), s.primaire());
-                c.avancer(16);
+                String nom = nonVide(carte.nom());
+                float tNom = tailleQuiTient(s.gras(), nom, 17, 12, LARGEUR - 2 * X);
+                c.texteCouleurA(s.gras(), tNom, X, HAUTEUR - 32, nom, s.primaire());
+                float yTop = HAUTEUR - 50;
                 if (rempli(carte.poste())) {
-                    c.texteCouleur(s.normal(), 8.5f, X, carte.poste(), s.accent());
-                    c.avancer(12);
+                    Formes.texteEspace(cs, s.normal(), 7.5f, X, yTop, carte.poste().toUpperCase(), 1.5f, s.accent());
+                    yTop -= 15;
                 }
                 if (rempli(carte.entreprise())) {
-                    c.texteCouleur(s.normal(), 8.5f, X, carte.entreprise(), s.texte());
+                    c.texteCouleurA(s.normal(), 9, X, yTop, carte.entreprise(), s.texte());
                 }
 
-                // Bande colorée en pied, coordonnées en blanc
-                c.bandeau(0, 0, LARGEUR, BANDE_H, fond);
-                float y = BANDE_H - 16;
+                // Coordonnées à puces, sur la bande
+                float y = gauche - 14;
                 for (String champ : new String[]{carte.telephone(), carte.email(), carte.siteWeb(), carte.adresse()}) {
                     if (rempli(champ)) {
-                        c.texteCouleurA(s.normal(), 8, X, y, champ, CLAIR);
-                        y -= 11.5f;
+                        Formes.disque(cs, X + 2, y + 2.6f, 1.6f, accentClair);
+                        c.texteCouleurA(s.normal(), 8, X + 11, y, champ, BLANC);
+                        y -= 12.5f;
                     }
                 }
             }
