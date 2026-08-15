@@ -27,9 +27,9 @@ import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQui
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.vide;
 
 /**
- * Maquette « moderne » à deux colonnes : une colonne latérale colorée (nom,
- * titre, contact, compétences, langues, en blanc sur l'aplat) et une colonne
- * principale sur fond blanc (expériences, formations).
+ * Maquette « moderne » à colonne latérale : monogramme d'initiales et identité
+ * centrés sur l'aplat, sections en majuscules espacées, listes à pastilles ;
+ * expériences et formations dans la colonne principale.
  */
 @Component
 @RequiredArgsConstructor
@@ -37,20 +37,20 @@ public class CvModerneGabarit implements Gabarit {
 
     public static final String CODE = "cv-moderne";
 
-    private static final float LARGEUR_PAGE = PDRectangle.A4.getWidth();   // 595
-    private static final float HAUTEUR_PAGE = PDRectangle.A4.getHeight();  // 842
+    private static final float LARGEUR_PAGE = PDRectangle.A4.getWidth();
+    private static final float HAUTEUR_PAGE = PDRectangle.A4.getHeight();
 
     private static final float SIDEBAR_W = 200f;
     private static final float PAD = 24f;
-    private static final float COL_G_X = PAD;                       // texte de la colonne latérale
-    private static final float COL_G_W = SIDEBAR_W - 2 * PAD;       // 152
-    private static final float COL_D_X = SIDEBAR_W + 32f;           // 232
+    private static final float COL_G_X = PAD;
+    private static final float COL_G_W = SIDEBAR_W - 2 * PAD;
+    private static final float COL_D_X = SIDEBAR_W + 32f;
     private static final float COL_D_W = LARGEUR_PAGE - 42f - COL_D_X;
-    private static final float HAUT = HAUTEUR_PAGE - 56f;           // y de départ des deux colonnes
+    private static final float HAUT = HAUTEUR_PAGE - 56f;
 
     private static final int[] BLANC = {255, 255, 255};
-    private static final int[] CLAIR = {214, 219, 229};             // texte discret sur l'aplat
-    private static final int[] ENCRE = {40, 42, 48};               // texte de la colonne principale
+    private static final int[] CLAIR = {214, 219, 229};
+    private static final int[] ENCRE = {40, 42, 48};
 
     private final ObjectMapper mapper;
 
@@ -84,16 +84,16 @@ public class CvModerneGabarit implements Gabarit {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
 
-            int[] fond = foncer(s.primaire(), 72);        // aplat sombre : le texte blanc doit ressortir
-            int[] surTitre = eclaircir(s.accent(), 200);  // accent éclairci pour les titres sur l'aplat
+            int[] fond = foncer(s.primaire(), 72);
+            int[] surTitre = eclaircir(s.accent(), 200);
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 Cursor g = new Cursor(cs, HAUT);
                 Cursor d = new Cursor(cs, HAUT);
 
-                g.bandeau(0, 0, SIDEBAR_W, HAUTEUR_PAGE, fond);   // fond de la colonne, avant tout texte
-                colonneLaterale(g, cv, s, surTitre);
-                colonnePrincipale(d, cv, s);
+                g.bandeau(0, 0, SIDEBAR_W, HAUTEUR_PAGE, fond);
+                colonneLaterale(cs, g, cv, s, surTitre);
+                colonnePrincipale(cs, d, cv, s);
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -106,61 +106,78 @@ public class CvModerneGabarit implements Gabarit {
 
     // --- colonne latérale colorée ---------------------------------------------
 
-    private void colonneLaterale(Cursor g, ContenuCv cv, Style s, int[] surTitre) throws IOException {
+    private void colonneLaterale(PDPageContentStream cs, Cursor g, ContenuCv cv, Style s, int[] surTitre) throws IOException {
+        // Monogramme : anneau + initiales, centré
+        float mcx = SIDEBAR_W / 2f, mcy = HAUT + 4, mr = 24;
+        Formes.anneau(cs, mcx, mcy, mr, 2.2f, surTitre);
+        String ini = Formes.initiales(nonVide(cv.nom()));
+        if (!ini.isBlank()) {
+            float w = s.gras().getStringWidth(ini) / 1000f * 18f;
+            g.texteCouleurA(s.gras(), 18, mcx - w / 2f, mcy - 0.34f * 18f, ini, BLANC);
+        }
+        g.y = mcy - mr - 24;
+
+        // Nom + fonction, centrés
         String nom = nonVide(cv.nom());
-        float tNom = tailleQuiTient(s.gras(), motLePlusLong(nom), 21, 13, COL_G_W);
+        float tNom = tailleQuiTient(s.gras(), motLePlusLong(nom), 18, 12, COL_G_W);
         for (String ligne : envelopper(s.gras(), tNom, nom, COL_G_W)) {
-            g.texteCouleur(s.gras(), tNom, COL_G_X, ligne, BLANC);
+            centreG(g, s.gras(), tNom, ligne, BLANC);
             g.avancer(tNom + 3);
         }
         if (rempli(cv.titrePro())) {
-            g.avancer(3);
-            for (String ligne : envelopper(s.normal(), 11, cv.titrePro(), COL_G_W)) {
-                g.texteCouleur(s.normal(), 11, COL_G_X, ligne, surTitre);
-                g.avancer(14);
+            g.avancer(2);
+            for (String ligne : envelopper(s.normal(), 10, cv.titrePro(), COL_G_W)) {
+                centreG(g, s.normal(), 10, ligne, surTitre);
+                g.avancer(13);
             }
         }
-        g.avancer(20);
+        g.avancer(22);
 
+        // Sections
         List<String> contact = contactLignes(cv.contact());
         if (!contact.isEmpty()) {
-            titreLaterale(g, "Contact", s, surTitre);
+            labelLateral(cs, g, s, "Contact", surTitre);
             for (String ligne : contact) {
-                float t = tailleQuiTient(s.normal(), ligne, 9.5f, 7f, COL_G_W);
-                g.texteCouleur(s.normal(), t, COL_G_X, ligne, CLAIR);
+                float t = tailleQuiTient(s.normal(), ligne, 9.5f, 7f, COL_G_W - 10);
+                Formes.disque(cs, COL_G_X + 2, g.y + 2.4f, 1.6f, surTitre);
+                g.texteCouleurA(s.normal(), t, COL_G_X + 10, g.y, ligne, CLAIR);
                 g.avancer(13);
             }
             g.avancer(12);
         }
-
         if (!vide(cv.competences())) {
-            titreLaterale(g, "Compétences", s, surTitre);
+            labelLateral(cs, g, s, "Compétences", surTitre);
             for (String comp : cv.competences()) {
-                elementListe(g, comp, s);
+                pastilleItem(cs, g, s, comp, surTitre);
             }
             g.avancer(12);
         }
-
         if (!vide(cv.langues())) {
-            titreLaterale(g, "Langues", s, surTitre);
+            labelLateral(cs, g, s, "Langues", surTitre);
             for (String langue : cv.langues()) {
-                elementListe(g, langue, s);
+                pastilleItem(cs, g, s, langue, surTitre);
             }
         }
     }
 
-    private void titreLaterale(Cursor g, String titre, Style s, int[] couleur) throws IOException {
-        g.texteCouleur(s.gras(), 10.5f, COL_G_X, titre.toUpperCase(), couleur);
-        g.avancer(7);
-        g.bandeau(COL_G_X, g.y, 26, 2f, couleur);
+    private void centreG(Cursor g, org.apache.pdfbox.pdmodel.font.PDType1Font font, float taille, String texte, int[] rgb) throws IOException {
+        float w = font.getStringWidth(texte) / 1000f * taille;
+        g.texteCouleurA(font, taille, (SIDEBAR_W - w) / 2f, g.y, texte, rgb);
+    }
+
+    private void labelLateral(PDPageContentStream cs, Cursor g, Style s, String label, int[] couleur) throws IOException {
+        Formes.texteEspace(cs, s.gras(), 9.5f, COL_G_X, g.y, label.toUpperCase(), 1.3f, couleur);
+        g.avancer(6);
+        g.bandeau(COL_G_X, g.y, 22, 2f, couleur);
         g.avancer(13);
     }
 
-    private void elementListe(Cursor g, String texte, Style s) throws IOException {
+    private void pastilleItem(PDPageContentStream cs, Cursor g, Style s, String texte, int[] couleurDot) throws IOException {
         List<String> lignes = envelopper(s.normal(), 9.5f, texte, COL_G_W - 10);
         boolean premier = true;
         for (String ligne : lignes) {
-            g.texteCouleur(s.normal(), 9.5f, COL_G_X, (premier ? "•  " : "    ") + ligne, CLAIR);
+            if (premier) Formes.disque(cs, COL_G_X + 2, g.y + 2.6f, 1.6f, couleurDot);
+            g.texteCouleurA(s.normal(), 9.5f, COL_G_X + 10, g.y, ligne, CLAIR);
             g.avancer(13);
             premier = false;
         }
@@ -168,29 +185,30 @@ public class CvModerneGabarit implements Gabarit {
 
     // --- colonne principale ----------------------------------------------------
 
-    private void colonnePrincipale(Cursor d, ContenuCv cv, Style s) throws IOException {
-        experiences(d, cv.experiences(), s);
-        formations(d, cv.formations(), s);
+    private void colonnePrincipale(PDPageContentStream cs, Cursor d, ContenuCv cv, Style s) throws IOException {
+        experiences(cs, d, cv.experiences(), s);
+        formations(cs, d, cv.formations(), s);
     }
 
-    private void experiences(Cursor d, List<ContenuCv.Experience> experiences, Style s) throws IOException {
+    private void experiences(PDPageContentStream cs, Cursor d, List<ContenuCv.Experience> experiences, Style s) throws IOException {
         if (vide(experiences)) return;
-        titrePrincipal(d, "Expériences", s);
+        titrePrincipal(cs, d, "Expériences", s);
         for (ContenuCv.Experience e : experiences) {
             String titre = joindre(" — ", e.poste(), e.entreprise());
             if (!titre.isBlank()) {
-                for (String ligne : envelopper(s.gras(), 11, titre, COL_D_W)) {
-                    d.texteCouleur(s.gras(), 11, COL_D_X, ligne, ENCRE);
+                Formes.disque(cs, COL_D_X + 2, d.y + 3.2f, 2f, s.accent());
+                for (String ligne : envelopper(s.gras(), 11, titre, COL_D_W - 12)) {
+                    d.texteCouleurA(s.gras(), 11, COL_D_X + 12, d.y, ligne, ENCRE);
                     d.avancer(14);
                 }
             }
             if (rempli(e.periode())) {
-                d.texteCouleur(s.normal(), 9, COL_D_X, e.periode(), s.texte());
+                d.texteCouleurA(s.normal(), 9, COL_D_X + 12, d.y, e.periode(), s.texte());
                 d.avancer(13);
             }
             if (rempli(e.description())) {
-                for (String ligne : envelopper(s.normal(), 10, e.description(), COL_D_W)) {
-                    d.texteCouleur(s.normal(), 10, COL_D_X, ligne, ENCRE);
+                for (String ligne : envelopper(s.normal(), 10, e.description(), COL_D_W - 12)) {
+                    d.texteCouleurA(s.normal(), 10, COL_D_X + 12, d.y, ligne, ENCRE);
                     d.avancer(13);
                 }
             }
@@ -199,29 +217,30 @@ public class CvModerneGabarit implements Gabarit {
         d.avancer(4);
     }
 
-    private void formations(Cursor d, List<ContenuCv.Formation> formations, Style s) throws IOException {
+    private void formations(PDPageContentStream cs, Cursor d, List<ContenuCv.Formation> formations, Style s) throws IOException {
         if (vide(formations)) return;
-        titrePrincipal(d, "Formations", s);
+        titrePrincipal(cs, d, "Formations", s);
         for (ContenuCv.Formation f : formations) {
             String titre = joindre(" — ", f.diplome(), f.ecole());
             if (!titre.isBlank()) {
-                for (String ligne : envelopper(s.gras(), 10.5f, titre, COL_D_W)) {
-                    d.texteCouleur(s.gras(), 10.5f, COL_D_X, ligne, ENCRE);
+                Formes.disque(cs, COL_D_X + 2, d.y + 3.2f, 2f, s.accent());
+                for (String ligne : envelopper(s.gras(), 10.5f, titre, COL_D_W - 12)) {
+                    d.texteCouleurA(s.gras(), 10.5f, COL_D_X + 12, d.y, ligne, ENCRE);
                     d.avancer(13);
                 }
             }
             if (rempli(f.annee())) {
-                d.texteCouleur(s.normal(), 9, COL_D_X, f.annee(), s.texte());
+                d.texteCouleurA(s.normal(), 9, COL_D_X + 12, d.y, f.annee(), s.texte());
                 d.avancer(13);
             }
             d.avancer(7);
         }
     }
 
-    private void titrePrincipal(Cursor d, String titre, Style s) throws IOException {
-        d.texteCouleur(s.gras(), 13, COL_D_X, titre.toUpperCase(), s.primaire());
+    private void titrePrincipal(PDPageContentStream cs, Cursor d, String titre, Style s) throws IOException {
+        Formes.texteEspace(cs, s.gras(), 12.5f, COL_D_X, d.y, titre.toUpperCase(), 1.2f, s.primaire());
         d.avancer(8);
-        d.bandeau(COL_D_X, d.y, 34, 2.5f, s.accent());
+        d.bandeau(COL_D_X, d.y, 30, 2.5f, s.accent());
         d.avancer(16);
     }
 
