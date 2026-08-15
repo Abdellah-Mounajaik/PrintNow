@@ -148,13 +148,13 @@ const GenerateurBouton = ({ onFichierGenere }: Props) => {
             value={brief}
             onChange={(e) => setBrief(e.target.value)}
             placeholder={exemple}
-            maxLength={1500}
+            maxLength={4000}
             rows={5}
             className="w-full rounded-lg border border-border bg-background p-3 text-sm leading-relaxed
                        focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
           />
           <div className="flex items-center justify-between mt-1">
-            <span className="text-xs text-muted-foreground">{brief.length}/1500 — plus vous en dites, mieux c'est.</span>
+            <span className="text-xs text-muted-foreground">{brief.length}/4000 — plus vous en dites, mieux c'est.</span>
           </div>
           <Button className="mt-2 w-full" onClick={generer} disabled={chargement || brief.trim().length === 0}>
             {chargement ? (
