@@ -47,7 +47,7 @@ import type { CommandeCreee, CommandeRequest, AdresseLivraisonRequest } from "..
 import type { EtatCorrection } from "../models/correction.model";
 import { useAuth } from "../../auth/context/AuthContext";
 import CorrectionOrthographe from "../components/CorrectionOrthographe";
-import GenerateurCvBouton from "../../studio/components/GenerateurCvBouton";
+import GenerateurBouton from "../../studio/components/GenerateurBouton";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
@@ -781,7 +781,7 @@ const Order = () => {
                     <span className="text-xs text-muted-foreground">ou</span>
                     <div className="h-px flex-1 bg-border" />
                   </div>
-                  <GenerateurCvBouton onFichierGenere={ajouterFichierGenere} />
+                  <GenerateurBouton onFichierGenere={ajouterFichierGenere} />
 
                   {files.length === 0 && (
                     <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
