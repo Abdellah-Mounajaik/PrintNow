@@ -35,3 +35,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Supports generes par le module studio (fichiers, pas du code)
+studio/
