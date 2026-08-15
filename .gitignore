@@ -36,5 +36,7 @@ build/
 ### VS Code ###
 .vscode/
 
-# Supports generes par le module studio (fichiers, pas du code)
-studio/
+# Supports generes par le module studio (fichiers, pas du code).
+# Le slash initial limite au dossier a la RACINE : sans lui, "studio/"
+# ignorerait AUSSI le code source (module/studio, modules/studio).
+/studio/
