@@ -10,8 +10,6 @@ import com.printnow.module.studio.model.PropositionSupport;
 import com.printnow.module.studio.repository.GenerationSupportRepository;
 import com.printnow.module.studio.repository.PropositionSupportRepository;
 import com.printnow.module.studio.service.gabarit.Gabarit;
-import com.printnow.module.studio.service.gabarit.Palette;
-import com.printnow.module.studio.service.gabarit.Police;
 import com.printnow.module.studio.service.gabarit.Style;
 import com.printnow.module.user.model.User;
 import lombok.RequiredArgsConstructor;
@@ -50,19 +48,10 @@ public class StudioService {
 
     private static final int BRIEF_MAX = 1500;
 
-    /**
-     * Les 3 combinaisons proposées au client, volontairement distinctes (couleurs
-     * + police). Le contenu est le même pour les trois — seul le style change.
-     */
-    private static final List<Style> COMBOS = List.of(
-            new Style(Palette.SOBRE, Police.MODERNE),
-            new Style(Palette.CHALEUREUX, Police.CLASSIQUE),
-            new Style(Palette.FRAIS, Police.MODERNE)
-    );
-
     private final GenerationSupportRepository generationRepository;
     private final PropositionSupportRepository propositionRepository;
     private final StudioIaService iaService;
+    private final StyleIaService styleService;
     private final List<Gabarit> gabarits;
     private final UtilisateurCourant utilisateurCourant;
 
@@ -93,10 +82,12 @@ public class StudioService {
                 .build());
 
         try {
-            // L'IA n'est appelée qu'une fois : le contenu est commun aux 3 rendus.
+            // Le contenu est généré une fois (commun aux 3 rendus) ; les couleurs
+            // des 3 propositions sont choisies à part, d'après le brief.
             String contenuJson = iaService.genererJson(gabarit.promptSysteme(), brief);
+            List<Style> styles = styleService.troisStyles(brief);
 
-            for (Style style : COMBOS) {
+            for (Style style : styles) {
                 byte[] pdf = gabarit.rendre(contenuJson, style);   // parse + valide + dessine
                 String base = UUID.randomUUID().toString();
                 Path cheminPdf = ecrire(base + ".pdf", pdf);
@@ -105,7 +96,7 @@ public class StudioService {
                 PropositionSupport proposition = propositionRepository.save(PropositionSupport.builder()
                         .generation(generation)
                         .gabaritCode(gabarit.code())
-                        .paletteCode(style.palette().code())
+                        .paletteCode(style.code())
                         .policeCode(style.police().code())
                         .contenuJson(contenuJson)
                         .cheminPdf(cheminPdf.toString())
