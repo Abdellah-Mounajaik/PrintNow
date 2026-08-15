@@ -16,7 +16,6 @@ import DashboardClient from './modules/user/pages/DashboardClient';
 import DashboardAdmin from './modules/admin/pages/DashboardAdmin';
 import PrintShopDetail from './modules/shop/pages/PrintShopDetail';
 import Order from './modules/shop/pages/Order';
-import StudioPage from './modules/studio/pages/StudioPage';
 import MentionsLegales from './pages/MentionsLegales';
 import ConditionsGenerales from './pages/ConditionsGenerales';
 import Confidentialite from './pages/Confidentialite';
@@ -62,15 +61,6 @@ function App() {
             element={
               <ProtectedRoute roles={["ROLE_CLIENT"]}>
                 <Order />
-              </ProtectedRoute>
-            }
-          />
-          {/* Générateur de supports IA — réservé aux clients (eux seuls commandent). */}
-          <Route
-            path="/studio"
-            element={
-              <ProtectedRoute roles={["ROLE_CLIENT"]}>
-                <StudioPage />
               </ProtectedRoute>
             }
           />
