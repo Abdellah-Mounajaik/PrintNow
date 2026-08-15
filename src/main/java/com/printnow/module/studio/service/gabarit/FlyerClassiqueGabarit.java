@@ -18,14 +18,17 @@ import java.util.List;
 
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.envelopper;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
+import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
 
 /**
- * Dessine un flyer A5 dans le style demandé : bandeau de titre coloré, accroche,
- * blocs d'information centrés, contact en pied.
+ * Maquette « classique » : bandeau de titre coloré en haut (hauteur ajustée à
+ * l'accroche), blocs d'information centrés sur fond blanc, contact en pied.
  */
 @Component
 @RequiredArgsConstructor
-public class FlyerGabarit implements Gabarit {
+public class FlyerClassiqueGabarit implements Gabarit {
 
     public static final String CODE = "flyer-classique";
 
@@ -47,25 +50,7 @@ public class FlyerGabarit implements Gabarit {
 
     @Override
     public String promptSysteme() {
-        return """
-            Tu rédiges le contenu d'un flyer promotionnel, en français, à partir de
-            la description fournie.
-
-            Réponds UNIQUEMENT par un objet JSON valide, sans texte autour, sans
-            balises Markdown, exactement à ce format :
-            {
-              "titre": "",
-              "accroche": "",
-              "blocs": [ { "libelle": "", "valeur": "" } ],
-              "contact": { "telephone": "", "adresse": "", "email": "" }
-            }
-
-            Règles :
-            - N'invente aucun fait : n'utilise que ce que la description contient.
-            - "titre" est court et accrocheur ; "accroche" est une phrase percutante.
-            - "blocs" liste les informations clés (ex : « Menu du midi » / « 15 € »).
-            - Laisse une chaîne vide quand l'information manque.
-            """;
+        return ContenuFlyer.PROMPT;
     }
 
     @Override
@@ -147,36 +132,5 @@ public class FlyerGabarit implements Gabarit {
     private void centre(Cursor c, PDType1Font font, float taille, float yAbsolu, String valeur, int[] rgb) throws IOException {
         float largeurTexte = font.getStringWidth(valeur) / 1000f * taille;
         c.texteCouleurA(font, taille, (LARGEUR - largeurTexte) / 2f, yAbsolu, valeur, rgb);
-    }
-
-    /** Plus grande taille (entre min et préférée) à laquelle le texte tient dans la largeur. */
-    private float tailleQuiTient(PDType1Font font, String texte, float taillePref, float tailleMin, float largeurMax) throws IOException {
-        float taille = taillePref;
-        while (taille > tailleMin && font.getStringWidth(texte) / 1000f * taille > largeurMax) {
-            taille -= 1;
-        }
-        return taille;
-    }
-
-    /** Coupe un texte en lignes qui tiennent dans la largeur donnée. */
-    private List<String> envelopper(PDType1Font font, float taille, String texte, float largeurMax) throws IOException {
-        List<String> lignes = new ArrayList<>();
-        if (!rempli(texte)) return lignes;
-        StringBuilder courante = new StringBuilder();
-        for (String mot : texte.split("\\s+")) {
-            String essai = courante.isEmpty() ? mot : courante + " " + mot;
-            if (font.getStringWidth(essai) / 1000f * taille > largeurMax && courante.length() > 0) {
-                lignes.add(courante.toString());
-                courante = new StringBuilder(mot);
-            } else {
-                courante = new StringBuilder(essai);
-            }
-        }
-        if (courante.length() > 0) lignes.add(courante.toString());
-        return lignes;
-    }
-
-    private boolean rempli(String s) {
-        return s != null && !s.isBlank();
     }
 }
