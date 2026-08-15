@@ -47,6 +47,7 @@ import type { CommandeCreee, CommandeRequest, AdresseLivraisonRequest } from "..
 import type { EtatCorrection } from "../models/correction.model";
 import { useAuth } from "../../auth/context/AuthContext";
 import CorrectionOrthographe from "../components/CorrectionOrthographe";
+import GenerateurCvBouton from "../../studio/components/GenerateurCvBouton";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
@@ -406,6 +407,28 @@ const Order = () => {
     e.target.value = "";
   };
 
+  // Un support généré par l'IA rejoint la commande comme un fichier téléversé
+  // normal : même détection de pages/format, mêmes options, même tunnel.
+  const ajouterFichierGenere = async (file: File) => {
+    const { pageCount, formatMm: detectedFormatMm } = await readPdfInfo(file);
+    const compatibleProduct = detectedFormatMm
+      ? activeProducts.find((p) => formatMatchesDimensions(p.formatImpression, detectedFormatMm))
+      : null;
+    const defaultProduct = compatibleProduct || shop?.produits?.find((p) => p.actif) || null;
+    setFiles((prev) => [...prev, {
+      file,
+      pageCount,
+      detectedFormatMm,
+      options: {
+        productId: defaultProduct ? defaultProduct.id : "",
+        copies: 1,
+        recto: "recto",
+        binding: "AUCUNE",
+        finish: "AUCUNE",
+      },
+    }]);
+  };
+
   const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
 
   /**
@@ -751,6 +774,15 @@ const Order = () => {
                       </div>
                     </label>
                   </div>
+
+                  {/* Pas de fichier ? Le générer avec l'IA (rejoint la liste ci-dessous). */}
+                  <div className="flex items-center gap-3 my-4">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-xs text-muted-foreground">ou</span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                  <GenerateurCvBouton onFichierGenere={ajouterFichierGenere} />
+
                   {files.length === 0 && (
                     <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
                       <AlertCircle className="h-4 w-4" /> Vos fichiers doivent être au format PDF
