@@ -7,12 +7,12 @@ import com.printnow.module.studio.service.HtmlVersPdf;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/** CV « moderne » à colonne latérale colorée. Rendu en HTML/CSS. */
+import java.util.List;
+
+/** Le CV et ses structures. Rendu HTML/CSS via {@link CvHtml}. */
 @Component
 @RequiredArgsConstructor
-public class CvModerneGabarit implements Gabarit {
-
-    public static final String CODE = "cv-moderne";
+public class CvGabarit implements Gabarit {
 
     private final ObjectMapper mapper;
     private final HtmlVersPdf html;
@@ -23,22 +23,22 @@ public class CvModerneGabarit implements Gabarit {
     }
 
     @Override
-    public String code() {
-        return CODE;
-    }
-
-    @Override
     public String promptSysteme() {
         return ContenuCv.PROMPT;
     }
 
     @Override
-    public byte[] rendre(String json, Style style) throws Exception {
+    public List<String> structures() {
+        return List.of("moderne", "entete", "minimal", "droite", "bandeau");
+    }
+
+    @Override
+    public byte[] rendre(String json, Style style, String structure) throws Exception {
         ContenuCv cv = mapper.readValue(json, ContenuCv.class);
         if (cv == null || (cv.nom() == null && cv.titrePro() == null
                 && (cv.experiences() == null || cv.experiences().isEmpty()))) {
             throw new IllegalArgumentException("JSON du CV vide ou inexploitable");
         }
-        return html.versPdf(CvHtml.page(cv, style, "moderne"));
+        return html.versPdf(CvHtml.page(cv, style, structure));
     }
 }

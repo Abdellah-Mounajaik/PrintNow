@@ -20,7 +20,8 @@ final class CvHtml {
         String corps = switch (structure) {
             case "entete" -> corpsEntete(cv, s);
             case "minimal" -> corpsMinimal(cv, s);
-            default -> corpsModerne(cv, s);
+            case "bandeau" -> corpsBandeau(cv, s);
+            default -> corpsModerne(cv, s);   // moderne, droite
         };
         return "<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\"/>\n<style>\n"
                 + css(s, structure)
@@ -80,6 +81,22 @@ final class CvHtml {
     }
 
     // --- fragments partagés ----------------------------------------------------
+
+    private static String corpsBandeau(ContenuCv cv, Style s) {
+        StringBuilder h = new StringBuilder("<div class=\"topbar\">");
+        h.append("<div class=\"nom\">").append(esc(nz(cv.nom()))).append("</div>");
+        if (rempli(cv.titrePro())) h.append("<div class=\"titrepro\">").append(esc(cv.titrePro())).append("</div>");
+        String contact = String.join("&#160;&#160;•&#160;&#160;", contactLignes(cv.contact()));
+        if (!contact.isBlank()) h.append("<div class=\"contact\">").append(contact).append("</div>");
+        h.append("</div>");
+
+        StringBuilder b = new StringBuilder("<div class=\"corps\">");
+        if (cv.competences() != null && !cv.competences().isEmpty()) b.append(sec("Compétences")).append(chips(cv.competences()));
+        b.append(experiences(cv.experiences())).append(formations(cv.formations()));
+        if (cv.langues() != null && !cv.langues().isEmpty()) b.append(sec("Langues")).append(chips(cv.langues()));
+        b.append("</div>");
+        return h + b.toString();
+    }
 
     private static String sec(String titre) {
         return "<h2 class=\"sec\">" + esc(titre) + "</h2><div class=\"bar\"></div>";
@@ -187,21 +204,32 @@ final class CvHtml {
                 c.append(".corps > .titrepro { font-size:12px; letter-spacing:3px; }\n");
                 c.append(".filet { height:1.2px; background:").append(filet).append("; margin:16px 0; }\n");
             }
-            default -> { // moderne
-                c.append(".aside { position:absolute; left:0; top:0; width:200px; height:297mm; background:")
-                        .append(panneau).append("; padding:30px 22px; }\n");
-                c.append(".main { margin-left:200px; padding:34px 34px; }\n");
-                c.append(".aside .mono { width:52px; height:52px; border:2.2px solid ").append(accP)
-                        .append("; border-radius:26px; text-align:center; margin:0 auto 12px auto; }\n");
-                c.append(".aside .mono span { line-height:52px; font-weight:bold; font-size:20px; color:").append(surP).append("; }\n");
-                c.append(".aside .nom { color:").append(surP).append("; font-size:18px; text-align:center; }\n");
-                c.append(".aside .titrepro { color:").append(accP).append("; text-align:center; font-size:9px; margin-top:3px; }\n");
-                c.append(".seclat { color:").append(accP).append("; text-transform:uppercase; letter-spacing:1.3px; font-weight:bold; font-size:10px; margin:20px 0 7px 0; padding-bottom:4px; border-bottom:2px solid ").append(accP).append("; }\n");
-                c.append(".liste { list-style:none; margin:0; padding:0; }\n");
-                c.append(".liste li { color:").append(surPd).append("; font-size:9.5px; margin-bottom:5px; }\n");
+            case "bandeau" -> {
+                c.append(".topbar { background:").append(panneau).append("; padding:22px 40px; }\n");
+                c.append(".topbar .nom { color:").append(surP).append("; font-size:26px; }\n");
+                c.append(".topbar .titrepro { color:").append(accP).append("; margin-top:2px; }\n");
+                c.append(".topbar .contact { color:").append(surPd).append("; font-size:10px; margin-top:5px; }\n");
+                c.append(".corps { padding:24px 40px; }\n");
             }
+            case "droite" -> colonne(c, true, panneau, surP, surPd, accP);
+            default -> colonne(c, false, panneau, surP, surPd, accP);   // moderne
         }
         return c.toString();
+    }
+
+    /** Colonne latérale (moderne = gauche, droite = miroir). */
+    private static void colonne(StringBuilder c, boolean droite, String panneau, String surP, String surPd, String accP) {
+        c.append(".aside { position:absolute; ").append(droite ? "right:0" : "left:0")
+                .append("; top:0; width:200px; height:297mm; background:").append(panneau).append("; padding:30px 22px; }\n");
+        c.append(".main { ").append(droite ? "margin-right:200px" : "margin-left:200px").append("; padding:34px 34px; }\n");
+        c.append(".aside .mono { width:52px; height:52px; border:2.2px solid ").append(accP)
+                .append("; border-radius:26px; text-align:center; margin:0 auto 12px auto; }\n");
+        c.append(".aside .mono span { line-height:52px; font-weight:bold; font-size:20px; color:").append(surP).append("; }\n");
+        c.append(".aside .nom { color:").append(surP).append("; font-size:18px; text-align:center; }\n");
+        c.append(".aside .titrepro { color:").append(accP).append("; text-align:center; font-size:9px; margin-top:3px; }\n");
+        c.append(".seclat { color:").append(accP).append("; text-transform:uppercase; letter-spacing:1.3px; font-weight:bold; font-size:10px; margin:20px 0 7px 0; padding-bottom:4px; border-bottom:2px solid ").append(accP).append("; }\n");
+        c.append(".liste { list-style:none; margin:0; padding:0; }\n");
+        c.append(".liste li { color:").append(surPd).append("; font-size:9.5px; margin-bottom:5px; }\n");
     }
 
     // --- utilitaires -----------------------------------------------------------

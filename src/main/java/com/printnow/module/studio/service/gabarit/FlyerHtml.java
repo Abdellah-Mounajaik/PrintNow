@@ -19,6 +19,7 @@ final class FlyerHtml {
         String corps = switch (structure) {
             case "editorial" -> corpsEditorial(f);
             case "split" -> corpsSplit(f);
+            case "centre" -> corpsCentre(f);
             default -> corpsPleine(f);
         };
         return "<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\"/>\n<style>\n"
@@ -75,6 +76,25 @@ final class FlyerHtml {
     }
 
     // --- fragments -------------------------------------------------------------
+
+    private static String corpsCentre(ContenuFlyer f) {
+        StringBuilder b = new StringBuilder("<div class=\"wrap\">");
+        b.append("<div class=\"titre\">").append(esc(nz(f.titre()))).append("</div>");
+        b.append("<div class=\"rule\"></div>");
+        if (rempli(f.accroche())) b.append("<div class=\"accroche\">").append(esc(f.accroche())).append("</div>");
+        if (f.blocs() != null) {
+            for (ContenuFlyer.Bloc bl : f.blocs()) {
+                if (!rempli(bl.libelle()) && !rempli(bl.valeur())) continue;
+                b.append("<div class=\"cbloc\">");
+                if (rempli(bl.libelle())) b.append("<div class=\"lib\">").append(esc(bl.libelle())).append("</div>");
+                if (rempli(bl.valeur())) b.append("<div class=\"val\">").append(esc(bl.valeur())).append("</div>");
+                b.append("</div>");
+            }
+        }
+        b.append("</div>");
+        b.append(pied(f, "contact"));
+        return b.toString();
+    }
 
     private static String blocsListe(ContenuFlyer f) {
         if (f.blocs() == null) return "";
@@ -153,6 +173,17 @@ final class FlyerHtml {
                 c.append(".marq { display:inline-block; width:7px; height:7px; border-radius:50%; background:").append(accent).append("; margin-right:10px; }\n");
                 c.append(".lib { font-weight:bold; color:").append(titre).append("; font-size:15px; }\n");
                 c.append(".val { color:").append(accent).append("; margin:2px 0 0 17px; }\n");
+                c.append(".contact { position:fixed; bottom:34px; left:0; right:0; text-align:center; color:").append(rgb(s.encreDoux())).append("; font-size:10px; }\n");
+            }
+            case "centre" -> {
+                c.append("body { background:").append(page).append("; color:").append(encre).append("; text-align:center; }\n");
+                c.append(".wrap { padding:60px 40px; }\n");
+                c.append(".wrap .titre { color:").append(titre).append("; font-size:34px; font-weight:bold; }\n");
+                c.append(".wrap .rule { width:56px; height:3px; background:").append(accent).append("; margin:16px auto 22px; }\n");
+                c.append(".wrap .accroche { color:").append(rgb(s.encreDoux())).append("; font-size:14px; margin-bottom:24px; }\n");
+                c.append(".cbloc { margin-bottom:16px; }\n");
+                c.append(".cbloc .lib { font-weight:bold; color:").append(titre).append("; font-size:16px; }\n");
+                c.append(".cbloc .val { color:").append(accent).append("; font-size:14px; margin-top:2px; }\n");
                 c.append(".contact { position:fixed; bottom:34px; left:0; right:0; text-align:center; color:").append(rgb(s.encreDoux())).append("; font-size:10px; }\n");
             }
             default -> { // pleine

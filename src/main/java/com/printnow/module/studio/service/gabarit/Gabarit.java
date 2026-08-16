@@ -2,32 +2,32 @@ package com.printnow.module.studio.service.gabarit;
 
 import com.printnow.module.studio.enums.TypeSupport;
 
+import java.util.List;
+
 /**
- * Un type de support générable, autonome : il porte sa consigne pour l'IA (le
- * schéma JSON attendu) et sait dessiner le PDF à partir de ce JSON.
+ * Un type de support générable (CV, flyer, carte). Il porte la consigne IA (le
+ * schéma JSON attendu) et sait rendre son PDF dans l'une de ses structures.
  *
- * Ajouter un type = ajouter un {@code @Component} qui implémente cette interface ;
- * {@code StudioService} le découvre et le branche tout seul, sans rien changer
- * d'autre.
+ * Les structures sont de simples identifiants (« moderne », « minimal »…) : le
+ * rendu est du HTML/CSS, donc en ajouter une = ajouter un identifiant ici et un
+ * bloc CSS dans le builder correspondant. {@code StudioService} en tire 3 au
+ * hasard par génération.
  */
 public interface Gabarit {
 
-    /** Le type couvert (CV, FLYER, CARTE_VISITE…). */
+    /** Le type couvert (CV, FLYER, CARTE_VISITE). */
     TypeSupport type();
-
-    /** Code du gabarit, stocké sur la proposition (ex : « cv-classique »). */
-    String code();
 
     /** Consigne système envoyée à l'IA : décrit le JSON exact à produire. */
     String promptSysteme();
 
+    /** Les structures disponibles pour ce type (le pool où l'on pioche). */
+    List<String> structures();
+
     /**
-     * Parse le JSON renvoyé par l'IA et dessine le PDF dans le style demandé
-     * (couleurs + police). Le même JSON avec deux styles différents donne deux
-     * propositions distinctes.
+     * Parse le JSON de l'IA et rend le PDF dans la structure et le style demandés.
      *
-     * @throws Exception si le JSON est absent, malformé ou inexploitable — la
-     *         génération est alors marquée échouée, jamais un PDF vide rendu.
+     * @throws Exception si le JSON est absent, malformé ou inexploitable.
      */
-    byte[] rendre(String json, Style style) throws Exception;
+    byte[] rendre(String json, Style style, String structure) throws Exception;
 }

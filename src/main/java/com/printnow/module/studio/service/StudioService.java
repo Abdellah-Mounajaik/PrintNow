@@ -29,6 +29,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,7 +63,7 @@ public class StudioService {
     @Transactional
     public GenerationResponseDTO generer(GenererRequestDTO requete) {
         TypeSupport type = lireType(requete.getType());
-        List<Gabarit> maquettes = maquettesPour(type);
+        Gabarit gabarit = maquettePour(type);
 
         String brief = requete.getBrief() == null ? "" : requete.getBrief().trim();
         if (brief.isBlank()) {
@@ -82,22 +84,24 @@ public class StudioService {
                 .build());
 
         try {
-            // Le contenu est généré une fois (commun aux propositions) ; chaque
-            // proposition reçoit ensuite une maquette et une palette différentes.
-            String contenuJson = iaService.genererJson(maquettes.get(0).promptSysteme(), brief);
+            // Le contenu est généré une fois (commun aux propositions). Chaque
+            // proposition reçoit ensuite une structure et une palette différentes,
+            // tirées au hasard dans le pool du type.
+            String contenuJson = iaService.genererJson(gabarit.promptSysteme(), brief);
             List<Style> styles = styleService.troisStyles(brief);
+            List<String> structures = troisStructures(gabarit.structures());
 
             for (int i = 0; i < styles.size(); i++) {
-                Gabarit maquette = maquettes.get(i % maquettes.size());
+                String structure = structures.get(i);
                 Style style = styles.get(i);
-                byte[] pdf = maquette.rendre(contenuJson, style);   // parse + valide + dessine
+                byte[] pdf = gabarit.rendre(contenuJson, style, structure);   // parse + valide + rend
                 String base = UUID.randomUUID().toString();
                 Path cheminPdf = ecrire(base + ".pdf", pdf);
                 Path cheminApercu = ecrire(base + ".png", apercu(pdf));
 
                 PropositionSupport proposition = propositionRepository.save(PropositionSupport.builder()
                         .generation(generation)
-                        .gabaritCode(maquette.code())
+                        .gabaritCode(structure)
                         .paletteCode(style.code())
                         .policeCode(style.police().code())
                         .contenuJson(contenuJson)
@@ -140,16 +144,24 @@ public class StudioService {
 
     // --- interne ---------------------------------------------------------------
 
-    /** Toutes les maquettes disponibles pour un type (≥ 1) ; les propositions les alternent. */
-    private List<Gabarit> maquettesPour(TypeSupport type) {
-        List<Gabarit> maquettes = gabarits.stream()
+    /** L'unique gabarit qui couvre un type. */
+    private Gabarit maquettePour(TypeSupport type) {
+        return gabarits.stream()
                 .filter(g -> g.type() == type)
-                .toList();
-        if (maquettes.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
-                    "Ce type de support n'est pas encore disponible.");
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
+                        "Ce type de support n'est pas encore disponible."));
+    }
+
+    /** Trois structures distinctes tirées au hasard du pool (jamais les mêmes d'une fois à l'autre). */
+    private List<String> troisStructures(List<String> pool) {
+        List<String> melange = new ArrayList<>(pool);
+        Collections.shuffle(melange);
+        List<String> choix = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            choix.add(melange.get(i % melange.size()));
         }
-        return maquettes;
+        return choix;
     }
 
     private GenerationSupport chargerAMoi(Long id) {

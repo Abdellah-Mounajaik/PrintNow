@@ -7,12 +7,12 @@ import com.printnow.module.studio.service.HtmlVersPdf;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/** Carte « monogramme » : pastille d'initiales, coordonnées à puces. Rendu HTML/CSS. */
+import java.util.List;
+
+/** La carte de visite et ses structures. Rendu HTML/CSS via {@link CarteHtml}. */
 @Component
 @RequiredArgsConstructor
-public class CarteMonogrammeGabarit implements Gabarit {
-
-    public static final String CODE = "carte-monogramme";
+public class CarteGabarit implements Gabarit {
 
     private final ObjectMapper mapper;
     private final HtmlVersPdf html;
@@ -23,22 +23,22 @@ public class CarteMonogrammeGabarit implements Gabarit {
     }
 
     @Override
-    public String code() {
-        return CODE;
-    }
-
-    @Override
     public String promptSysteme() {
         return ContenuCarteVisite.PROMPT;
     }
 
     @Override
-    public byte[] rendre(String json, Style style) throws Exception {
+    public List<String> structures() {
+        return List.of("monogramme", "diagonale", "pleine", "sobre");
+    }
+
+    @Override
+    public byte[] rendre(String json, Style style, String structure) throws Exception {
         ContenuCarteVisite carte = mapper.readValue(json, ContenuCarteVisite.class);
         if (carte == null || (!notBlank(carte.nom()) && !notBlank(carte.entreprise()))) {
             throw new IllegalArgumentException("JSON de la carte vide ou inexploitable");
         }
-        return html.versPdf(CarteHtml.page(carte, style, "monogramme"));
+        return html.versPdf(CarteHtml.page(carte, style, structure));
     }
 
     private boolean notBlank(String s) {

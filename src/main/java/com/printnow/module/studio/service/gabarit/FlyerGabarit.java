@@ -7,12 +7,12 @@ import com.printnow.module.studio.service.HtmlVersPdf;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/** Flyer « pleine couleur » : fond plein, cartouches, motif. Rendu HTML/CSS. */
+import java.util.List;
+
+/** Le flyer et ses structures. Rendu HTML/CSS via {@link FlyerHtml}. */
 @Component
 @RequiredArgsConstructor
-public class FlyerPleineGabarit implements Gabarit {
-
-    public static final String CODE = "flyer-pleine";
+public class FlyerGabarit implements Gabarit {
 
     private final ObjectMapper mapper;
     private final HtmlVersPdf html;
@@ -23,22 +23,22 @@ public class FlyerPleineGabarit implements Gabarit {
     }
 
     @Override
-    public String code() {
-        return CODE;
-    }
-
-    @Override
     public String promptSysteme() {
         return ContenuFlyer.PROMPT;
     }
 
     @Override
-    public byte[] rendre(String json, Style style) throws Exception {
+    public List<String> structures() {
+        return List.of("pleine", "editorial", "split", "centre");
+    }
+
+    @Override
+    public byte[] rendre(String json, Style style, String structure) throws Exception {
         ContenuFlyer flyer = mapper.readValue(json, ContenuFlyer.class);
         if (flyer == null || (!notBlank(flyer.titre()) && !notBlank(flyer.accroche()))) {
             throw new IllegalArgumentException("JSON du flyer vide ou inexploitable");
         }
-        return html.versPdf(FlyerHtml.page(flyer, style, "pleine"));
+        return html.versPdf(FlyerHtml.page(flyer, style, structure));
     }
 
     private boolean notBlank(String s) {
