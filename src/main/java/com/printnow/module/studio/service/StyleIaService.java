@@ -15,14 +15,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Choisit les 3 styles (couleurs + police) des 3 propositions.
+ * Choisit les 3 styles (couleurs + fond + police) des 3 propositions.
  *
- * Les couleurs sont demandées à l'IA à partir du brief : si le client précise
- * des teintes (« gris et mauve »), la première palette les respecte, et l'espace
- * des couleurs possibles est infini plutôt que limité à une liste figée. On
- * borne puis on assombrit les couleurs reçues pour qu'elles restent lisibles sur
- * fond blanc. Si l'IA échoue ou renvoie moins de 3 palettes exploitables, on
- * complète avec les palettes figées ({@link Palette}).
+ * Les couleurs et le fond sont demandés à l'IA d'après le brief : si le client
+ * précise des teintes ou un fond (« gris et mauve », « fond noir »), ils sont
+ * respectés et appliqués aux 3 propositions. Le contraste est ensuite garanti
+ * par les jetons du {@link Style} (couleurs claires sur fond sombre, foncées sur
+ * fond clair). Si l'IA échoue, on retombe sur les palettes figées, page blanche.
  */
 @Service
 @RequiredArgsConstructor
@@ -37,7 +36,8 @@ public class StyleIaService {
         exactement à ce format :
         {
           "palettes": [
-            { "nom": "", "primaire": [0,0,0], "accent": [0,0,0], "texte": [0,0,0] }
+            { "nom": "", "fond": [255,255,255], "fondImpose": false,
+              "primaire": [0,0,0], "accent": [0,0,0], "texte": [0,0,0] }
           ]
         }
         (exactement 3 entrées dans "palettes")
@@ -45,72 +45,81 @@ public class StyleIaService {
         Règles :
         - Chaque composante est un entier entre 0 et 255 (Rouge, Vert, Bleu).
         - "primaire" = titres, "accent" = valeurs/sous-titres, "texte" = texte discret.
-        - Le support est imprimé sur FOND BLANC : "primaire" et "accent" doivent
-          rester FONCÉS et lisibles (évite les tons pâles). "texte" est un gris moyen.
-        - "nom" est un libellé court de la palette (ex : « gris et mauve »).
+        - "fond" = couleur de fond du support. "primaire", "accent" et "texte"
+          doivent être clairement LISIBLES sur ce "fond".
+        - "fondImpose" = true UNIQUEMENT si la description demande explicitement une
+          couleur de fond (ex : « fond noir », « sur fond crème »). Dans ce cas, mets
+          la MÊME couleur "fond" (celle demandée) dans les 3 palettes.
+        - Sinon "fondImpose" = false et "fond" = [255,255,255].
         - Si la description mentionne des couleurs précises (ex : « gris et mauve »),
           la PREMIÈRE palette DOIT les respecter fidèlement.
         - Les 3 palettes doivent être nettement différentes les unes des autres.
         """;
 
-    // Luminance perçue maximale (0..255) tolérée, pour rester lisible sur blanc.
-    private static final double LUM_MAX_FORTE = 160;   // titres et accents
-    private static final double LUM_MAX_TEXTE = 140;   // texte discret
-
     /** Une police par proposition ; distincte d'une proposition à l'autre. */
     private static final Police[] POLICES = {Police.MODERNE, Police.CLASSIQUE, Police.MODERNE};
+
+    private static final int[] BLANC = {255, 255, 255};
 
     private final StudioIaService ia;
     private final ObjectMapper mapper;
 
-    /** Trois styles pour les trois propositions, couleurs pilotées par le brief. */
+    /** Trois styles pour les trois propositions, couleurs et fond pilotés par le brief. */
     public List<Style> troisStyles(String brief) {
-        List<Style> styles = new ArrayList<>();
+        List<Combo> combos = new ArrayList<>();
+        int[] fondCommun = BLANC;
+        boolean impose = false;
+
         try {
             String json = ia.genererJson(PROMPT_PALETTES, brief);
             ReponsePalettes reponse = mapper.readValue(json, ReponsePalettes.class);
             if (reponse != null && reponse.palettes() != null) {
                 for (PaletteProposee p : reponse.palettes()) {
-                    if (styles.size() >= 3) break;
-                    Style style = versStyle(p, POLICES[styles.size()]);
-                    if (style != null) styles.add(style);
+                    if (!impose && Boolean.TRUE.equals(p.fondImpose())) {
+                        int[] f = borner(p.fond());
+                        if (f != null) {
+                            impose = true;
+                            fondCommun = f;
+                        }
+                    }
+                    Combo combo = versCombo(p);
+                    if (combo != null) combos.add(combo);
                 }
             }
         } catch (Exception e) {
             log.warn("Palettes IA indisponibles, on retombe sur les palettes figées : {}", e.getMessage());
         }
-        // Complète avec les palettes de secours si l'IA n'a pas fourni 3 palettes valides.
-        for (Style secours : troisStylesDeSecours()) {
-            if (styles.size() >= 3) break;
-            styles.add(secours);
+
+        // Complète avec les palettes de secours si moins de 3 combinaisons valides.
+        for (Combo secours : combosDeSecours()) {
+            if (combos.size() >= 3) break;
+            combos.add(secours);
+        }
+
+        List<Style> styles = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            Combo c = combos.get(i);
+            styles.add(new Style(c.code(), fondCommun, impose, c.primaire(), c.accent(), c.texte(), POLICES[i]));
         }
         return styles;
     }
 
-    private Style versStyle(PaletteProposee p, Police police) {
+    private Combo versCombo(PaletteProposee p) {
         if (p == null) return null;
-        int[] primaire = assainir(p.primaire(), LUM_MAX_FORTE);
-        int[] accent = assainir(p.accent(), LUM_MAX_FORTE);
-        int[] texte = assainir(p.texte(), LUM_MAX_TEXTE);
+        int[] primaire = borner(p.primaire());
+        int[] accent = borner(p.accent());
+        int[] texte = borner(p.texte());
         if (primaire == null || accent == null || texte == null) return null;
-        return new Style(code(p.nom()), primaire, accent, texte, police);
+        return new Combo(code(p.nom()), primaire, accent, texte);
     }
 
-    /** Borne les composantes à 0..255 et assombrit la couleur si elle est trop claire. */
-    private int[] assainir(int[] rgb, double lumMax) {
+    /** Borne les composantes à 0..255, sans toucher à la teinte (le contraste est géré ailleurs). */
+    private int[] borner(int[] rgb) {
         if (rgb == null || rgb.length != 3) return null;
-        double r = borne(rgb[0]), v = borne(rgb[1]), b = borne(rgb[2]);
-        double lum = 0.2126 * r + 0.7152 * v + 0.0722 * b;
-        if (lum > lumMax && lum > 0) {
-            double facteur = lumMax / lum;
-            r *= facteur;
-            v *= facteur;
-            b *= facteur;
-        }
-        return new int[]{(int) Math.round(r), (int) Math.round(v), (int) Math.round(b)};
+        return new int[]{borne(rgb[0]), borne(rgb[1]), borne(rgb[2])};
     }
 
-    private double borne(int composante) {
+    private int borne(int composante) {
         return Math.max(0, Math.min(255, composante));
     }
 
@@ -122,21 +131,27 @@ public class StyleIaService {
         return code.isBlank() ? "ia" : code;
     }
 
-    /** Palettes figées : une version sobre garantie + 2 variées tirées au hasard. */
-    private List<Style> troisStylesDeSecours() {
+    /** Combinaisons figées : une version sobre garantie + 2 variées tirées au hasard. */
+    private List<Combo> combosDeSecours() {
         List<Palette> variees = new ArrayList<>(Arrays.asList(Palette.values()));
         variees.remove(Palette.SOBRE);
         Collections.shuffle(variees);
-        List<Style> styles = new ArrayList<>();
-        styles.add(Style.de(Palette.SOBRE, Police.MODERNE));
-        styles.add(Style.de(variees.get(0), Police.CLASSIQUE));
-        styles.add(Style.de(variees.get(1), Police.MODERNE));
-        return styles;
+        List<Combo> combos = new ArrayList<>();
+        combos.add(combo(Palette.SOBRE));
+        combos.add(combo(variees.get(0)));
+        combos.add(combo(variees.get(1)));
+        return combos;
     }
+
+    private Combo combo(Palette p) {
+        return new Combo(p.code(), p.primaire(), p.accent(), p.texte());
+    }
+
+    private record Combo(String code, int[] primaire, int[] accent, int[] texte) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record ReponsePalettes(List<PaletteProposee> palettes) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record PaletteProposee(String nom, int[] primaire, int[] accent, int[] texte) {}
+    private record PaletteProposee(String nom, int[] fond, Boolean fondImpose, int[] primaire, int[] accent, int[] texte) {}
 }

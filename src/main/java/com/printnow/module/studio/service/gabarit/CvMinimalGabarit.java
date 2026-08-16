@@ -20,7 +20,6 @@ import static com.printnow.module.order.service.pdf.PdfFactureHelpers.MARGE;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.envelopper;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.joindre;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.melerBlanc;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.vide;
@@ -39,9 +38,6 @@ public class CvMinimalGabarit implements Gabarit {
     private static final float LARGEUR_PAGE = PDRectangle.A4.getWidth();
     private static final float HAUTEUR_PAGE = PDRectangle.A4.getHeight();
     private static final float LARGEUR_UTILE = LARGEUR_PAGE - 2 * MARGE;
-
-    private static final int[] ENCRE = {40, 42, 48};
-    private static final int[] GRIS = {222, 225, 231};
 
     private final ObjectMapper mapper;
 
@@ -77,23 +73,24 @@ public class CvMinimalGabarit implements Gabarit {
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 Cursor c = new Cursor(cs, HAUTEUR_PAGE - 76);
+                c.bandeau(0, 0, LARGEUR_PAGE, HAUTEUR_PAGE, s.page());   // fond de page
 
                 // Nom
                 String nom = nonVide(cv.nom());
                 float tNom = tailleQuiTient(s.gras(), nom, 32, 20, LARGEUR_UTILE);
-                c.texteCouleur(s.gras(), tNom, MARGE, nom, s.primaire());
+                c.texteCouleur(s.gras(), tNom, MARGE, nom, s.titre());
                 c.avancer(tNom + 2);
                 if (rempli(cv.titrePro())) {
-                    Formes.texteEspace(cs, s.normal(), 12, MARGE, c.y, cv.titrePro().toUpperCase(), 2f, s.accent());
+                    Formes.texteEspace(cs, s.normal(), 12, MARGE, c.y, cv.titrePro().toUpperCase(), 2f, s.accentPage());
                     c.avancer(20);
                 }
                 // Filet + contact
                 c.avancer(2);
-                c.bandeau(MARGE, c.y, LARGEUR_UTILE, 1.2f, GRIS);
+                c.bandeau(MARGE, c.y, LARGEUR_UTILE, 1.2f, s.filet());
                 c.avancer(16);
                 String contact = ligneContact(cv.contact());
                 if (!contact.isBlank()) {
-                    c.texteCouleur(s.normal(), 10, MARGE, contact, s.texte());
+                    c.texteCouleur(s.normal(), 10, MARGE, contact, s.texteDoux());
                     c.avancer(20);
                 }
                 c.avancer(6);
@@ -126,17 +123,17 @@ public class CvMinimalGabarit implements Gabarit {
             String titre = joindre(" — ", e.poste(), e.entreprise());
             if (!titre.isBlank()) {
                 for (String ligne : envelopper(s.gras(), 11.5f, titre, LARGEUR_UTILE)) {
-                    c.texteCouleur(s.gras(), 11.5f, MARGE, ligne, ENCRE);
+                    c.texteCouleur(s.gras(), 11.5f, MARGE, ligne, s.encre());
                     c.avancer(15);
                 }
             }
             if (rempli(e.periode())) {
-                c.texteCouleur(s.normal(), 9, MARGE, e.periode(), s.accent());
+                c.texteCouleur(s.normal(), 9, MARGE, e.periode(), s.accentPage());
                 c.avancer(13);
             }
             if (rempli(e.description())) {
                 for (String ligne : envelopper(s.normal(), 10, e.description(), LARGEUR_UTILE)) {
-                    c.texteCouleur(s.normal(), 10, MARGE, ligne, ENCRE);
+                    c.texteCouleur(s.normal(), 10, MARGE, ligne, s.encre());
                     c.avancer(13);
                 }
             }
@@ -153,7 +150,7 @@ public class CvMinimalGabarit implements Gabarit {
             if (rempli(f.annee())) ligne = joindre("  ·  ", ligne, f.annee());
             if (!ligne.isBlank()) {
                 for (String morceau : envelopper(s.normal(), 10.5f, ligne, LARGEUR_UTILE)) {
-                    c.texteCouleur(s.normal(), 10.5f, MARGE, morceau, ENCRE);
+                    c.texteCouleur(s.normal(), 10.5f, MARGE, morceau, s.encre());
                     c.avancer(15);
                 }
             }
@@ -162,14 +159,15 @@ public class CvMinimalGabarit implements Gabarit {
     }
 
     private void label(PDPageContentStream cs, Cursor c, String titre, Style s) throws IOException {
-        c.bandeau(MARGE, c.y - 1, 8, 8, s.accent());
-        Formes.texteEspace(cs, s.gras(), 12.5f, MARGE + 16, c.y, titre.toUpperCase(), 1.6f, s.primaire());
+        c.bandeau(MARGE, c.y - 1, 8, 8, s.accentPage());
+        Formes.texteEspace(cs, s.gras(), 12.5f, MARGE + 16, c.y, titre.toUpperCase(), 1.6f, s.titre());
         c.avancer(20);
     }
 
     /** Rangée(s) de chips repliées sur la largeur utile. */
     private float chips(PDPageContentStream cs, Cursor c, Style s, List<String> items, float y) throws IOException {
-        int[] bg = melerBlanc(s.primaire(), 0.86);
+        int[] bg = s.chip();
+        int[] txt = s.chipTexte();
         float x0 = MARGE, px = x0, py = y, h = 19, gap = 7, padX = 11;
         for (String item : items) {
             float w = s.normal().getStringWidth(item) / 1000f * 9.5f + 2 * padX;
@@ -178,7 +176,7 @@ public class CvMinimalGabarit implements Gabarit {
                 py -= h + gap;
             }
             Formes.rectArrondi(cs, px, py - h, w, h, 5, bg);
-            c.texteCouleurA(s.normal(), 9.5f, px + padX, py - h + 6, item, s.primaire());
+            c.texteCouleurA(s.normal(), 9.5f, px + padX, py - h + 6, item, txt);
             px += w + gap;
         }
         return py - h - 8;

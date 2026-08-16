@@ -18,16 +18,14 @@ import java.util.List;
 
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.eclaircir;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.envelopper;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.foncer;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.motLePlusLong;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
 
 /**
- * Maquette « éditoriale » (moderne) : bandeau de titre en haut, corps aéré sur
- * blanc (accroche + blocs en liste à marqueurs d'accent), bandeau de contact en
+ * Maquette « éditoriale » (moderne) : bandeau de titre en haut, corps aéré sur la
+ * page (accroche + blocs en liste à marqueurs d'accent), bandeau de contact en
  * pied. Allure magazine.
  */
 @Component
@@ -36,8 +34,6 @@ public class FlyerEditorialGabarit implements Gabarit {
 
     public static final String CODE = "flyer-editorial";
 
-    private static final int[] BLANC = {255, 255, 255};
-    private static final int[] CLAIR = {224, 228, 236};
     private static final float LARGEUR = PDRectangle.A5.getWidth();
     private static final float HAUTEUR = PDRectangle.A5.getHeight();
     private static final float X = 40;
@@ -75,43 +71,42 @@ public class FlyerEditorialGabarit implements Gabarit {
             PDPage page = new PDPage(PDRectangle.A5);
             document.addPage(page);
 
-            int[] fond = foncer(s.primaire(), 78);
-            int[] accentClair = eclaircir(s.accent(), 200);
+            int[] panneau = s.panneau();
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 Cursor c = new Cursor(cs, HAUTEUR);
 
-                // Bandeau de titre
-                c.bandeau(0, HAUTEUR - HEAD_H, LARGEUR, HEAD_H, fond);
+                c.bandeau(0, 0, LARGEUR, HAUTEUR, s.page());                            // fond de page
+                c.bandeau(0, HAUTEUR - HEAD_H, LARGEUR, HEAD_H, panneau);               // bandeau de titre
                 String titre = nonVide(flyer.titre());
                 float tTitre = tailleQuiTient(s.gras(), motLePlusLong(titre), 30, 18, LARGEUR - 2 * X);
                 float y = HAUTEUR - 44;
                 for (String ligne : envelopper(s.gras(), tTitre, titre, LARGEUR - 2 * X)) {
-                    c.texteCouleurA(s.gras(), tTitre, X, y, ligne, BLANC);
+                    c.texteCouleurA(s.gras(), tTitre, X, y, ligne, s.surPanneau());
                     y -= tTitre + 4;
                 }
 
-                // Corps sur blanc : accroche + blocs
+                // Corps : accroche + blocs
                 float yb = HAUTEUR - HEAD_H - 34;
                 if (rempli(flyer.accroche())) {
                     for (String ligne : envelopper(s.gras(), 14, flyer.accroche(), LARGEUR - 2 * X)) {
-                        c.texteCouleurA(s.gras(), 14, X, yb, ligne, s.primaire());
+                        c.texteCouleurA(s.gras(), 14, X, yb, ligne, s.titre());
                         yb -= 19;
                     }
                     yb -= 4;
-                    c.bandeau(X, yb, 40, 2.5f, s.accent());
+                    c.bandeau(X, yb, 40, 2.5f, s.accentPage());
                     yb -= 24;
                 }
 
                 if (flyer.blocs() != null) {
                     for (ContenuFlyer.Bloc bloc : flyer.blocs()) {
                         if (rempli(bloc.libelle())) {
-                            c.bandeau(X, yb - 1, 7, 7, s.accent());   // marqueur carré
-                            c.texteCouleurA(s.gras(), 13, X + 16, yb, bloc.libelle(), s.primaire());
+                            c.bandeau(X, yb - 1, 7, 7, s.accentPage());   // marqueur carré
+                            c.texteCouleurA(s.gras(), 13, X + 16, yb, bloc.libelle(), s.titre());
                             yb -= 17;
                         }
                         if (rempli(bloc.valeur())) {
-                            c.texteCouleurA(s.normal(), 12.5f, X + 16, yb, bloc.valeur(), s.texte());
+                            c.texteCouleurA(s.normal(), 12.5f, X + 16, yb, bloc.valeur(), s.encre());
                             yb -= 22;
                         } else {
                             yb -= 6;
@@ -120,11 +115,11 @@ public class FlyerEditorialGabarit implements Gabarit {
                 }
 
                 // Bandeau de contact en pied
-                c.bandeau(0, 0, LARGEUR, FOOT_H, fond);
+                c.bandeau(0, 0, LARGEUR, FOOT_H, panneau);
                 List<String> lignes = contact(flyer.contact());
                 float yPied = FOOT_H / 2f + (lignes.size() - 1) * 7.5f;
                 for (String ligne : lignes) {
-                    centre(c, s.normal(), 9.5f, yPied, ligne, CLAIR);
+                    centre(c, s.normal(), 9.5f, yPied, ligne, s.surPanneauDoux());
                     yPied -= 15;
                 }
             }

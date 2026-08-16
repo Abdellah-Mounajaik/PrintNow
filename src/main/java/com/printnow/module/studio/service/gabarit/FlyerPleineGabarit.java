@@ -18,10 +18,7 @@ import java.util.List;
 
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.eclaircir;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.envelopper;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.foncer;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.melerBlanc;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.motLePlusLong;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
@@ -36,8 +33,6 @@ public class FlyerPleineGabarit implements Gabarit {
 
     public static final String CODE = "flyer-pleine";
 
-    private static final int[] BLANC = {255, 255, 255};
-    private static final int[] CLAIR = {226, 229, 236};
     private static final float LARGEUR = PDRectangle.A5.getWidth();
     private static final float HAUTEUR = PDRectangle.A5.getHeight();
 
@@ -72,34 +67,32 @@ public class FlyerPleineGabarit implements Gabarit {
             PDPage page = new PDPage(PDRectangle.A5);
             document.addPage(page);
 
-            int[] fond = foncer(s.primaire(), 78);
-            int[] panneau = melerBlanc(fond, 0.14);   // cartouches un peu plus clairs que le fond
-            int[] accentClair = eclaircir(s.accent(), 205);
+            int[] bloc = s.bloc();
+            int[] accent = s.accentBloc();
+            int[] panneau = s.chipSurBloc();
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 Cursor c = new Cursor(cs, HAUTEUR);
-                c.bandeau(0, 0, LARGEUR, HAUTEUR, fond);
+                c.bandeau(0, 0, LARGEUR, HAUTEUR, bloc);   // aplat plein cadre
 
-                // Motifs : anneau en coin, petite grappe de points
-                Formes.anneau(cs, LARGEUR - 18, HAUTEUR - 22, 24, 3f, accentClair);
-                Formes.disque(cs, 30, HAUTEUR - 28, 4, accentClair);
-                Formes.disque(cs, 45, HAUTEUR - 28, 4, accentClair);
-                Formes.disque(cs, 37, HAUTEUR - 16, 4, accentClair);
+                // Motifs
+                Formes.anneau(cs, LARGEUR - 18, HAUTEUR - 22, 24, 3f, accent);
+                Formes.disque(cs, 30, HAUTEUR - 28, 4, accent);
+                Formes.disque(cs, 45, HAUTEUR - 28, 4, accent);
+                Formes.disque(cs, 37, HAUTEUR - 16, 4, accent);
 
                 // Titre centré
                 String titre = nonVide(flyer.titre());
                 float tTitre = tailleQuiTient(s.gras(), motLePlusLong(titre), 34, 20, LARGEUR - 70);
                 float y = HAUTEUR - 108;
                 for (String ligne : envelopper(s.gras(), tTitre, titre, LARGEUR - 70)) {
-                    centre(c, s.gras(), tTitre, y, ligne, BLANC);
+                    centre(c, s.gras(), tTitre, y, ligne, s.surBloc());
                     y -= tTitre + 6;
                 }
-                // Trait d'accent centré
-                c.bandeau(LARGEUR / 2f - 28, y - 2, 56, 3, accentClair);
+                c.bandeau(LARGEUR / 2f - 28, y - 2, 56, 3, accent);
                 y -= 26;
-                // Accroche centrée
                 for (String ligne : envelopper(s.normal(), 13, nonVide(flyer.accroche()), LARGEUR - 90)) {
-                    centre(c, s.normal(), 13, y, ligne, CLAIR);
+                    centre(c, s.normal(), 13, y, ligne, s.surBlocDoux());
                     y -= 18;
                 }
 
@@ -107,14 +100,14 @@ public class FlyerPleineGabarit implements Gabarit {
                 y -= 18;
                 float chipX = 48, chipW = LARGEUR - 96, chipH = 46;
                 if (flyer.blocs() != null) {
-                    for (ContenuFlyer.Bloc bloc : flyer.blocs()) {
+                    for (ContenuFlyer.Bloc bloc2 : flyer.blocs()) {
                         float chipY = y - chipH;
                         Formes.rectArrondi(cs, chipX, chipY, chipW, chipH, 8, panneau);
-                        if (rempli(bloc.libelle())) {
-                            centre(c, s.gras(), 13, chipY + chipH - 18, bloc.libelle(), accentClair);
+                        if (rempli(bloc2.libelle())) {
+                            centre(c, s.gras(), 13, chipY + chipH - 18, bloc2.libelle(), accent);
                         }
-                        if (rempli(bloc.valeur())) {
-                            centre(c, s.normal(), 13, chipY + 12, bloc.valeur(), BLANC);
+                        if (rempli(bloc2.valeur())) {
+                            centre(c, s.normal(), 13, chipY + 12, bloc2.valeur(), s.surBloc());
                         }
                         y = chipY - 14;
                     }
@@ -124,7 +117,7 @@ public class FlyerPleineGabarit implements Gabarit {
                 List<String> lignes = contact(flyer.contact());
                 float yPied = 40 + (lignes.size() - 1) * 15f;
                 for (String ligne : lignes) {
-                    centre(c, s.normal(), 10, yPied, ligne, CLAIR);
+                    centre(c, s.normal(), 10, yPied, ligne, s.surBlocDoux());
                     yPied -= 15;
                 }
             }
@@ -149,7 +142,7 @@ public class FlyerPleineGabarit implements Gabarit {
     }
 
     private void centre(Cursor c, PDType1Font font, float taille, float yAbsolu, String valeur, int[] rgb) throws IOException {
-        float w = font.getStringWidth(valeur) / 1000f * taille;
-        c.texteCouleurA(font, taille, (LARGEUR - w) / 2f, yAbsolu, valeur, rgb);
+        float largeurTexte = font.getStringWidth(valeur) / 1000f * taille;
+        c.texteCouleurA(font, taille, (LARGEUR - largeurTexte) / 2f, yAbsolu, valeur, rgb);
     }
 }

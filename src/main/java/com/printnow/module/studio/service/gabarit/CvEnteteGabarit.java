@@ -18,11 +18,8 @@ import java.util.List;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.MARGE;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.eclaircir;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.envelopper;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.foncer;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.joindre;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.melerBlanc;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.vide;
@@ -42,10 +39,6 @@ public class CvEnteteGabarit implements Gabarit {
     private static final float HAUTEUR_PAGE = PDRectangle.A4.getHeight();
     private static final float LARGEUR_UTILE = LARGEUR_PAGE - 2 * MARGE;
     private static final float BANDEAU_H = 150f;
-
-    private static final int[] BLANC = {255, 255, 255};
-    private static final int[] CLAIR = {222, 226, 234};
-    private static final int[] ENCRE = {40, 42, 48};
 
     private final ObjectMapper mapper;
 
@@ -79,36 +72,35 @@ public class CvEnteteGabarit implements Gabarit {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
 
-            int[] fond = foncer(s.primaire(), 74);
-            int[] surTitre = eclaircir(s.accent(), 205);
+            int[] accent = s.accentPanneau();
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 Cursor c = new Cursor(cs, HAUTEUR_PAGE - MARGE);
 
-                // Bandeau d'en-tête
-                c.bandeau(0, HAUTEUR_PAGE - BANDEAU_H, LARGEUR_PAGE, BANDEAU_H, fond);
-                Formes.anneau(cs, LARGEUR_PAGE - 14, HAUTEUR_PAGE - 14, 26, 3f, surTitre);
+                c.bandeau(0, 0, LARGEUR_PAGE, HAUTEUR_PAGE, s.page());                          // fond de page
+                c.bandeau(0, HAUTEUR_PAGE - BANDEAU_H, LARGEUR_PAGE, BANDEAU_H, s.panneau());    // bandeau
+                Formes.anneau(cs, LARGEUR_PAGE - 14, HAUTEUR_PAGE - 14, 26, 3f, accent);
 
                 // Monogramme
                 float mcx = MARGE + 30, mcy = HAUTEUR_PAGE - 64, mr = 28;
-                Formes.anneau(cs, mcx, mcy, mr, 2.4f, surTitre);
+                Formes.anneau(cs, mcx, mcy, mr, 2.4f, accent);
                 String ini = Formes.initiales(nonVide(cv.nom()));
                 if (!ini.isBlank()) {
                     float w = s.gras().getStringWidth(ini) / 1000f * 20f;
-                    c.texteCouleurA(s.gras(), 20, mcx - w / 2f, mcy - 0.34f * 20f, ini, BLANC);
+                    c.texteCouleurA(s.gras(), 20, mcx - w / 2f, mcy - 0.34f * 20f, ini, s.surPanneau());
                 }
 
                 // Nom + fonction + contact
                 float tx = MARGE + 74;
                 String nom = nonVide(cv.nom());
                 float tNom = tailleQuiTient(s.gras(), nom, 27, 17, LARGEUR_PAGE - MARGE - tx);
-                c.texteCouleurA(s.gras(), tNom, tx, HAUTEUR_PAGE - 56, nom, BLANC);
+                c.texteCouleurA(s.gras(), tNom, tx, HAUTEUR_PAGE - 56, nom, s.surPanneau());
                 if (rempli(cv.titrePro())) {
-                    Formes.texteEspace(cs, s.normal(), 10.5f, tx, HAUTEUR_PAGE - 78, cv.titrePro().toUpperCase(), 1.6f, surTitre);
+                    Formes.texteEspace(cs, s.normal(), 10.5f, tx, HAUTEUR_PAGE - 78, cv.titrePro().toUpperCase(), 1.6f, accent);
                 }
                 String contact = ligneContact(cv.contact());
                 if (!contact.isBlank()) {
-                    c.texteCouleurA(s.normal(), 9.5f, tx, HAUTEUR_PAGE - 100, contact, CLAIR);
+                    c.texteCouleurA(s.normal(), 9.5f, tx, HAUTEUR_PAGE - 100, contact, s.surPanneauDoux());
                 }
 
                 // Corps
@@ -136,7 +128,8 @@ public class CvEnteteGabarit implements Gabarit {
 
     /** Rangée(s) de chips (compétences, langues), repliées sur la largeur utile. */
     private float chips(PDPageContentStream cs, Cursor c, Style s, List<String> items, float y) throws IOException {
-        int[] bg = melerBlanc(s.primaire(), 0.86);
+        int[] bg = s.chip();
+        int[] txt = s.chipTexte();
         float x0 = MARGE, px = x0, py = y, h = 19, gap = 7, padX = 11;
         for (String item : items) {
             float w = s.normal().getStringWidth(item) / 1000f * 9.5f + 2 * padX;
@@ -145,7 +138,7 @@ public class CvEnteteGabarit implements Gabarit {
                 py -= h + gap;
             }
             Formes.rectArrondi(cs, px, py - h, w, h, 5, bg);
-            c.texteCouleurA(s.normal(), 9.5f, px + padX, py - h + 6, item, s.primaire());
+            c.texteCouleurA(s.normal(), 9.5f, px + padX, py - h + 6, item, txt);
             px += w + gap;
         }
         return py - h - 8;
@@ -157,19 +150,19 @@ public class CvEnteteGabarit implements Gabarit {
         for (ContenuCv.Experience e : experiences) {
             String titre = joindre(" — ", e.poste(), e.entreprise());
             if (!titre.isBlank()) {
-                Formes.disque(cs, MARGE + 2, c.y + 3.2f, 2f, s.accent());
+                Formes.disque(cs, MARGE + 2, c.y + 3.2f, 2f, s.accentPage());
                 for (String ligne : envelopper(s.gras(), 11, titre, LARGEUR_UTILE - 12)) {
-                    c.texteCouleurA(s.gras(), 11, MARGE + 12, c.y, ligne, ENCRE);
+                    c.texteCouleurA(s.gras(), 11, MARGE + 12, c.y, ligne, s.encre());
                     c.avancer(14);
                 }
             }
             if (rempli(e.periode())) {
-                c.texteCouleurA(s.normal(), 9, MARGE + 12, c.y, e.periode(), s.texte());
+                c.texteCouleurA(s.normal(), 9, MARGE + 12, c.y, e.periode(), s.texteDoux());
                 c.avancer(12);
             }
             if (rempli(e.description())) {
                 for (String ligne : envelopper(s.normal(), 10, e.description(), LARGEUR_UTILE - 12)) {
-                    c.texteCouleurA(s.normal(), 10, MARGE + 12, c.y, ligne, ENCRE);
+                    c.texteCouleurA(s.normal(), 10, MARGE + 12, c.y, ligne, s.encre());
                     c.avancer(13);
                 }
             }
@@ -185,9 +178,9 @@ public class CvEnteteGabarit implements Gabarit {
             String ligne = joindre(" — ", f.diplome(), f.ecole());
             if (rempli(f.annee())) ligne = joindre("  ·  ", ligne, f.annee());
             if (!ligne.isBlank()) {
-                Formes.disque(cs, MARGE + 2, c.y + 3.2f, 2f, s.accent());
+                Formes.disque(cs, MARGE + 2, c.y + 3.2f, 2f, s.accentPage());
                 for (String morceau : envelopper(s.normal(), 10, ligne, LARGEUR_UTILE - 12)) {
-                    c.texteCouleurA(s.normal(), 10, MARGE + 12, c.y, morceau, ENCRE);
+                    c.texteCouleurA(s.normal(), 10, MARGE + 12, c.y, morceau, s.encre());
                     c.avancer(14);
                 }
             }
@@ -196,9 +189,9 @@ public class CvEnteteGabarit implements Gabarit {
     }
 
     private void titreSection(PDPageContentStream cs, Cursor c, String titre, Style s) throws IOException {
-        Formes.texteEspace(cs, s.gras(), 13, MARGE, c.y, titre.toUpperCase(), 1.3f, s.primaire());
+        Formes.texteEspace(cs, s.gras(), 13, MARGE, c.y, titre.toUpperCase(), 1.3f, s.titre());
         c.avancer(8);
-        c.bandeau(MARGE, c.y, 34, 2.5f, s.accent());
+        c.bandeau(MARGE, c.y, 34, 2.5f, s.accentPage());
         c.avancer(16);
     }
 

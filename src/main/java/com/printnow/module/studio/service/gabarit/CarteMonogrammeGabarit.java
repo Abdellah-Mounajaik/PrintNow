@@ -15,7 +15,6 @@ import java.io.IOException;
 
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.foncer;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
 
@@ -33,9 +32,6 @@ public class CarteMonogrammeGabarit implements Gabarit {
     private static final float MM = 72f / 25.4f;
     private static final float LARGEUR = 85 * MM;
     private static final float HAUTEUR = 55 * MM;
-
-    private static final int[] BLANC = {255, 255, 255};
-    private static final int[] GRIS = {225, 228, 234};
 
     private final ObjectMapper mapper;
 
@@ -68,48 +64,49 @@ public class CarteMonogrammeGabarit implements Gabarit {
             PDPage page = new PDPage(new PDRectangle(LARGEUR, HAUTEUR));
             document.addPage(page);
 
-            int[] badge = foncer(s.primaire(), 105);
+            int[] accent = s.accentPage();
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 Cursor c = new Cursor(cs, HAUTEUR);
+                c.bandeau(0, 0, LARGEUR, HAUTEUR, s.page());   // fond de page
 
                 // Pastille de monogramme
                 float bx = 42, by = HAUTEUR - 40, br = 22;
-                Formes.disque(cs, bx, by, br, badge);
+                Formes.disque(cs, bx, by, br, s.pastille());
                 String ini = Formes.initiales(nonVide(carte.nom()));
                 if (!ini.isBlank()) {
                     float wIni = s.gras().getStringWidth(ini) / 1000f * 18f;
-                    c.texteCouleurA(s.gras(), 18, bx - wIni / 2f, by - 0.35f * 18f, ini, BLANC);
+                    c.texteCouleurA(s.gras(), 18, bx - wIni / 2f, by - 0.35f * 18f, ini, s.surPastille());
                 }
 
                 // Nom + fonction
                 float nx = 76;
                 String nom = nonVide(carte.nom());
                 float tNom = tailleQuiTient(s.gras(), nom, 16, 11, LARGEUR - 20 - nx);
-                c.texteCouleurA(s.gras(), tNom, nx, HAUTEUR - 45, nom, s.primaire());
+                c.texteCouleurA(s.gras(), tNom, nx, HAUTEUR - 45, nom, s.titre());
                 if (rempli(carte.poste())) {
-                    Formes.texteEspace(cs, s.normal(), 7, nx, HAUTEUR - 61, carte.poste().toUpperCase(), 1.4f, s.accent());
+                    Formes.texteEspace(cs, s.normal(), 7, nx, HAUTEUR - 61, carte.poste().toUpperCase(), 1.4f, accent);
                 }
 
                 // Filet séparateur
-                c.bandeau(20, HAUTEUR - 80, LARGEUR - 40, 0.8f, GRIS);
+                c.bandeau(20, HAUTEUR - 80, LARGEUR - 40, 0.8f, s.filet());
 
                 // Coordonnées à puces
                 float y = HAUTEUR - 98;
                 if (rempli(carte.entreprise())) {
-                    c.texteCouleurA(s.gras(), 8.5f, 22, y, carte.entreprise(), s.primaire());
+                    c.texteCouleurA(s.gras(), 8.5f, 22, y, carte.entreprise(), s.titre());
                     y -= 14;
                 }
                 for (String champ : new String[]{carte.telephone(), carte.email(), carte.siteWeb(), carte.adresse()}) {
                     if (rempli(champ)) {
-                        Formes.disque(cs, 24, y + 2.6f, 1.7f, s.accent());
-                        c.texteCouleurA(s.normal(), 8, 33, y, champ, s.texte());
+                        Formes.disque(cs, 24, y + 2.6f, 1.7f, accent);
+                        c.texteCouleurA(s.normal(), 8, 33, y, champ, s.texteDoux());
                         y -= 13;
                     }
                 }
 
                 // Anneau d'accent en coin bas-droit
-                Formes.anneau(cs, LARGEUR - 2, 6, 18, 2.2f, s.accent());
+                Formes.anneau(cs, LARGEUR - 2, 6, 18, 2.2f, accent);
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();

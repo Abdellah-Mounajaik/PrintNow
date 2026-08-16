@@ -18,16 +18,14 @@ import java.util.List;
 
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.eclaircir;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.envelopper;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.foncer;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.motLePlusLong;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
 
 /**
  * Maquette « diagonale » (moderne) : bloc coloré en haut à bord inférieur incliné,
- * titre et accroche en blanc, blocs à puces sur blanc, motif d'anneau en coin.
+ * titre et accroche en blanc, blocs à puces sur la page, motif d'anneau en coin.
  */
 @Component
 @RequiredArgsConstructor
@@ -35,8 +33,6 @@ public class FlyerDiagonaleGabarit implements Gabarit {
 
     public static final String CODE = "flyer-diagonale";
 
-    private static final int[] BLANC = {255, 255, 255};
-    private static final int[] CLAIR = {224, 228, 236};
     private static final float LARGEUR = PDRectangle.A5.getWidth();
     private static final float HAUTEUR = PDRectangle.A5.getHeight();
     private static final float X = 38;
@@ -72,46 +68,46 @@ public class FlyerDiagonaleGabarit implements Gabarit {
             PDPage page = new PDPage(PDRectangle.A5);
             document.addPage(page);
 
-            int[] fond = foncer(s.primaire(), 76);
-            int[] accentClair = eclaircir(s.accent(), 200);
+            int[] panneau = s.panneau();
+            int[] accentBloc = s.accentPanneau();
             float gy = HAUTEUR * 0.60f;   // bord incliné, côté gauche (bas)
             float dy = HAUTEUR * 0.50f;   // bord incliné, côté droit (haut)
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 Cursor c = new Cursor(cs, HAUTEUR);
 
+                c.bandeau(0, 0, LARGEUR, HAUTEUR, s.page());   // fond de page
                 // Bloc coloré en haut, bord inférieur incliné
-                Formes.polygone(cs, new float[]{0, LARGEUR, LARGEUR, 0}, new float[]{HAUTEUR, HAUTEUR, dy, gy}, fond);
+                Formes.polygone(cs, new float[]{0, LARGEUR, LARGEUR, 0}, new float[]{HAUTEUR, HAUTEUR, dy, gy}, panneau);
                 // Fin liseré d'accent sous l'inclinaison
-                Formes.polygone(cs, new float[]{0, LARGEUR, LARGEUR, 0}, new float[]{gy, dy, dy - 4, gy - 4}, s.accent());
-                // Motif anneau en coin haut-droit
-                Formes.anneau(cs, LARGEUR - 10, HAUTEUR - 12, 24, 3f, accentClair);
+                Formes.polygone(cs, new float[]{0, LARGEUR, LARGEUR, 0}, new float[]{gy, dy, dy - 4, gy - 4}, s.accentPage());
+                Formes.anneau(cs, LARGEUR - 10, HAUTEUR - 12, 24, 3f, accentBloc);
 
-                // Titre + accroche, en blanc sur le bloc
+                // Titre + accroche, sur le bloc
                 String titre = nonVide(flyer.titre());
                 float tTitre = tailleQuiTient(s.gras(), motLePlusLong(titre), 34, 20, LARGEUR - 2 * X);
                 float y = HAUTEUR - 92;
                 for (String ligne : envelopper(s.gras(), tTitre, titre, LARGEUR - 2 * X)) {
-                    c.texteCouleurA(s.gras(), tTitre, X, y, ligne, BLANC);
+                    c.texteCouleurA(s.gras(), tTitre, X, y, ligne, s.surPanneau());
                     y -= tTitre + 6;
                 }
                 y -= 8;
                 for (String ligne : envelopper(s.normal(), 13, nonVide(flyer.accroche()), LARGEUR - 2 * X)) {
-                    c.texteCouleurA(s.normal(), 13, X, y, ligne, CLAIR);
+                    c.texteCouleurA(s.normal(), 13, X, y, ligne, s.surPanneauDoux());
                     y -= 18;
                 }
 
-                // Blocs à puces, sur blanc
+                // Blocs à puces, sur la page
                 float yb = gy - 40;
                 if (flyer.blocs() != null) {
                     for (ContenuFlyer.Bloc bloc : flyer.blocs()) {
                         if (rempli(bloc.libelle())) {
-                            Formes.disque(cs, X + 3, yb + 4f, 2.4f, s.accent());
-                            c.texteCouleurA(s.gras(), 14, X + 16, yb, bloc.libelle(), s.primaire());
+                            Formes.disque(cs, X + 3, yb + 4f, 2.4f, s.accentPage());
+                            c.texteCouleurA(s.gras(), 14, X + 16, yb, bloc.libelle(), s.titre());
                             yb -= 19;
                         }
                         if (rempli(bloc.valeur())) {
-                            c.texteCouleurA(s.normal(), 13, X + 16, yb, bloc.valeur(), s.accent());
+                            c.texteCouleurA(s.normal(), 13, X + 16, yb, bloc.valeur(), s.accentPage());
                             yb -= 26;
                         } else {
                             yb -= 8;
@@ -123,7 +119,7 @@ public class FlyerDiagonaleGabarit implements Gabarit {
                 List<String> lignes = contact(flyer.contact());
                 float yPied = 40 + (lignes.size() - 1) * 15f;
                 for (String ligne : lignes) {
-                    centre(c, s.normal(), 10, yPied, ligne, s.texte());
+                    centre(c, s.normal(), 10, yPied, ligne, s.texteDoux());
                     yPied -= 15;
                 }
             }
@@ -148,7 +144,7 @@ public class FlyerDiagonaleGabarit implements Gabarit {
     }
 
     private void centre(Cursor c, PDType1Font font, float taille, float yAbsolu, String valeur, int[] rgb) throws IOException {
-        float w = font.getStringWidth(valeur) / 1000f * taille;
-        c.texteCouleurA(font, taille, (LARGEUR - w) / 2f, yAbsolu, valeur, rgb);
+        float largeurTexte = font.getStringWidth(valeur) / 1000f * taille;
+        c.texteCouleurA(font, taille, (LARGEUR - largeurTexte) / 2f, yAbsolu, valeur, rgb);
     }
 }

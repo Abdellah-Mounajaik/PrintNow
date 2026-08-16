@@ -15,15 +15,12 @@ import java.io.IOException;
 
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.Cursor;
 import static com.printnow.module.order.service.pdf.PdfFactureHelpers.nonVide;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.eclaircir;
-import static com.printnow.module.studio.service.gabarit.OutilsGabarit.foncer;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.rempli;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.tailleQuiTient;
 
 /**
  * Maquette « pleine couleur » (moderne, sombre) : fond coloré plein, motif
- * d'anneau en coin, micro-label de fonction, gros nom en blanc, coordonnées à
- * puces claires.
+ * d'anneau en coin, micro-label de fonction, gros nom, coordonnées à puces claires.
  */
 @Component
 @RequiredArgsConstructor
@@ -35,9 +32,6 @@ public class CartePleineGabarit implements Gabarit {
     private static final float LARGEUR = 85 * MM;
     private static final float HAUTEUR = 55 * MM;
     private static final float X = 20;
-
-    private static final int[] BLANC = {255, 255, 255};
-    private static final int[] CLAIR = {226, 229, 236};
 
     private final ObjectMapper mapper;
 
@@ -70,40 +64,39 @@ public class CartePleineGabarit implements Gabarit {
             PDPage page = new PDPage(new PDRectangle(LARGEUR, HAUTEUR));
             document.addPage(page);
 
-            int[] fond = foncer(s.primaire(), 74);
-            int[] accentClair = eclaircir(s.accent(), 205);
+            int[] accent = s.accentBloc();
 
             try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 Cursor c = new Cursor(cs, HAUTEUR);
-                c.bandeau(0, 0, LARGEUR, HAUTEUR, fond);
+                c.bandeau(0, 0, LARGEUR, HAUTEUR, s.bloc());
 
                 // Motif géométrique en coin haut-droit
-                Formes.anneau(cs, LARGEUR - 6, HAUTEUR - 6, 30, 3f, accentClair);
-                Formes.disque(cs, LARGEUR - 30, HAUTEUR - 30, 3.5f, accentClair);
+                Formes.anneau(cs, LARGEUR - 6, HAUTEUR - 6, 30, 3f, accent);
+                Formes.disque(cs, LARGEUR - 30, HAUTEUR - 30, 3.5f, accent);
 
                 // Micro-label de fonction
                 if (rempli(carte.poste())) {
-                    Formes.texteEspace(cs, s.normal(), 7, X, HAUTEUR - 46, carte.poste().toUpperCase(), 1.6f, accentClair);
+                    Formes.texteEspace(cs, s.normal(), 7, X, HAUTEUR - 46, carte.poste().toUpperCase(), 1.6f, accent);
                 }
 
                 // Nom
                 String nom = nonVide(carte.nom());
                 float tNom = tailleQuiTient(s.gras(), nom, 18, 12, LARGEUR - 2 * X);
-                c.texteCouleurA(s.gras(), tNom, X, HAUTEUR - 66, nom, BLANC);
+                c.texteCouleurA(s.gras(), tNom, X, HAUTEUR - 66, nom, s.surBloc());
 
                 // Trait d'accent
-                c.bandeau(X, HAUTEUR - 76, 32, 2.5f, accentClair);
+                c.bandeau(X, HAUTEUR - 76, 32, 2.5f, accent);
 
                 // Entreprise + coordonnées à puces
                 float y = HAUTEUR - 96;
                 if (rempli(carte.entreprise())) {
-                    c.texteCouleurA(s.gras(), 8.5f, X, y, carte.entreprise(), CLAIR);
+                    c.texteCouleurA(s.gras(), 8.5f, X, y, carte.entreprise(), s.surBlocDoux());
                     y -= 15;
                 }
                 for (String champ : new String[]{carte.telephone(), carte.email(), carte.siteWeb(), carte.adresse()}) {
                     if (rempli(champ)) {
-                        Formes.disque(cs, X + 2, y + 2.6f, 1.6f, accentClair);
-                        c.texteCouleurA(s.normal(), 8, X + 11, y, champ, CLAIR);
+                        Formes.disque(cs, X + 2, y + 2.6f, 1.6f, accent);
+                        c.texteCouleurA(s.normal(), 8, X + 11, y, champ, s.surBlocDoux());
                         y -= 12.5f;
                     }
                 }
