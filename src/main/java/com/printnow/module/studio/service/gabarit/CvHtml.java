@@ -172,20 +172,20 @@ final class CvHtml {
         c.append("@page { size: 210mm 297mm; margin: 0; }\n");
         c.append("* { box-sizing: border-box; }\n");
         c.append("body { margin:0; font-family:").append(police).append("; background:").append(page)
-                .append("; color:").append(encre).append("; font-size:11px; line-height:1.4; }\n");
+                .append("; color:").append(encre).append("; font-size:11.5px; line-height:1.5; }\n");
         c.append(".nom { font-weight:bold; color:").append(titre).append("; }\n");
         c.append(".titrepro { color:").append(accent).append("; text-transform:uppercase; letter-spacing:2px; font-size:11px; }\n");
-        c.append(".sec { color:").append(titre).append("; text-transform:uppercase; letter-spacing:1.5px; font-size:13px; font-weight:bold; margin:18px 0 6px 0; }\n");
-        c.append(".bar { width:34px; height:2.5px; background:").append(accent).append("; margin:0 0 12px 0; }\n");
-        c.append(".item { margin-bottom:12px; }\n");
-        c.append(".item-titre { font-weight:bold; color:").append(encre).append("; }\n");
-        c.append(".item-meta { color:").append(accent).append("; font-size:10px; margin:1px 0 3px 0; }\n");
-        c.append(".item-desc { color:").append(encre).append("; }\n");
-        c.append(".item-court { color:").append(encre).append("; margin-bottom:6px; }\n");
-        c.append(".chips { margin-bottom:6px; }\n");
+        c.append(".sec { color:").append(titre).append("; text-transform:uppercase; letter-spacing:1.5px; font-size:14px; font-weight:bold; margin:26px 0 8px 0; }\n");
+        c.append(".bar { width:36px; height:2.5px; background:").append(accent).append("; margin:0 0 15px 0; }\n");
+        c.append(".item { margin-bottom:18px; }\n");
+        c.append(".item-titre { font-weight:bold; color:").append(encre).append("; font-size:12.5px; }\n");
+        c.append(".item-meta { color:").append(accent).append("; font-size:10.5px; margin:2px 0 4px 0; }\n");
+        c.append(".item-desc { color:").append(encre).append("; line-height:1.55; }\n");
+        c.append(".item-court { color:").append(encre).append("; margin-bottom:9px; line-height:1.5; }\n");
+        c.append(".chips { margin-bottom:8px; }\n");
         c.append(".chip { display:inline-block; background:").append(chip).append("; color:").append(chipTxt)
-                .append("; border-radius:5px; padding:4px 10px; font-size:10px; margin:0 6px 6px 0; }\n");
-        c.append(".contact { color:").append(doux).append("; font-size:10px; }\n");
+                .append("; border-radius:6px; padding:6px 12px; font-size:10.5px; margin:0 7px 8px 0; }\n");
+        c.append(".contact { color:").append(doux).append("; font-size:10.5px; }\n");
 
         switch (structure) {
             case "entete" -> {
