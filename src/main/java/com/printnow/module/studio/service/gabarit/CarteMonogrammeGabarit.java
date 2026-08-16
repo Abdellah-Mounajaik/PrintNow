@@ -72,11 +72,12 @@ public class CarteMonogrammeGabarit implements Gabarit {
 
                 // Pastille de monogramme
                 float bx = 42, by = HAUTEUR - 40, br = 22;
-                Formes.disque(cs, bx, by, br, s.pastille());
+                boolean plein = Formes.badge(cs, s.variante().badge(), bx, by, br, s.pastille());
                 String ini = Formes.initiales(nonVide(carte.nom()));
                 if (!ini.isBlank()) {
+                    int[] col = plein ? s.surPastille() : s.titre();
                     float wIni = s.gras().getStringWidth(ini) / 1000f * 18f;
-                    c.texteCouleurA(s.gras(), 18, bx - wIni / 2f, by - 0.35f * 18f, ini, s.surPastille());
+                    c.texteCouleurA(s.gras(), 18, bx - wIni / 2f, by - 0.35f * 18f, ini, col);
                 }
 
                 // Nom + fonction
@@ -99,7 +100,7 @@ public class CarteMonogrammeGabarit implements Gabarit {
                 }
                 for (String champ : new String[]{carte.telephone(), carte.email(), carte.siteWeb(), carte.adresse()}) {
                     if (rempli(champ)) {
-                        Formes.disque(cs, 24, y + 2.6f, 1.7f, accent);
+                        Formes.marqueur(cs, s.variante().puce(), 24, y + 2.6f, 1.7f, accent);
                         c.texteCouleurA(s.normal(), 8, 33, y, champ, s.texteDoux());
                         y -= 13;
                     }

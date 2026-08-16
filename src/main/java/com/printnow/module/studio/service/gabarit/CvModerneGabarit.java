@@ -103,11 +103,12 @@ public class CvModerneGabarit implements Gabarit {
         int[] accent = s.accentPanneau();
         // Monogramme : anneau + initiales, centré
         float mcx = SIDEBAR_W / 2f, mcy = HAUT + 4, mr = 24;
-        Formes.anneau(cs, mcx, mcy, mr, 2.2f, accent);
+        boolean plein = Formes.badge(cs, s.variante().badge(), mcx, mcy, mr, accent);
         String ini = Formes.initiales(nonVide(cv.nom()));
         if (!ini.isBlank()) {
+            int[] col = plein ? s.surAccentPanneau() : s.surPanneau();
             float w = s.gras().getStringWidth(ini) / 1000f * 18f;
-            g.texteCouleurA(s.gras(), 18, mcx - w / 2f, mcy - 0.34f * 18f, ini, s.surPanneau());
+            g.texteCouleurA(s.gras(), 18, mcx - w / 2f, mcy - 0.34f * 18f, ini, col);
         }
         g.y = mcy - mr - 24;
 
@@ -133,7 +134,7 @@ public class CvModerneGabarit implements Gabarit {
             labelLateral(cs, g, s, "Contact", accent);
             for (String ligne : contact) {
                 float t = tailleQuiTient(s.normal(), ligne, 9.5f, 7f, COL_G_W - 10);
-                Formes.disque(cs, COL_G_X + 2, g.y + 2.4f, 1.6f, accent);
+                Formes.marqueur(cs, s.variante().puce(), COL_G_X + 2, g.y + 2.4f, 1.6f, accent);
                 g.texteCouleurA(s.normal(), t, COL_G_X + 10, g.y, ligne, s.surPanneauDoux());
                 g.avancer(13);
             }
@@ -170,7 +171,7 @@ public class CvModerneGabarit implements Gabarit {
         List<String> lignes = envelopper(s.normal(), 9.5f, texte, COL_G_W - 10);
         boolean premier = true;
         for (String ligne : lignes) {
-            if (premier) Formes.disque(cs, COL_G_X + 2, g.y + 2.6f, 1.6f, couleurDot);
+            if (premier) Formes.marqueur(cs, s.variante().puce(), COL_G_X + 2, g.y + 2.6f, 1.6f, couleurDot);
             g.texteCouleurA(s.normal(), 9.5f, COL_G_X + 10, g.y, ligne, s.surPanneauDoux());
             g.avancer(13);
             premier = false;
@@ -190,7 +191,7 @@ public class CvModerneGabarit implements Gabarit {
         for (ContenuCv.Experience e : experiences) {
             String titre = joindre(" — ", e.poste(), e.entreprise());
             if (!titre.isBlank()) {
-                Formes.disque(cs, COL_D_X + 2, d.y + 3.2f, 2f, s.accentPage());
+                Formes.marqueur(cs, s.variante().puce(), COL_D_X + 2, d.y + 3.2f, 2f, s.accentPage());
                 for (String ligne : envelopper(s.gras(), 11, titre, COL_D_W - 12)) {
                     d.texteCouleurA(s.gras(), 11, COL_D_X + 12, d.y, ligne, s.encre());
                     d.avancer(14);
@@ -217,7 +218,7 @@ public class CvModerneGabarit implements Gabarit {
         for (ContenuCv.Formation f : formations) {
             String titre = joindre(" — ", f.diplome(), f.ecole());
             if (!titre.isBlank()) {
-                Formes.disque(cs, COL_D_X + 2, d.y + 3.2f, 2f, s.accentPage());
+                Formes.marqueur(cs, s.variante().puce(), COL_D_X + 2, d.y + 3.2f, 2f, s.accentPage());
                 for (String ligne : envelopper(s.gras(), 10.5f, titre, COL_D_W - 12)) {
                     d.texteCouleurA(s.gras(), 10.5f, COL_D_X + 12, d.y, ligne, s.encre());
                     d.avancer(13);
@@ -234,7 +235,7 @@ public class CvModerneGabarit implements Gabarit {
     private void titrePrincipal(PDPageContentStream cs, Cursor d, String titre, Style s) throws IOException {
         Formes.texteEspace(cs, s.gras(), 12.5f, COL_D_X, d.y, titre.toUpperCase(), 1.2f, s.titre());
         d.avancer(8);
-        d.bandeau(COL_D_X, d.y, 30, 2.5f, s.accentPage());
+        Formes.souligne(cs, s.variante().trait(), COL_D_X, d.y, s.accentPage());
         d.avancer(16);
     }
 

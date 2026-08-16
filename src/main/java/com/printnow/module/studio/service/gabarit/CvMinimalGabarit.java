@@ -159,7 +159,7 @@ public class CvMinimalGabarit implements Gabarit {
     }
 
     private void label(PDPageContentStream cs, Cursor c, String titre, Style s) throws IOException {
-        c.bandeau(MARGE, c.y - 1, 8, 8, s.accentPage());
+        Formes.marqueur(cs, s.variante().puce(), MARGE + 4, c.y + 3, 4, s.accentPage());
         Formes.texteEspace(cs, s.gras(), 12.5f, MARGE + 16, c.y, titre.toUpperCase(), 1.6f, s.titre());
         c.avancer(20);
     }

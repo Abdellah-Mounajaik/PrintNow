@@ -18,7 +18,8 @@ import static com.printnow.module.studio.service.gabarit.OutilsGabarit.sombre;
  * ici, toujours contrastés par rapport à la surface qui les porte — d'où une
  * lisibilité garantie que le fond soit clair ou sombre.
  */
-public record Style(String code, int[] fond, boolean impose, int[] primaire, int[] accent, int[] texte, Police police) {
+public record Style(String code, int[] fond, boolean impose, int[] primaire, int[] accent, int[] texte,
+                    Police police, Variante variante) {
 
     private static final int[] BLANC = {255, 255, 255};
     private static final int[] ENCRE_SOMBRE = {38, 40, 46};
@@ -28,7 +29,8 @@ public record Style(String code, int[] fond, boolean impose, int[] primaire, int
 
     /** Construit un style depuis une palette figée (page blanche, sans fond imposé). */
     public static Style de(Palette palette, Police police) {
-        return new Style(palette.code(), BLANC, false, palette.primaire(), palette.accent(), palette.texte(), police);
+        return new Style(palette.code(), BLANC, false, palette.primaire(), palette.accent(), palette.texte(),
+                police, Variante.defaut());
     }
 
     public PDType1Font normal() { return police.normal(); }
@@ -85,6 +87,8 @@ public record Style(String code, int[] fond, boolean impose, int[] primaire, int
     public int[] accentPanneau() { return contraster(accent, panneau(), 95); }
 
     public int[] surPastille() { return texteSur(pastille()); }
+    public int[] surAccentPage() { return texteSur(accentPage()); }
+    public int[] surAccentPanneau() { return texteSur(accentPanneau()); }
 
     public int[] chipTexte() {
         return sombre(chip()) ? ENCRE_CLAIR : contraster(primaire, chip(), 85);

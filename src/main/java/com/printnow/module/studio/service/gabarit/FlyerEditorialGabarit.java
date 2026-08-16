@@ -94,14 +94,14 @@ public class FlyerEditorialGabarit implements Gabarit {
                         yb -= 19;
                     }
                     yb -= 4;
-                    c.bandeau(X, yb, 40, 2.5f, s.accentPage());
+                    Formes.souligne(cs, s.variante().trait(), X, yb, s.accentPage());
                     yb -= 24;
                 }
 
                 if (flyer.blocs() != null) {
                     for (ContenuFlyer.Bloc bloc : flyer.blocs()) {
                         if (rempli(bloc.libelle())) {
-                            c.bandeau(X, yb - 1, 7, 7, s.accentPage());   // marqueur carré
+                            Formes.marqueur(cs, s.variante().puce(), X + 3, yb + 2.5f, 3.5f, s.accentPage());
                             c.texteCouleurA(s.gras(), 13, X + 16, yb, bloc.libelle(), s.titre());
                             yb -= 17;
                         }

@@ -83,11 +83,12 @@ public class CvEnteteGabarit implements Gabarit {
 
                 // Monogramme
                 float mcx = MARGE + 30, mcy = HAUTEUR_PAGE - 64, mr = 28;
-                Formes.anneau(cs, mcx, mcy, mr, 2.4f, accent);
+                boolean plein = Formes.badge(cs, s.variante().badge(), mcx, mcy, mr, accent);
                 String ini = Formes.initiales(nonVide(cv.nom()));
                 if (!ini.isBlank()) {
+                    int[] col = plein ? s.surAccentPanneau() : s.surPanneau();
                     float w = s.gras().getStringWidth(ini) / 1000f * 20f;
-                    c.texteCouleurA(s.gras(), 20, mcx - w / 2f, mcy - 0.34f * 20f, ini, s.surPanneau());
+                    c.texteCouleurA(s.gras(), 20, mcx - w / 2f, mcy - 0.34f * 20f, ini, col);
                 }
 
                 // Nom + fonction + contact
@@ -150,7 +151,7 @@ public class CvEnteteGabarit implements Gabarit {
         for (ContenuCv.Experience e : experiences) {
             String titre = joindre(" — ", e.poste(), e.entreprise());
             if (!titre.isBlank()) {
-                Formes.disque(cs, MARGE + 2, c.y + 3.2f, 2f, s.accentPage());
+                Formes.marqueur(cs, s.variante().puce(), MARGE + 2, c.y + 3.2f, 2f, s.accentPage());
                 for (String ligne : envelopper(s.gras(), 11, titre, LARGEUR_UTILE - 12)) {
                     c.texteCouleurA(s.gras(), 11, MARGE + 12, c.y, ligne, s.encre());
                     c.avancer(14);
@@ -178,7 +179,7 @@ public class CvEnteteGabarit implements Gabarit {
             String ligne = joindre(" — ", f.diplome(), f.ecole());
             if (rempli(f.annee())) ligne = joindre("  ·  ", ligne, f.annee());
             if (!ligne.isBlank()) {
-                Formes.disque(cs, MARGE + 2, c.y + 3.2f, 2f, s.accentPage());
+                Formes.marqueur(cs, s.variante().puce(), MARGE + 2, c.y + 3.2f, 2f, s.accentPage());
                 for (String morceau : envelopper(s.normal(), 10, ligne, LARGEUR_UTILE - 12)) {
                     c.texteCouleurA(s.normal(), 10, MARGE + 12, c.y, morceau, s.encre());
                     c.avancer(14);
@@ -191,7 +192,7 @@ public class CvEnteteGabarit implements Gabarit {
     private void titreSection(PDPageContentStream cs, Cursor c, String titre, Style s) throws IOException {
         Formes.texteEspace(cs, s.gras(), 13, MARGE, c.y, titre.toUpperCase(), 1.3f, s.titre());
         c.avancer(8);
-        c.bandeau(MARGE, c.y, 34, 2.5f, s.accentPage());
+        Formes.souligne(cs, s.variante().trait(), MARGE, c.y, s.accentPage());
         c.avancer(16);
     }
 

@@ -95,7 +95,7 @@ public class CartePleineGabarit implements Gabarit {
                 }
                 for (String champ : new String[]{carte.telephone(), carte.email(), carte.siteWeb(), carte.adresse()}) {
                     if (rempli(champ)) {
-                        Formes.disque(cs, X + 2, y + 2.6f, 1.6f, accent);
+                        Formes.marqueur(cs, s.variante().puce(), X + 2, y + 2.6f, 1.6f, accent);
                         c.texteCouleurA(s.normal(), 8, X + 11, y, champ, s.surBlocDoux());
                         y -= 12.5f;
                     }

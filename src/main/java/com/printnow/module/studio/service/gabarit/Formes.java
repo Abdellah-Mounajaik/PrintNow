@@ -85,6 +85,65 @@ final class Formes {
         return base + Math.max(0, texte.length() - 1) * espacement;
     }
 
+    /** Marqueur de liste selon la variante (point, carré ou tiret), centré en (x, y). */
+    static void marqueur(PDPageContentStream cs, Variante.Puce puce, float x, float y, float taille, int[] rgb) throws IOException {
+        switch (puce) {
+            case POINT -> disque(cs, x, y, taille, rgb);
+            case CARRE -> {
+                remplissage(cs, rgb);
+                cs.addRect(x - taille, y - taille, taille * 2, taille * 2);
+                cs.fill();
+                reinit(cs);
+            }
+            case TIRET -> {
+                remplissage(cs, rgb);
+                cs.addRect(x - taille * 1.7f, y - taille * 0.45f, taille * 3.4f, taille * 0.9f);
+                cs.fill();
+                reinit(cs);
+            }
+        }
+    }
+
+    /** Pastille de monogramme selon la variante ; renvoie true si elle est pleine (initiales à contraster). */
+    static boolean badge(PDPageContentStream cs, Variante.Badge badge, float cx, float cy, float r, int[] rgb) throws IOException {
+        switch (badge) {
+            case ANNEAU -> {
+                anneau(cs, cx, cy, r, 2.4f, rgb);
+                return false;
+            }
+            case DISQUE -> {
+                disque(cs, cx, cy, r, rgb);
+                return true;
+            }
+            case CARRE -> {
+                rectArrondi(cs, cx - r, cy - r, 2 * r, 2 * r, r * 0.4f, rgb);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Trait d'accent sous un titre selon la variante ; (x, y) = coin bas-gauche. */
+    static void souligne(PDPageContentStream cs, Variante.Trait trait, float x, float y, int[] rgb) throws IOException {
+        switch (trait) {
+            case COURT -> {
+                remplissage(cs, rgb);
+                cs.addRect(x, y, 30, 2.5f);
+                cs.fill();
+                reinit(cs);
+            }
+            case LONG -> {
+                remplissage(cs, rgb);
+                cs.addRect(x, y, 62, 2.5f);
+                cs.fill();
+                reinit(cs);
+            }
+            case POINTS -> {
+                for (int i = 0; i < 4; i++) disque(cs, x + 3 + i * 9, y + 1.4f, 1.8f, rgb);
+            }
+        }
+    }
+
     /** Initiales (1 à 2 lettres) tirées d'un nom, pour un monogramme. */
     static String initiales(String nom) {
         if (nom == null) return "";

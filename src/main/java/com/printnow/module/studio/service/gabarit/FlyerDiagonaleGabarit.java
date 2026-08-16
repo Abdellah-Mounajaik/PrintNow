@@ -102,7 +102,7 @@ public class FlyerDiagonaleGabarit implements Gabarit {
                 if (flyer.blocs() != null) {
                     for (ContenuFlyer.Bloc bloc : flyer.blocs()) {
                         if (rempli(bloc.libelle())) {
-                            Formes.disque(cs, X + 3, yb + 4f, 2.4f, s.accentPage());
+                            Formes.marqueur(cs, s.variante().puce(), X + 3, yb + 4f, 2.4f, s.accentPage());
                             c.texteCouleurA(s.gras(), 14, X + 16, yb, bloc.libelle(), s.titre());
                             yb -= 19;
                         }
