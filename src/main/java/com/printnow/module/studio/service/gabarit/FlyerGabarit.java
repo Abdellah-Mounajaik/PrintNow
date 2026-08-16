@@ -29,7 +29,7 @@ public class FlyerGabarit implements Gabarit {
 
     @Override
     public List<String> structures() {
-        return List.of("pleine", "editorial", "split", "centre", "lateral", "affiche");
+        return List.of("pleine", "editorial", "split", "affiche", "hero", "numeros");
     }
 
     @Override
