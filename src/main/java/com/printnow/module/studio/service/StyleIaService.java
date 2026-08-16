@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.printnow.module.studio.service.gabarit.Palette;
 import com.printnow.module.studio.service.gabarit.Police;
 import com.printnow.module.studio.service.gabarit.Style;
-import com.printnow.module.studio.service.gabarit.Variante;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Choisit les 3 styles (couleurs + fond + police) des 3 propositions.
@@ -98,12 +96,10 @@ public class StyleIaService {
             combos.add(secours);
         }
 
-        Random alea = new Random();
         List<Style> styles = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             Combo c = combos.get(i);
-            styles.add(new Style(c.code(), fondCommun, impose, c.primaire(), c.accent(), c.texte(),
-                    POLICES[i], Variante.aleatoire(alea)));
+            styles.add(new Style(c.code(), fondCommun, impose, c.primaire(), c.accent(), c.texte(), POLICES[i]));
         }
         return styles;
     }

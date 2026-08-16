@@ -1,7 +1,5 @@
 package com.printnow.module.studio.service.gabarit;
 
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.contraster;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.foncer;
 import static com.printnow.module.studio.service.gabarit.OutilsGabarit.melerBlanc;
@@ -19,22 +17,13 @@ import static com.printnow.module.studio.service.gabarit.OutilsGabarit.sombre;
  * lisibilité garantie que le fond soit clair ou sombre.
  */
 public record Style(String code, int[] fond, boolean impose, int[] primaire, int[] accent, int[] texte,
-                    Police police, Variante variante) {
+                    Police police) {
 
     private static final int[] BLANC = {255, 255, 255};
     private static final int[] ENCRE_SOMBRE = {38, 40, 46};
     private static final int[] ENCRE_CLAIR = {236, 239, 245};
     private static final int[] DOUX_SOMBRE = {104, 108, 118};
     private static final int[] DOUX_CLAIR = {190, 195, 206};
-
-    /** Construit un style depuis une palette figée (page blanche, sans fond imposé). */
-    public static Style de(Palette palette, Police police) {
-        return new Style(palette.code(), BLANC, false, palette.primaire(), palette.accent(), palette.texte(),
-                police, Variante.defaut());
-    }
-
-    public PDType1Font normal() { return police.normal(); }
-    public PDType1Font gras() { return police.gras(); }
 
     // --- surfaces --------------------------------------------------------------
 
@@ -87,8 +76,6 @@ public record Style(String code, int[] fond, boolean impose, int[] primaire, int
     public int[] accentPanneau() { return contraster(accent, panneau(), 95); }
 
     public int[] surPastille() { return texteSur(pastille()); }
-    public int[] surAccentPage() { return texteSur(accentPage()); }
-    public int[] surAccentPanneau() { return texteSur(accentPanneau()); }
 
     public int[] chipTexte() {
         return sombre(chip()) ? ENCRE_CLAIR : contraster(primaire, chip(), 85);
