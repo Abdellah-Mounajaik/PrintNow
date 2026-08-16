@@ -29,7 +29,7 @@ public class CarteGabarit implements Gabarit {
 
     @Override
     public List<String> structures() {
-        return List.of("monogramme", "diagonale", "pleine", "sobre");
+        return List.of("monogramme", "diagonale", "pleine", "sobre", "bandeau", "cote");
     }
 
     @Override

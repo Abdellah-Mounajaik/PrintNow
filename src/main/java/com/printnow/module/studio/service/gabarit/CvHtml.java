@@ -21,6 +21,7 @@ final class CvHtml {
             case "entete" -> corpsEntete(cv, s);
             case "minimal" -> corpsMinimal(cv, s);
             case "bandeau" -> corpsBandeau(cv, s);
+            case "timeline", "cartes" -> corpsMinimal(cv, s);   // même corps, CSS différent
             default -> corpsModerne(cv, s);   // moderne, droite
         };
         return "<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\"/>\n<style>\n"
@@ -198,11 +199,17 @@ final class CvHtml {
                 c.append(".hdr .contact { color:").append(surPd).append("; margin-top:6px; }\n");
                 c.append(".corps { padding:26px 40px; }\n");
             }
-            case "minimal" -> {
-                c.append(".corps { padding:52px 50px; }\n");
-                c.append(".corps > .nom { font-size:32px; margin-bottom:2px; }\n");
-                c.append(".corps > .titrepro { font-size:12px; letter-spacing:3px; }\n");
-                c.append(".filet { height:1.2px; background:").append(filet).append("; margin:16px 0; }\n");
+            case "minimal" -> minimalBase(c, filet);
+            case "timeline" -> {
+                minimalBase(c, filet);
+                c.append(".item { border-left:2px solid ").append(accent).append("; padding-left:16px; }\n");
+                c.append(".item-meta { display:inline-block; background:").append(chip).append("; color:").append(chipTxt)
+                        .append("; border-radius:10px; padding:2px 9px; }\n");
+            }
+            case "cartes" -> {
+                minimalBase(c, filet);
+                c.append(".item { background:").append(chip).append("; border-radius:10px; border-left:3px solid ").append(accent)
+                        .append("; padding:12px 14px; margin-bottom:12px; }\n");
             }
             case "bandeau" -> {
                 c.append(".topbar { background:").append(panneau).append("; padding:22px 40px; }\n");
@@ -215,6 +222,14 @@ final class CvHtml {
             default -> colonne(c, false, panneau, surP, surPd, accP);   // moderne
         }
         return c.toString();
+    }
+
+    /** Base commune aux structures une-colonne épurées (minimal, timeline, cartes). */
+    private static void minimalBase(StringBuilder c, String filet) {
+        c.append(".corps { padding:52px 50px; }\n");
+        c.append(".corps > .nom { font-size:32px; margin-bottom:2px; }\n");
+        c.append(".corps > .titrepro { font-size:12px; letter-spacing:3px; }\n");
+        c.append(".filet { height:1.2px; background:").append(filet).append("; margin:16px 0; }\n");
     }
 
     /** Colonne latérale (moderne = gauche, droite = miroir). */

@@ -17,6 +17,8 @@ final class CarteHtml {
             case "diagonale" -> corpsDiagonale(c);
             case "pleine" -> corpsPleine(c);
             case "sobre" -> corpsSobre(c);
+            case "bandeau" -> corpsBandeau(c);
+            case "cote" -> corpsCote(c);
             default -> corpsMonogramme(c);
         };
         return "<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\"/>\n<style>\n"
@@ -57,6 +59,27 @@ final class CarteHtml {
         b.append("<div class=\"rule\"></div>");
         if (rempli(c.entreprise())) b.append("<div class=\"entreprise\">").append(esc(c.entreprise())).append("</div>");
         b.append(coord(c));
+        return b.toString();
+    }
+
+    private static String corpsBandeau(ContenuCarteVisite c) {
+        StringBuilder b = new StringBuilder("<div class=\"band\">");
+        b.append("<div class=\"nom\">").append(esc(nz(c.nom()))).append("</div>");
+        if (rempli(c.poste())) b.append("<div class=\"poste\">").append(esc(c.poste())).append("</div>");
+        b.append("</div><div class=\"bot\">");
+        if (rempli(c.entreprise())) b.append("<div class=\"entreprise\">").append(esc(c.entreprise())).append("</div>");
+        b.append(coord(c)).append("</div>");
+        return b.toString();
+    }
+
+    private static String corpsCote(ContenuCarteVisite c) {
+        StringBuilder b = new StringBuilder("<div class=\"side\">");
+        b.append("<div class=\"ini\">").append(esc(initiales(c.nom()))).append("</div>");
+        b.append("<div class=\"nom\">").append(esc(nz(c.nom()))).append("</div></div>");
+        b.append("<div class=\"main\">");
+        if (rempli(c.poste())) b.append("<div class=\"poste\">").append(esc(c.poste())).append("</div>");
+        if (rempli(c.entreprise())) b.append("<div class=\"entreprise\">").append(esc(c.entreprise())).append("</div>");
+        b.append(coord(c)).append("</div>");
         return b.toString();
     }
 
@@ -131,6 +154,27 @@ final class CarteHtml {
                 c.append(".rule { width:26px; height:2px; background:").append(accent).append("; margin:10px 0; }\n");
                 c.append(".entreprise { font-weight:bold; color:").append(titre).append("; font-size:8.5px; margin-bottom:6px; }\n");
                 c.append(".coord { color:").append(texteDoux).append("; font-size:7.5px; }\n");
+                c.append(".coord .marq { background:").append(accent).append("; }\n");
+            }
+            case "bandeau" -> {
+                c.append("body { background:").append(page).append("; }\n");
+                c.append(".band { background:").append(panneau).append("; padding:14px 18px; }\n");
+                c.append(".band .nom { font-weight:bold; color:").append(surP).append("; font-size:15px; }\n");
+                c.append(".band .poste { color:").append(accP).append("; text-transform:uppercase; letter-spacing:1px; font-size:7px; margin-top:2px; }\n");
+                c.append(".bot { padding:12px 18px; }\n");
+                c.append(".bot .entreprise { font-weight:bold; color:").append(titre).append("; font-size:8.5px; margin-bottom:5px; }\n");
+                c.append(".coord { color:").append(texteDoux).append("; font-size:7.5px; }\n");
+                c.append(".coord .marq { background:").append(accent).append("; }\n");
+            }
+            case "cote" -> {
+                c.append("body { background:").append(page).append("; }\n");
+                c.append(".side { position:absolute; left:0; top:0; width:30mm; height:55mm; background:").append(panneau).append("; padding:15px 12px; }\n");
+                c.append(".side .ini { color:").append(accP).append("; font-weight:bold; font-size:20px; }\n");
+                c.append(".side .nom { color:").append(surP).append("; font-weight:bold; font-size:11px; margin-top:10px; }\n");
+                c.append(".main { margin-left:30mm; padding:15px 14px; }\n");
+                c.append(".main .poste { color:").append(accent).append("; text-transform:uppercase; letter-spacing:1px; font-size:6.5px; }\n");
+                c.append(".main .entreprise { font-weight:bold; color:").append(titre).append("; font-size:8.5px; margin:6px 0; }\n");
+                c.append(".coord { color:").append(texteDoux).append("; font-size:7px; margin-top:4px; }\n");
                 c.append(".coord .marq { background:").append(accent).append("; }\n");
             }
             default -> { // monogramme

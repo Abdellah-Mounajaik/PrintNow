@@ -29,7 +29,7 @@ public class CvGabarit implements Gabarit {
 
     @Override
     public List<String> structures() {
-        return List.of("moderne", "entete", "minimal", "droite", "bandeau");
+        return List.of("moderne", "entete", "minimal", "droite", "bandeau", "timeline", "cartes");
     }
 
     @Override

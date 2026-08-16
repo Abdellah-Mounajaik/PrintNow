@@ -20,6 +20,8 @@ final class FlyerHtml {
             case "editorial" -> corpsEditorial(f);
             case "split" -> corpsSplit(f);
             case "centre" -> corpsCentre(f);
+            case "affiche" -> corpsCentre(f);   // même corps, CSS poster
+            case "lateral" -> corpsLateral(f);
             default -> corpsPleine(f);
         };
         return "<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\"/>\n<style>\n"
@@ -76,6 +78,16 @@ final class FlyerHtml {
     }
 
     // --- fragments -------------------------------------------------------------
+
+    private static String corpsLateral(ContenuFlyer f) {
+        StringBuilder b = new StringBuilder("<div class=\"stripe\">");
+        b.append("<div class=\"titre\">").append(esc(nz(f.titre()))).append("</div>");
+        b.append("<div class=\"rule\"></div>");
+        if (rempli(f.accroche())) b.append("<div class=\"accroche\">").append(esc(f.accroche())).append("</div>");
+        b.append("</div>");
+        b.append("<div class=\"corps\">").append(blocsListe(f)).append(pied(f, "cfoot")).append("</div>");
+        return b.toString();
+    }
 
     private static String corpsCentre(ContenuFlyer f) {
         StringBuilder b = new StringBuilder("<div class=\"wrap\">");
@@ -184,6 +196,30 @@ final class FlyerHtml {
                 c.append(".cbloc { margin-bottom:16px; }\n");
                 c.append(".cbloc .lib { font-weight:bold; color:").append(titre).append("; font-size:16px; }\n");
                 c.append(".cbloc .val { color:").append(accent).append("; font-size:14px; margin-top:2px; }\n");
+                c.append(".contact { position:fixed; bottom:34px; left:0; right:0; text-align:center; color:").append(rgb(s.encreDoux())).append("; font-size:10px; }\n");
+            }
+            case "lateral" -> {
+                c.append("body { background:").append(page).append("; color:").append(encre).append("; }\n");
+                c.append(".stripe { position:absolute; left:0; top:0; width:52mm; height:210mm; background:").append(panneau).append("; padding:34px 22px; }\n");
+                c.append(".stripe .titre { color:").append(surP).append("; font-size:26px; font-weight:bold; }\n");
+                c.append(".stripe .rule { width:44px; height:3px; background:").append(accP).append("; margin:14px 0 16px; }\n");
+                c.append(".stripe .accroche { color:").append(surPd).append("; font-size:13px; }\n");
+                c.append(".corps { margin-left:52mm; padding:34px 30px; }\n");
+                c.append(".bloc { margin-bottom:14px; }\n");
+                c.append(".marq { display:inline-block; width:7px; height:7px; border-radius:50%; background:").append(accent).append("; margin-right:10px; }\n");
+                c.append(".lib { font-weight:bold; color:").append(titre).append("; font-size:15px; }\n");
+                c.append(".val { color:").append(accent).append("; margin:2px 0 0 17px; }\n");
+                c.append(".cfoot { color:").append(rgb(s.encreDoux())).append("; font-size:10px; margin-top:26px; }\n");
+            }
+            case "affiche" -> {
+                c.append("body { background:").append(page).append("; color:").append(encre).append("; text-align:center; }\n");
+                c.append(".wrap { padding:64px 30px; }\n");
+                c.append(".wrap .titre { color:").append(titre).append("; font-size:46px; font-weight:bold; line-height:1.05; }\n");
+                c.append(".wrap .rule { width:70px; height:4px; background:").append(accent).append("; margin:20px auto 26px; }\n");
+                c.append(".wrap .accroche { color:").append(rgb(s.encreDoux())).append("; font-size:15px; margin-bottom:30px; }\n");
+                c.append(".cbloc { display:inline-block; vertical-align:top; border:2px solid ").append(accent).append("; border-radius:20px; padding:12px 20px; margin:0 5px 12px; }\n");
+                c.append(".cbloc .lib { font-weight:bold; color:").append(titre).append("; font-size:14px; }\n");
+                c.append(".cbloc .val { color:").append(accent).append("; font-size:13px; margin-top:2px; }\n");
                 c.append(".contact { position:fixed; bottom:34px; left:0; right:0; text-align:center; color:").append(rgb(s.encreDoux())).append("; font-size:10px; }\n");
             }
             default -> { // pleine
