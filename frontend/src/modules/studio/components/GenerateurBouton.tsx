@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Sparkles, Loader2, Check } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import {
@@ -62,8 +62,36 @@ const GenerateurBouton = ({ onFichierGenere }: Props) => {
   const [erreur, setErreur] = useState<string | null>(null);
   const [apercus, setApercus] = useState<Apercu[]>([]);
   const [choisiId, setChoisiId] = useState<number | null>(null);
+  const [progres, setProgres] = useState(0);
+  const minuteur = useRef<number | null>(null);
 
   const exemple = TYPES.find((t) => t.value === type)!.exemple;
+
+  // Progression simulée : le backend est synchrone (aucune vraie progression),
+  // mais la barre monte par paliers vers ~92 % puis termine à la réponse. Les
+  // libellés suivent les vraies étapes (contenu → couleurs → mise en page).
+  const arreterProgres = () => {
+    if (minuteur.current !== null) {
+      clearInterval(minuteur.current);
+      minuteur.current = null;
+    }
+  };
+
+  const demarrerProgres = () => {
+    arreterProgres();
+    setProgres(5);
+    minuteur.current = window.setInterval(() => {
+      setProgres((p) => (p >= 92 ? p : Math.min(92, p + Math.max(0.6, (92 - p) * 0.07))));
+    }, 220);
+  };
+
+  useEffect(() => arreterProgres, []);
+
+  const etape = progres < 30
+    ? "Rédaction du contenu…"
+    : progres < 58
+      ? "Choix des couleurs…"
+      : "Mise en page des 3 versions…";
 
   const reinitialiser = () => {
     setBrief("");
@@ -71,6 +99,8 @@ const GenerateurBouton = ({ onFichierGenere }: Props) => {
     setApercus([]);
     setChoisiId(null);
     setChargement(false);
+    arreterProgres();
+    setProgres(0);
   };
 
   const generer = async () => {
@@ -79,6 +109,7 @@ const GenerateurBouton = ({ onFichierGenere }: Props) => {
     setErreur(null);
     setApercus([]);
     setChoisiId(null);
+    demarrerProgres();
     try {
       const generation = await studioService.generer(type, brief.trim(), token);
       if (generation.propositions.length === 0) throw new Error("Aucun rendu n'a été produit.");
@@ -88,11 +119,13 @@ const GenerateurBouton = ({ onFichierGenere }: Props) => {
           url: await studioService.fichierUrl(p.id, "apercu", token),
         }))
       );
+      setProgres(100);
       setApercus(charges);
       setChoisiId(charges[0].id);
     } catch (e) {
       setErreur(e instanceof Error ? e.message : "Une erreur est survenue.");
     } finally {
+      arreterProgres();
       setChargement(false);
     }
   };
@@ -158,7 +191,7 @@ const GenerateurBouton = ({ onFichierGenere }: Props) => {
           </div>
           <Button className="mt-2 w-full" onClick={generer} disabled={chargement || brief.trim().length === 0}>
             {chargement ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Génération en cours…</>
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Génération… {Math.round(progres)}%</>
             ) : (
               <><Sparkles className="h-4 w-4 mr-2" />Générer 3 propositions</>
             )}
@@ -168,9 +201,18 @@ const GenerateurBouton = ({ onFichierGenere }: Props) => {
 
         {/* Propositions */}
         {chargement ? (
-          <div className="text-center text-muted-foreground py-10">
-            <Loader2 className="h-8 w-8 mx-auto mb-3 animate-spin opacity-60" />
-            <p className="text-sm">L'IA fabrique vos 3 versions…</p>
+          <div className="py-8">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">{etape}</span>
+              <span className="text-sm font-semibold tabular-nums">{Math.round(progres)}%</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-200 ease-out"
+                style={{ width: `${progres}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-3 text-center">L'IA fabrique vos 3 versions…</p>
           </div>
         ) : apercus.length > 0 ? (
           <div>

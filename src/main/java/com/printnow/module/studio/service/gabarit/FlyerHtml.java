@@ -19,9 +19,7 @@ final class FlyerHtml {
         String corps = switch (structure) {
             case "editorial" -> corpsEditorial(f);
             case "split" -> corpsSplit(f);
-            case "centre" -> corpsCentre(f);
-            case "affiche" -> corpsCentre(f);   // même corps, CSS poster
-            case "lateral" -> corpsLateral(f);
+            case "affiche" -> corpsCentre(f);   // titre + blocs centrés, CSS poster
             case "hero" -> corpsHero(f);
             case "numeros" -> corpsNumeros(f);
             default -> corpsPleine(f);
@@ -111,16 +109,6 @@ final class FlyerHtml {
             if (rempli(bl.valeur())) b.append("<div class=\"val\">").append(esc(bl.valeur())).append("</div>");
             b.append("</div></div>");
         }
-        return b.toString();
-    }
-
-    private static String corpsLateral(ContenuFlyer f) {
-        StringBuilder b = new StringBuilder("<div class=\"stripe\">");
-        b.append("<div class=\"titre\">").append(esc(nz(f.titre()))).append("</div>");
-        b.append("<div class=\"rule\"></div>");
-        if (rempli(f.accroche())) b.append("<div class=\"accroche\">").append(esc(f.accroche())).append("</div>");
-        b.append("</div>");
-        b.append("<div class=\"corps\">").append(blocsListe(f)).append(pied(f, "cfoot")).append("</div>");
         return b.toString();
     }
 
@@ -221,30 +209,6 @@ final class FlyerHtml {
                 c.append(".lib { font-weight:bold; color:").append(titre).append("; font-size:18px; }\n");
                 c.append(".val { color:").append(accent).append("; margin:3px 0 0 21px; font-size:13.5px; }\n");
                 c.append(".contact { position:fixed; bottom:34px; left:0; right:0; text-align:center; color:").append(rgb(s.encreDoux())).append("; font-size:10px; }\n");
-            }
-            case "centre" -> {
-                c.append("body { background:").append(page).append("; color:").append(encre).append("; text-align:center; }\n");
-                c.append(".wrap { padding:60px 40px; }\n");
-                c.append(".wrap .titre { color:").append(titre).append("; font-size:34px; font-weight:bold; }\n");
-                c.append(".wrap .rule { width:56px; height:3px; background:").append(accent).append("; margin:16px auto 22px; }\n");
-                c.append(".wrap .accroche { color:").append(rgb(s.encreDoux())).append("; font-size:14px; margin-bottom:24px; }\n");
-                c.append(".cbloc { margin-bottom:16px; }\n");
-                c.append(".cbloc .lib { font-weight:bold; color:").append(titre).append("; font-size:16px; }\n");
-                c.append(".cbloc .val { color:").append(accent).append("; font-size:14px; margin-top:2px; }\n");
-                c.append(".contact { position:fixed; bottom:34px; left:0; right:0; text-align:center; color:").append(rgb(s.encreDoux())).append("; font-size:10px; }\n");
-            }
-            case "lateral" -> {
-                c.append("body { background:").append(page).append("; color:").append(encre).append("; }\n");
-                c.append(".stripe { position:absolute; left:0; top:0; width:52mm; height:210mm; background:").append(panneau).append("; padding:34px 22px; }\n");
-                c.append(".stripe .titre { color:").append(surP).append("; font-size:26px; font-weight:bold; }\n");
-                c.append(".stripe .rule { width:44px; height:3px; background:").append(accP).append("; margin:14px 0 16px; }\n");
-                c.append(".stripe .accroche { color:").append(surPd).append("; font-size:13px; }\n");
-                c.append(".corps { margin-left:52mm; padding:34px 30px; }\n");
-                c.append(".bloc { margin-bottom:14px; }\n");
-                c.append(".marq { display:inline-block; width:7px; height:7px; border-radius:50%; background:").append(accent).append("; margin-right:10px; }\n");
-                c.append(".lib { font-weight:bold; color:").append(titre).append("; font-size:15px; }\n");
-                c.append(".val { color:").append(accent).append("; margin:2px 0 0 17px; }\n");
-                c.append(".cfoot { color:").append(rgb(s.encreDoux())).append("; font-size:10px; margin-top:26px; }\n");
             }
             case "affiche" -> {
                 c.append("body { background:").append(page).append("; color:").append(encre).append("; text-align:center; }\n");
