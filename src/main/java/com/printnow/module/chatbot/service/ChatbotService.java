@@ -97,7 +97,8 @@ public class ChatbotService {
 
         PASSER UNE COMMANDE
         1. Choisir une imprimerie dans le catalogue (page Imprimeries).
-        2. Déposer un ou plusieurs fichiers PDF (seul format accepté).
+        2. Déposer un ou plusieurs fichiers PDF (seul format accepté), ou faire créer un
+           visuel par l'IA (voir GÉNÉRER UN DESIGN AVEC L'IA).
         3. Configurer chaque fichier : type de produit, nombre de copies, couleur ou noir et
            blanc, recto-verso, reliure, plastification.
         4. Facultatif : faire corriger les fautes du document (voir CORRECTION ORTHOGRAPHIQUE).
@@ -155,6 +156,22 @@ public class ChatbotService {
         - Ce service est vendu par PrintNow, pas par l'imprimerie. Son montant apparaît donc à
           part sur le récapitulatif de paiement et n'entre pas dans le total de la commande.
         - Il n'est pas soumis à la TVA, à la différence de l'impression.
+
+        GÉNÉRER UN DESIGN AVEC L'IA (service PrintNow)
+        - Au moment de déposer un fichier, le client qui n'a pas de visuel prêt peut le faire
+          créer par l'IA au lieu de téléverser un PDF. C'est facultatif.
+        - Il choisit un type (CV, flyer ou carte de visite), décrit ce qu'il souhaite, et l'IA
+          en propose 3 versions (mises en page, couleurs et polices différentes). Il retient
+          celle qui lui plaît : son PDF rejoint alors la commande comme un fichier déposé.
+        - Générer et prévisualiser les propositions est GRATUIT. Le client ne paie que s'il
+          retient un design et va au bout de la commande.
+        - Tarif : 4,90 € par design retenu et joint à la commande.
+        - Un type n'est proposé que si l'imprimerie choisie sait l'imprimer : une imprimerie
+          qui ne fait pas de cartes de visite, par exemple, n'en proposera pas la génération.
+        - Comme la correction, ce service est vendu par PrintNow, pas par l'imprimerie : son
+          montant apparaît à part sur le récapitulatif de paiement, n'entre pas dans le total
+          de la commande, et n'est pas soumis à la TVA.
+        - Réservé aux clients connectés.
 
         PRIX ET TVA
         - Le prix dépend du nombre de pages, du type de produit, du format, des options
@@ -214,7 +231,7 @@ public class ChatbotService {
           finalement pas être enregistrée, le client est remboursé automatiquement et en est
           informé à l'écran.
         - Le montant réellement débité comprend l'impression et, le cas échéant, la correction
-          orthographique.
+          orthographique et la génération de design par l'IA.
 
         AVIS ET NOTES
         - Les clients peuvent noter une imprimerie de 1 à 5 étoiles et laisser un commentaire,
