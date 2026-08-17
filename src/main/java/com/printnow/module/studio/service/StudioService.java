@@ -204,10 +204,16 @@ public class StudioService {
      * PDF, lui, reste propre — il ne rejoint la commande qu'une fois choisi et payé.
      */
     private void apposerFiligrane(BufferedImage image) {
+        // La couleur dépend de la clarté du fond : du bleu marine sur un thème
+        // clair, du blanc cassé sur un thème sombre — sinon, foncé sur foncé, le
+        // filigrane disparaît (cas d'un CV en thème sombre).
+        boolean fondSombre = fondEstSombre(image);
+        Color couleur = fondSombre ? new Color(236, 239, 245) : new Color(30, 41, 75);
+
         Graphics2D pinceau = image.createGraphics();
         pinceau.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        pinceau.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.20f));
-        pinceau.setColor(new Color(30, 41, 75));
+        pinceau.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fondSombre ? 0.24f : 0.20f));
+        pinceau.setColor(couleur);
         pinceau.setFont(new Font("SansSerif", Font.BOLD, Math.max(16, image.getWidth() / 24)));
 
         String texte = "APERÇU · PrintNow";
@@ -226,6 +232,23 @@ public class StudioService {
         }
         pinceau.setTransform(origine);
         pinceau.dispose();
+    }
+
+    /** Vrai si la page rendue est majoritairement sombre (luminance perçue moyenne, sur un échantillon). */
+    private boolean fondEstSombre(BufferedImage image) {
+        int pasX = Math.max(1, image.getWidth() / 40);
+        int pasY = Math.max(1, image.getHeight() / 40);
+        long somme = 0;
+        int n = 0;
+        for (int y = 0; y < image.getHeight(); y += pasY) {
+            for (int x = 0; x < image.getWidth(); x += pasX) {
+                int rgb = image.getRGB(x, y);
+                int r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
+                somme += Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+                n++;
+            }
+        }
+        return n > 0 && (double) somme / n < 128;
     }
 
     private Path ecrire(String nom, byte[] contenu) throws Exception {
