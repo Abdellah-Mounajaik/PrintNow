@@ -103,6 +103,16 @@ const formatMatchesDimensions = (
 };
 
 /**
+ * Format produit par le générateur IA pour chaque type de support. Sert à ne
+ * proposer un type que si l'imprimerie a un produit actif dans ce format.
+ */
+const STUDIO_TYPES_FORMAT: Record<string, { width: number; height: number }> = {
+  CV: FORMAT_DIMENSIONS_MM.A4,
+  FLYER: FORMAT_DIMENSIONS_MM.A5,
+  CARTE_VISITE: FORMAT_DIMENSIONS_MM.CARTE_VISITE_85x55,
+};
+
+/**
  * Le fichier correspond-il à l'un des formats que nous savons reconnaître ?
  *
  * Distinction indispensable : un A4 déposé chez une imprimerie qui ne fait que
@@ -719,6 +729,12 @@ const Order = () => {
 
   const activeProducts = shop.produits?.filter(p => p.actif) || [];
 
+  // Types du générateur IA que cette imprimerie peut imprimer : un type n'est
+  // proposé que si un produit actif existe dans le format qu'il produit.
+  const typesGenerablesDisponibles = Object.entries(STUDIO_TYPES_FORMAT)
+    .filter(([, dims]) => activeProducts.some((p) => formatMatchesDimensions(p.formatImpression, dims)))
+    .map(([type]) => type);
+
   /**
    * Le fichier peut-il être imprimé tel quel par cette imprimerie ?
    *
@@ -791,13 +807,21 @@ const Order = () => {
                     </label>
                   </div>
 
-                  {/* Pas de fichier ? Le générer avec l'IA (rejoint la liste ci-dessous). */}
-                  <div className="flex items-center gap-3 my-4">
-                    <div className="h-px flex-1 bg-border" />
-                    <span className="text-xs text-muted-foreground">ou</span>
-                    <div className="h-px flex-1 bg-border" />
-                  </div>
-                  <GenerateurBouton onFichierGenere={ajouterFichierGenere} />
+                  {/* Pas de fichier ? Le générer avec l'IA — seulement pour les types que
+                      cette imprimerie sait imprimer. */}
+                  {typesGenerablesDisponibles.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-3 my-4">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-xs text-muted-foreground">ou</span>
+                        <div className="h-px flex-1 bg-border" />
+                      </div>
+                      <GenerateurBouton
+                        onFichierGenere={ajouterFichierGenere}
+                        typesDisponibles={typesGenerablesDisponibles}
+                      />
+                    </>
+                  )}
 
                   {files.length === 0 && (
                     <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">

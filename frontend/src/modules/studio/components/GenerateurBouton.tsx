@@ -46,6 +46,8 @@ interface Apercu {
 interface Props {
   /** Appelé avec le PDF de la proposition choisie (+ son id, pour la facturation), à ajouter aux fichiers de la commande. */
   onFichierGenere: (fichier: File, generationId?: number) => void;
+  /** Types que l'imprimerie sait imprimer (valeurs de TYPES) ; si absent, tous. */
+  typesDisponibles?: string[];
 }
 
 /**
@@ -53,10 +55,12 @@ interface Props {
  * (couleurs/police différentes). Il choisit sa préférée, et son PDF rejoint la
  * commande comme un fichier téléversé normal.
  */
-const GenerateurBouton = ({ onFichierGenere }: Props) => {
+const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
   const { token } = useAuth();
+  // On ne montre que les types imprimables par cette imprimerie.
+  const typesAffiches = TYPES.filter((t) => !typesDisponibles || typesDisponibles.includes(t.value));
   const [ouvert, setOuvert] = useState(false);
-  const [type, setType] = useState<TypeSupport>("CV");
+  const [type, setType] = useState<TypeSupport>(typesAffiches[0]?.value ?? "CV");
   const [brief, setBrief] = useState("");
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -163,7 +167,7 @@ const GenerateurBouton = ({ onFichierGenere }: Props) => {
 
         {/* Type */}
         <div className="flex flex-wrap gap-2">
-          {TYPES.map((t) => (
+          {typesAffiches.map((t) => (
             <Button
               key={t.value}
               variant={type === t.value ? "default" : "outline"}

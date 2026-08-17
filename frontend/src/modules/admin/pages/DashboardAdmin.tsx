@@ -79,15 +79,6 @@ const AuthImage = ({ url, alt, token }: { url: string; alt: string; token: strin
   );
 };
 
-const STATUT_LABELS: Record<string, string> = {
-  EN_ATTENTE_PAIEMENT: "En attente",
-  PAYEE: "Payée",
-  EN_COURS_IMPRESSION: "En cours",
-  PRETE: "Prête",
-  LIVREE: "Livrée",
-  ANNULEE: "Annulée",
-};
-
 // Un relevé de commission n'existe que pour une commande dont le paiement a
 // bien été confirmé (même condition que côté backend, FactureCommissionService.STATUTS_FACTURABLES).
 const STATUTS_FACTURABLES = new Set(["PAYEE", "EN_COURS_IMPRESSION", "PRETE", "LIVREE"]);
@@ -750,7 +741,8 @@ const DashboardAdmin = () => {
                         <TableHead>Imprimerie</TableHead>
                         <TableHead>Total TTC</TableHead>
                         <TableHead>Commission (10%)</TableHead>
-                        <TableHead>Statut</TableHead>
+                        <TableHead>Correction</TableHead>
+                        <TableHead>Design IA</TableHead>
                         <TableHead>Relevé</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -768,10 +760,15 @@ const DashboardAdmin = () => {
                           <TableCell className="text-success">
                             {(Number(c.totalTTC) * 0.1).toFixed(2)}€
                           </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {STATUT_LABELS[c.statut] ?? c.statut}
-                            </Badge>
+                          <TableCell className="text-success">
+                            {Number(c.montantCorrections ?? 0) > 0
+                              ? `${Number(c.montantCorrections).toFixed(2)}€`
+                              : <span className="text-xs text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="text-success">
+                            {Number(c.montantGenerations ?? 0) > 0
+                              ? `${Number(c.montantGenerations).toFixed(2)}€`
+                              : <span className="text-xs text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell>
                             {STATUTS_FACTURABLES.has(c.statut) ? (

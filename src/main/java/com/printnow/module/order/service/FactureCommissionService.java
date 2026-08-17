@@ -157,7 +157,7 @@ public class FactureCommissionService {
             c.texte(FONT, 10, xTotal, formatMontant(montantCorrections));
             c.avancer(13);
             c.texteCouleur(FONT, 8, xDesignation,
-                    "Service PrintNow  ·  Déjà réglé par le client avec sa commande", GRIS_TEXTE);
+                    "Service PrintNow", GRIS_TEXTE);
             c.avancer(24);
         }
 
@@ -172,7 +172,7 @@ public class FactureCommissionService {
             c.texte(FONT, 10, xTotal, formatMontant(montantGenerations));
             c.avancer(13);
             c.texteCouleur(FONT, 8, xDesignation,
-                    "Service PrintNow  ·  Déjà réglé par le client avec sa commande", GRIS_TEXTE);
+                    "Service PrintNow", GRIS_TEXTE);
             c.avancer(24);
         }
 
