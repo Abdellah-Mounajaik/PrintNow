@@ -44,8 +44,8 @@ interface Apercu {
 }
 
 interface Props {
-  /** Appelé avec le PDF de la proposition choisie, à ajouter aux fichiers de la commande. */
-  onFichierGenere: (fichier: File) => void;
+  /** Appelé avec le PDF de la proposition choisie (+ son id, pour la facturation), à ajouter aux fichiers de la commande. */
+  onFichierGenere: (fichier: File, generationId?: number) => void;
 }
 
 /**
@@ -134,7 +134,7 @@ const GenerateurBouton = ({ onFichierGenere }: Props) => {
     if (!token || choisiId == null) return;
     try {
       const fichier = await studioService.pdfFichier(choisiId, token);
-      onFichierGenere(fichier);
+      onFichierGenere(fichier, choisiId);
       setOuvert(false);
       reinitialiser();
     } catch {

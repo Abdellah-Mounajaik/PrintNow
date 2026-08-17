@@ -28,7 +28,7 @@ import {
 import {
   ChevronLeft, Upload, FileText, Zap, GraduationCap, Truck,
   Store, CreditCard, AlertCircle, Tag, Check, MapPin,
-  Lock, Loader2, Layers, Book, SpellCheck2
+  Lock, Loader2, Layers, Book, SpellCheck2, Sparkles
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
@@ -66,7 +66,12 @@ interface UploadedFile {
   pageCount: number;
   detectedFormatMm: { width: number; height: number } | null;
   options: FileOptions;
+  /** Proposition du studio (design IA) utilisée : facturée au forfait, au bénéfice de PrintNow. */
+  generationId?: number;
 }
+
+/** Forfait par design IA utilisé dans la commande — reversé à PrintNow, comme la correction. */
+const PRIX_GENERATION = 4.9;
 
 // Dimensions réelles (mm) des formats proposés — sert à détecter les
 // incohérences entre le fichier déposé et le produit choisi (ex: un CV en
@@ -120,6 +125,8 @@ interface OrderConfirmation {
   total: number;
   /** Vérification orthographique, facturée en plus de l'impression. */
   correction: number;
+  /** Designs IA (studio), facturés en plus de l'impression. */
+  generation: number;
   /**
    * Fichiers que le serveur n'a pas pu recevoir malgré le paiement. Tant qu'il
    * y en a, la commande ne peut pas être imprimée et il serait trompeur de
@@ -409,7 +416,7 @@ const Order = () => {
 
   // Un support généré par l'IA rejoint la commande comme un fichier téléversé
   // normal : même détection de pages/format, mêmes options, même tunnel.
-  const ajouterFichierGenere = async (file: File) => {
+  const ajouterFichierGenere = async (file: File, generationId?: number) => {
     const { pageCount, formatMm: detectedFormatMm } = await readPdfInfo(file);
     const compatibleProduct = detectedFormatMm
       ? activeProducts.find((p) => formatMatchesDimensions(p.formatImpression, detectedFormatMm))
@@ -419,6 +426,7 @@ const Order = () => {
       file,
       pageCount,
       detectedFormatMm,
+      generationId,
       options: {
         productId: defaultProduct ? defaultProduct.id : "",
         copies: 1,
@@ -448,6 +456,12 @@ const Order = () => {
     .map(([index, etat]) => ({ index: Number(index), etat: etat as EtatCorrection }));
 
   const totalCorrections = correctionsActives.reduce((s, c) => s + c.etat.verification.prix, 0);
+
+  /** Designs IA encore présents dans la commande (dédupliqués) : chacun facturé au forfait. */
+  const generationsActives = [...new Set(
+    files.filter((f) => f.generationId != null).map((f) => f.generationId as number)
+  )];
+  const totalGenerations = generationsActives.length * PRIX_GENERATION;
 
   const updateFileOption = <K extends keyof FileOptions>(index: number, key: K, value: FileOptions[K]) => {
     setFiles((prev) =>
@@ -501,10 +515,10 @@ const Order = () => {
   const totalHT = Math.max(0, totalAvantPromo - promoDiscountAmount);
   const tva = totalHT * 0.21;
   const total = totalHT + tva;
-  // Les corrections orthographiques sont un service PrintNow : elles s'ajoutent
+  // Les corrections et les designs IA sont des services PrintNow : ils s'ajoutent
   // au règlement mais restent hors du total de la commande (et donc hors de la
   // part imprimeur et de l'assiette de commission).
-  const totalAPayer = total + totalCorrections;
+  const totalAPayer = total + totalCorrections + totalGenerations;
 
   useEffect(() => {
     if (appliedPromo?.montantMinimum && totalAvantPromo * 1.21 < appliedPromo.montantMinimum) {
@@ -602,6 +616,7 @@ const Order = () => {
         fautesIgnorees: etat.fautesIgnorees,
         remplacementsChoisis: etat.remplacementsChoisis,
       })),
+      generations: generationsActives,
     };
 
     // La carte est déjà débitée : plutôt que d'abandonner à la première coupure,
@@ -687,6 +702,7 @@ const Order = () => {
       // La vérification orthographique est facturée à part de l'impression :
       // sans elle, le total affiché ne correspondrait pas au montant débité.
       correction: Number(data.montantCorrections ?? 0),
+      generation: Number(data.montantGenerations ?? 0),
       fichiersNonEnvoyes,
     });
   };
@@ -1213,6 +1229,15 @@ const Order = () => {
                         <span>+{totalCorrections.toFixed(2)}€</span>
                       </div>
                     )}
+                    {totalGenerations > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Design IA ({generationsActives.length} × {PRIX_GENERATION.toFixed(2)}€)
+                        </span>
+                        <span>+{totalGenerations.toFixed(2)}€</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center pt-2 border-t">
                       <span className="font-semibold text-lg">Total à payer</span>
                       <span className="font-display font-bold text-2xl text-primary">{totalAPayer.toFixed(2)}€</span>
@@ -1293,25 +1318,36 @@ const Order = () => {
                   <span className="font-mono">{confirmation.numeroSuivi}</span>
                 </div>
               )}
-              {confirmation.correction > 0 && (
+              {(confirmation.correction > 0 || confirmation.generation > 0) && (
                 <div className="space-y-1 pt-2 border-t text-muted-foreground">
                   <div className="flex justify-between">
                     <span>Impression</span>
                     <span>{confirmation.total.toFixed(2)}€</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <SpellCheck2 className="h-3.5 w-3.5" />
-                      Correction orthographique
-                    </span>
-                    <span>{confirmation.correction.toFixed(2)}€</span>
-                  </div>
+                  {confirmation.correction > 0 && (
+                    <div className="flex justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <SpellCheck2 className="h-3.5 w-3.5" />
+                        Correction orthographique
+                      </span>
+                      <span>{confirmation.correction.toFixed(2)}€</span>
+                    </div>
+                  )}
+                  {confirmation.generation > 0 && (
+                    <div className="flex justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Design IA
+                      </span>
+                      <span>{confirmation.generation.toFixed(2)}€</span>
+                    </div>
+                  )}
                 </div>
               )}
               <div className="flex justify-between pt-2 border-t">
                 <span className="font-semibold">Total payé</span>
                 <span className="font-display font-bold text-primary">
-                  {(confirmation.total + confirmation.correction).toFixed(2)}€
+                  {(confirmation.total + confirmation.correction + confirmation.generation).toFixed(2)}€
                 </span>
               </div>
             </div>

@@ -20,6 +20,8 @@ private Long id;
      * plateforme : compté à part du total, qui ne concerne que l'impression.
      */
     private BigDecimal montantCorrections;
+    /** Designs IA (studio) réglés avec la commande. Revenu de la plateforme, compté à part du total. */
+    private BigDecimal montantGenerations;
     private BigDecimal totalHT;
     private BigDecimal totalTVA;
     private LocalDateTime dateCreation;

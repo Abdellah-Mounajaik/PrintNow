@@ -87,6 +87,14 @@ public class Commande {
     @Column(precision = 10, scale = 2)
     private BigDecimal montantCorrections;
 
+    /**
+     * Supplément facturé pour les designs générés par l'IA (studio) et utilisés
+     * dans la commande. Comme les corrections, ce montant revient entièrement à
+     * PrintNow : hors total, hors commission, hors part imprimerie.
+     */
+    @Column(precision = 10, scale = 2)
+    private BigDecimal montantGenerations;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal montantVerseImprimerie;
 

@@ -48,6 +48,10 @@ public class PropositionSupport {
     @Column(nullable = false)
     private boolean choisie = false;
 
+    /** Vraie une fois la génération payée avec une commande : évite de la facturer deux fois. */
+    @Column(nullable = false)
+    private boolean payee = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "commande_id")
     private Commande commande;

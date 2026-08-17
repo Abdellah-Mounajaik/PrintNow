@@ -37,6 +37,8 @@ export interface CommandeRequest {
   adresseLivraison?: AdresseLivraisonRequest;
   lignes: LigneCommandeRequest[];
   corrections: CorrectionRequest[];
+  /** Ids des propositions du studio (designs IA) utilisées : facturées au forfait par PrintNow. */
+  generations?: number[];
 }
 
 /** Ligne enregistrée, renvoyée par le serveur : son id sert à y rattacher le PDF. */
@@ -51,6 +53,7 @@ export interface CommandeCreee {
   /** Impression seule ; la correction est facturée à part. */
   totalTTC: number | string;
   montantCorrections?: number | string | null;
+  montantGenerations?: number | string | null;
   lignes?: LigneCommandeCreee[];
 }
 

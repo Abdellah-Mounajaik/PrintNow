@@ -21,4 +21,10 @@ public class CommandeRequestDTO {
      * total de la commande, ni dans la part reversée à l'imprimerie.
      */
     private List<DemandeCorrectionDTO> corrections;
+    /**
+     * Identifiants des propositions du studio (designs générés par l'IA) utilisées
+     * dans cette commande. Chacune est facturée au forfait, au bénéfice de PrintNow —
+     * comme les corrections, hors total, commission et part imprimerie.
+     */
+    private List<Long> generations;
 }

@@ -27,6 +27,7 @@ import com.printnow.module.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.printnow.module.correction.service.CorrectionCommandeService;
+import com.printnow.module.studio.service.StudioCommandeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +66,7 @@ public class CommandeService {
     private final CodePromoService codePromoService;
     private final VerificationEtudiantRepository verificationEtudiantRepository;
     private final CorrectionCommandeService correctionCommandeService;
+    private final StudioCommandeService studioCommandeService;
 
     /**
      * Passe une commande et applique, dans la même transaction, les vérifications
@@ -86,14 +88,23 @@ public class CommandeService {
         BigDecimal montantCorrections = correctionCommandeService.appliquerCorrections(
                 request.getCorrections(), client, commande.getTotalTTC(), montantRegle);
 
-        // Ce montant est un revenu de la plateforme, jamais de l'imprimerie : on
-        // le conserve à part, sans jamais l'ajouter au total de la commande ni à
-        // l'assiette de la commission.
+        // Designs générés par l'IA (studio) utilisés dans la commande : forfait au
+        // bénéfice de PrintNow, comme les corrections. Le contrôle est cumulé :
+        // le paiement doit couvrir impression + corrections + générations.
+        BigDecimal montantGenerations = studioCommandeService.appliquerGenerations(
+                request.getGenerations(), client, commande.getTotalTTC().add(montantCorrections), montantRegle);
+
+        // Ces montants sont des revenus de la plateforme, jamais de l'imprimerie :
+        // on les conserve à part, sans jamais les ajouter au total de la commande
+        // ni à l'assiette de la commission.
         if (montantCorrections.signum() > 0) {
             commande = enregistrerMontantCorrections(commande.getId(), montantCorrections);
         }
+        if (montantGenerations.signum() > 0) {
+            commande = enregistrerMontantGenerations(commande.getId(), montantGenerations);
+        }
 
-        if (paiementConfirme) verifierMontantRegle(commande, montantCorrections, montantRegle);
+        if (paiementConfirme) verifierMontantRegle(commande, montantCorrections.add(montantGenerations), montantRegle);
         return commande;
     }
 
@@ -108,10 +119,10 @@ public class CommandeService {
      * @throws RuntimeException si le règlement ne couvre pas la commande ; le
      *         contrôleur la refuse alors et rembourse.
      */
-    private void verifierMontantRegle(CommandeResponseDTO commande, BigDecimal montantCorrections, Long montantRegle) {
+    private void verifierMontantRegle(CommandeResponseDTO commande, BigDecimal supplementsPlateforme, Long montantRegle) {
         if (montantRegle == null) return;
 
-        long duEnCentimes = commande.getTotalTTC().add(montantCorrections)
+        long duEnCentimes = commande.getTotalTTC().add(supplementsPlateforme)
                 .multiply(CENTIMES).setScale(0, RoundingMode.HALF_UP).longValue();
         long ecart = montantRegle - duEnCentimes;
 
@@ -358,6 +369,21 @@ public class CommandeService {
                 .orElseThrow(() -> new RuntimeException("Commande introuvable : " + commandeId));
 
         commande.setMontantCorrections(montant);
+        return commandeMapper.toDto(commandeRepository.save(commande));
+    }
+
+    /**
+     * Rattache à la commande le montant des designs générés par l'IA réglés avec
+     * elle. Comme les corrections, ce montant reste hors du total, de la commission
+     * et de la part imprimerie : c'est un revenu de la plateforme, enregistré ici
+     * uniquement pour être comptabilisé.
+     */
+    @Transactional
+    public CommandeResponseDTO enregistrerMontantGenerations(Long commandeId, BigDecimal montant) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new RuntimeException("Commande introuvable : " + commandeId));
+
+        commande.setMontantGenerations(montant);
         return commandeMapper.toDto(commandeRepository.save(commande));
     }
 
