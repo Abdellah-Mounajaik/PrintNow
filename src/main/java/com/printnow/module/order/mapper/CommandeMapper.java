@@ -45,9 +45,10 @@ public class CommandeMapper {
         dto.setTotalHT(commande.getTotalHT());
         dto.setTotalTVA(commande.getTotalTVA());
         dto.setTotalTTC(commande.getTotalTTC());
-        // Compté à part : la vérification orthographique est un service de la
-        // plateforme et n'entre pas dans le total facturé pour l'impression.
+        // Comptés à part : la vérification orthographique et les designs IA sont des
+        // services de la plateforme, hors du total facturé pour l'impression.
         dto.setMontantCorrections(commande.getMontantCorrections());
+        dto.setMontantGenerations(commande.getMontantGenerations());
 
         // Mapping de l'Utilisateur (Client)
         if (commande.getClient() != null) {

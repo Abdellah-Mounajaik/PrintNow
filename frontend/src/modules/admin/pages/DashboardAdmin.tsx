@@ -232,10 +232,12 @@ const DashboardAdmin = () => {
   const imprimeriesActives = imprimeries.filter((i) => i.actif);
   const caTotal = commandes.reduce((s, c) => s + Number(c.totalTTC ?? 0), 0);
   const commissionTotale = caTotal * 0.1;
-  // La vérification orthographique est un service de la plateforme : son montant
-  // ne passe pas par l'imprimerie et s'ajoute donc entièrement à ses revenus.
+  // La vérification orthographique et les designs IA (studio) sont des services de
+  // la plateforme : leur montant ne passe pas par l'imprimerie et s'ajoute donc
+  // entièrement à ses revenus.
   const correctionsTotal = commandes.reduce((s, c) => s + Number(c.montantCorrections ?? 0), 0);
-  const revenuPlateforme = commissionTotale + correctionsTotal;
+  const generationsTotal = commandes.reduce((s, c) => s + Number(c.montantGenerations ?? 0), 0);
+  const revenuPlateforme = commissionTotale + correctionsTotal + generationsTotal;
   const recentesImprimeries = [...imprimeries].sort((a, b) => b.id - a.id).slice(0, 5);
 
   const shopSearchNormalized = shopSearchQuery.trim().toLowerCase();
@@ -370,6 +372,11 @@ const DashboardAdmin = () => {
               {correctionsTotal > 0 && (
                 <div className="text-xs text-success">
                   Corrections : {correctionsTotal.toFixed(2)}€
+                </div>
+              )}
+              {generationsTotal > 0 && (
+                <div className="text-xs text-success">
+                  Designs IA : {generationsTotal.toFixed(2)}€
                 </div>
               )}
             </Card>
@@ -831,7 +838,7 @@ const DashboardAdmin = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-muted-foreground">
-                        {correctionsTotal > 0 ? "Revenus PrintNow" : "Commissions totales"}
+                        {(correctionsTotal > 0 || generationsTotal > 0) ? "Revenus PrintNow" : "Commissions totales"}
                       </div>
                       <div className="font-display text-2xl font-bold text-success">
                         {revenuPlateforme.toFixed(2)}€
@@ -839,6 +846,11 @@ const DashboardAdmin = () => {
                       {correctionsTotal > 0 && (
                         <div className="text-xs text-muted-foreground">
                           dont {correctionsTotal.toFixed(2)}€ de corrections
+                        </div>
+                      )}
+                      {generationsTotal > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          dont {generationsTotal.toFixed(2)}€ de designs IA
                         </div>
                       )}
                     </div>

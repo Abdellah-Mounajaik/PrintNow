@@ -240,16 +240,23 @@ public class FactureService {
         // Sans elle, le total de la facture ne correspondrait pas à la somme
         // réellement débitée — le client verrait moins que ce qu'il a payé.
         BigDecimal corrections = commande.getMontantCorrections();
+        BigDecimal generations = commande.getMontantGenerations();
         boolean avecCorrections = corrections != null && corrections.signum() > 0;
-        if (avecCorrections) {
+        boolean avecGenerations = generations != null && generations.signum() > 0;
+        boolean avecSupplements = avecCorrections || avecGenerations;
+        if (avecSupplements) {
             ligneTotal(c, xLabelTotal, xTotal, "Impression TTC", commande.getTotalTTC());
-            ligneTotal(c, xLabelTotal, xTotal, "Vérification orthographique", corrections);
+            if (avecCorrections) ligneTotal(c, xLabelTotal, xTotal, "Vérification orthographique", corrections);
+            if (avecGenerations) ligneTotal(c, xLabelTotal, xTotal, "Design IA", generations);
         }
 
+        BigDecimal totalPaye = commande.getTotalTTC();
+        if (avecCorrections) totalPaye = totalPaye.add(corrections);
+        if (avecGenerations) totalPaye = totalPaye.add(generations);
+
         c.avancer(6);
-        c.texteCouleur(FONT_BOLD, 12, xLabelTotal, avecCorrections ? "Total payé" : "Total TTC", ORANGE);
-        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(
-                avecCorrections ? commande.getTotalTTC().add(corrections) : commande.getTotalTTC()), ORANGE);
+        c.texteCouleur(FONT_BOLD, 12, xLabelTotal, avecSupplements ? "Total payé" : "Total TTC", ORANGE);
+        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(totalPaye), ORANGE);
 
         c.avancer(40);
 

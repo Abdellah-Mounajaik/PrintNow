@@ -161,6 +161,21 @@ public class FactureCommissionService {
             c.avancer(24);
         }
 
+        // Designs générés par l'IA (studio) : même régime que la correction — service
+        // PrintNow, hors part imprimerie, déjà réglé par le client.
+        BigDecimal montantGenerations = commande.getMontantGenerations() != null
+                ? commande.getMontantGenerations() : BigDecimal.ZERO;
+        if (montantGenerations.signum() > 0) {
+            c.texte(FONT, 10, xDesignation, "Design IA");
+            c.texte(FONT, 10, xQuantite, "1");
+            c.texte(FONT, 10, xPrixUnitaire, formatMontant(montantGenerations));
+            c.texte(FONT, 10, xTotal, formatMontant(montantGenerations));
+            c.avancer(13);
+            c.texteCouleur(FONT, 8, xDesignation,
+                    "Service PrintNow  ·  Déjà réglé par le client avec sa commande", GRIS_TEXTE);
+            c.avancer(24);
+        }
+
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);
         c.avancer(20);
 
@@ -169,7 +184,7 @@ public class FactureCommissionService {
         // l'imprimerie.
         float xLabelTotal = MARGE + largeurUtile - 220;
         c.texteCouleur(FONT_BOLD, 12, xLabelTotal, "Total perçu par PrintNow", ORANGE);
-        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(montantCommission.add(montantCorrections)), ORANGE);
+        c.texteCouleur(FONT_BOLD, 12, xTotal, formatMontant(montantCommission.add(montantCorrections).add(montantGenerations)), ORANGE);
         c.avancer(30);
 
         c.ligneHorizontale(MARGE, MARGE + largeurUtile);

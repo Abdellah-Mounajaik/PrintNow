@@ -81,7 +81,7 @@ const ORDERS_PER_PAGE = 6;
  * figure donc pas dans le total de la commande, qui ne concerne que l'imprimerie.
  */
 const montantPaye = (commande: CommandeDTO) =>
-  Number(commande.totalTTC ?? 0) + Number(commande.montantCorrections ?? 0);
+  Number(commande.totalTTC ?? 0) + Number(commande.montantCorrections ?? 0) + Number(commande.montantGenerations ?? 0);
 
 const DashboardClient = () => {
   const { user, token, logoutGlobal } = useAuth();

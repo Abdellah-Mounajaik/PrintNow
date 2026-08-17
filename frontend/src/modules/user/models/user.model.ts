@@ -31,6 +31,8 @@ export interface CommandeDTO {
    * Le montant réellement payé est la somme des deux.
    */
   montantCorrections?: number | null;
+  /** Designs IA (studio) réglés avec la commande : revenu PrintNow, hors total. */
+  montantGenerations?: number | null;
   dateCreation: string;
   nomImprimerie: string;
 }

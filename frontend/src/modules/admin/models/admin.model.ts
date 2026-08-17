@@ -25,6 +25,8 @@ export interface CommandeDTO {
   totalTTC: number;
   /** Vérification orthographique réglée avec la commande : revenu PrintNow. */
   montantCorrections?: number | null;
+  /** Designs IA (studio) réglés avec la commande : revenu PrintNow. */
+  montantGenerations?: number | null;
   dateCreation: string;
   nomClient: string;
   nomImprimerie: string;
