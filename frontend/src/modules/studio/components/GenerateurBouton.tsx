@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Loader2, Check } from "lucide-react";
+import { Sparkles, Loader2, Check, ZoomIn } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import {
   Dialog,
@@ -66,6 +66,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
   const [erreur, setErreur] = useState<string | null>(null);
   const [apercus, setApercus] = useState<Apercu[]>([]);
   const [choisiId, setChoisiId] = useState<number | null>(null);
+  const [agrandi, setAgrandi] = useState<Apercu | null>(null);
   const [progres, setProgres] = useState(0);
   const minuteur = useRef<number | null>(null);
 
@@ -102,6 +103,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
     setErreur(null);
     setApercus([]);
     setChoisiId(null);
+    setAgrandi(null);
     setChargement(false);
     arreterProgres();
     setProgres(0);
@@ -113,6 +115,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
     setErreur(null);
     setApercus([]);
     setChoisiId(null);
+    setAgrandi(null);
     demarrerProgres();
     try {
       const generation = await studioService.generer(type, brief.trim(), token);
@@ -147,6 +150,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
   };
 
   return (
+    <>
     <Dialog open={ouvert} onOpenChange={(o) => { setOuvert(o); if (!o) reinitialiser(); }}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
@@ -223,17 +227,30 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
             <p className="text-sm font-medium mb-2">Choisissez votre version préférée :</p>
             <div className="grid grid-cols-3 gap-3">
               {apercus.map((a, i) => (
-                <button
+                <div
                   key={a.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setChoisiId(a.id)}
-                  className={`rounded-lg border-2 p-1 transition-colors text-left ${
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setChoisiId(a.id); } }}
+                  className={`relative rounded-lg border-2 p-1 transition-colors text-left cursor-pointer ${
                     choisiId === a.id ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/40"
                   }`}
                 >
                   <img src={a.url} alt={`Version ${i + 1}`} className="w-full rounded" />
+                  {/* Agrandir pour lire le détail, sans quitter la sélection. */}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setAgrandi(a); }}
+                    title="Agrandir"
+                    aria-label="Agrandir"
+                    className="absolute top-2 right-2 rounded-md border border-border bg-background/85 p-1
+                               text-muted-foreground shadow-sm hover:text-foreground"
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </button>
                   <span className="block text-center text-xs text-muted-foreground mt-1">Version {i + 1}</span>
-                </button>
+                </div>
               ))}
             </div>
             <Button className="mt-4 w-full" onClick={utiliser} disabled={choisiId == null}>
@@ -244,6 +261,38 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
         ) : null}
       </DialogContent>
     </Dialog>
+
+    {/* Aperçu agrandi (filigrané) : lire le détail avant de choisir. */}
+    <Dialog open={agrandi != null} onOpenChange={(o) => { if (!o) setAgrandi(null); }}>
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ZoomIn className="h-5 w-5 text-primary" />
+            Aperçu agrandi
+          </DialogTitle>
+          <DialogDescription>
+            Aperçu filigrané — la version sans filigrane rejoint votre commande une fois choisie.
+          </DialogDescription>
+        </DialogHeader>
+        {agrandi && (
+          <div className="flex flex-col items-center gap-4">
+            <img
+              src={agrandi.url}
+              alt="Aperçu agrandi"
+              className="max-h-[74vh] max-w-full w-auto rounded border border-border"
+            />
+            <Button
+              className="w-full"
+              onClick={() => { setChoisiId(agrandi.id); setAgrandi(null); }}
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Choisir cette version
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 

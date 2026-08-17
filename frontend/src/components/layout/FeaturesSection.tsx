@@ -2,7 +2,7 @@ import {
   Zap,
   GraduationCap,
   Truck,
-  Shield,
+  Sparkles,
   Clock,
   SpellCheck2
 } from "lucide-react";
@@ -14,6 +14,22 @@ const features = [
     description: "Besoin urgent ? Certaines imprimeries proposent l'impression express en 2 heures.",
     color: "text-secondary",
     bgColor: "bg-secondary/10",
+  },
+  {
+    icon: SpellCheck2,
+    title: "Correction orthographique",
+    description: "Faites relire vos documents avant impression : les fautes sont corrigées "
+      + "directement dans le PDF, sans rien changer à votre mise en page.",
+    color: "text-secondary",
+    bgColor: "bg-secondary/10",
+  },
+  {
+    icon: Sparkles,
+    title: "Générer un design",
+    description: "Pas de visuel prêt ? Décrivez votre idée et l'IA crée votre CV, flyer ou "
+      + "carte de visite, prêt à imprimer.",
+    color: "text-primary",
+    bgColor: "bg-primary/10",
   },
   {
     icon: GraduationCap,
@@ -30,26 +46,11 @@ const features = [
     bgColor: "bg-success/10",
   },
   {
-    icon: Shield,
-    title: "Paiement sécurisé",
-    description: "Vos transactions sont protégées par Stripe, leader du paiement en ligne.",
-    color: "text-primary",
-    bgColor: "bg-primary/10",
-  },
-  {
     icon: Clock,
     title: "Suivi en temps réel",
     description: "Suivez l'état de votre commande étape par étape.",
     color: "text-warning",
     bgColor: "bg-warning/10",
-  },
-  {
-    icon: SpellCheck2,
-    title: "Correction orthographique",
-    description: "Faites relire vos documents avant impression : les fautes sont corrigées "
-      + "directement dans le PDF, sans rien changer à votre mise en page.",
-    color: "text-secondary",
-    bgColor: "bg-secondary/10",
   },
 ];
 

@@ -25,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
@@ -189,10 +191,41 @@ public class StudioService {
     private byte[] apercu(byte[] pdf) throws Exception {
         try (PDDocument document = Loader.loadPDF(pdf)) {
             BufferedImage image = new PDFRenderer(document).renderImageWithDPI(0, 110, ImageType.RGB);
+            apposerFiligrane(image);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ImageIO.write(image, "png", out);
             return out.toByteArray();
         }
+    }
+
+    /**
+     * Filigrane « APERÇU · PrintNow » répété en diagonale, comme l'aperçu de la
+     * correction : le client juge le rendu sans obtenir d'image exploitable. Le
+     * PDF, lui, reste propre — il ne rejoint la commande qu'une fois choisi et payé.
+     */
+    private void apposerFiligrane(BufferedImage image) {
+        Graphics2D pinceau = image.createGraphics();
+        pinceau.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        pinceau.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.20f));
+        pinceau.setColor(new Color(30, 41, 75));
+        pinceau.setFont(new Font("SansSerif", Font.BOLD, Math.max(16, image.getWidth() / 24)));
+
+        String texte = "APERÇU · PrintNow";
+        FontMetrics mesures = pinceau.getFontMetrics();
+        int largeurTexte = mesures.stringWidth(texte);
+
+        // Répété en diagonale sur toute la page : un recadrage ne peut pas isoler
+        // une zone propre.
+        AffineTransform origine = pinceau.getTransform();
+        pinceau.rotate(Math.toRadians(-30), image.getWidth() / 2.0, image.getHeight() / 2.0);
+        int pas = largeurTexte + 60;
+        for (int y = -image.getHeight(); y < image.getHeight() * 2; y += mesures.getHeight() * 4) {
+            for (int x = -image.getWidth(); x < image.getWidth() * 2; x += pas) {
+                pinceau.drawString(texte, x, y);
+            }
+        }
+        pinceau.setTransform(origine);
+        pinceau.dispose();
     }
 
     private Path ecrire(String nom, byte[] contenu) throws Exception {
