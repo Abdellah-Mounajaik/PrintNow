@@ -13,27 +13,27 @@ const privacySections = [
   {
     title: "Quelles données collectons-nous ?",
     content: [
-      "Selon les fonctionnalités que vous utilisez : votre identité (nom, prénom), votre adresse email, votre numéro de téléphone, votre adresse postale, vos données de paiement (traitées par notre prestataire Stripe — PrintNow n'y a jamais accès), l'historique de vos commandes, les fichiers PDF que vous téléversez pour impression, les documents que vous soumettez à la correction orthographique, et, si vous demandez le tarif étudiant, votre carte étudiante et votre carte d'identité (uniquement le temps de la vérification, voir plus bas).",
+      "Selon les fonctionnalités que vous utilisez : votre identité (nom, prénom), votre adresse email, votre numéro de téléphone, votre adresse postale, vos données de paiement (traitées par notre prestataire Stripe — PrintNow n'y a jamais accès), l'historique de vos commandes, les fichiers PDF que vous téléversez pour impression, les documents que vous soumettez à la correction orthographique, les descriptions que vous saisissez et les designs produits lorsque vous utilisez la génération par IA, et, si vous demandez le tarif étudiant, votre carte étudiante et votre carte d'identité (uniquement le temps de la vérification, voir plus bas).",
       "Avec votre autorisation, nous utilisons également votre position pour vous montrer les imprimeries proches et estimer les temps de trajet. Cette position n'est pas conservée.",
     ],
   },
   {
     title: "Pourquoi utilisons-nous vos données ?",
     content: [
-      "Vos données servent à : créer et gérer votre compte, traiter vos commandes, assurer la livraison ou le retrait, corriger vos documents lorsque vous le demandez, vérifier votre statut étudiant, communiquer avec vous, prévenir la fraude, améliorer nos services et respecter nos obligations légales.",
+      "Vos données servent à : créer et gérer votre compte, traiter vos commandes, assurer la livraison ou le retrait, corriger vos documents et générer des designs lorsque vous le demandez, vérifier votre statut étudiant, communiquer avec vous, prévenir la fraude, améliorer nos services et respecter nos obligations légales.",
     ],
   },
   {
     title: "Qui a accès à vos données ? Nos sous-traitants",
     content: [
       "Vos données sont accessibles à PrintNow et, pour la réalisation de votre commande, à l'imprimerie partenaire que vous avez choisie.",
-      "Nous faisons appel à des sous-traitants spécialisés, strictement pour ce qui est nécessaire au service : Stripe (paiements), Mistral AI (correction orthographique, assistant de la FAQ et modération des avis), bpost et AfterShip (suivi des livraisons), notre prestataire d'envoi d'e-mails, et un service de calcul d'itinéraires (temps de trajet). Nous ne vendons jamais vos données.",
+      "Nous faisons appel à des sous-traitants spécialisés, strictement pour ce qui est nécessaire au service : Stripe (paiements), Mistral AI (correction orthographique, génération de designs, assistant de la FAQ et modération des avis), bpost et AfterShip (suivi des livraisons), notre prestataire d'envoi d'e-mails, et un service de calcul d'itinéraires (temps de trajet). Nous ne vendons jamais vos données.",
     ],
   },
   {
     title: "Recours à l'intelligence artificielle",
     content: [
-      "Trois fonctionnalités reposent sur une intelligence artificielle fournie par Mistral : la correction orthographique, l'assistant de la FAQ et la modération des avis. Pour la correction, le contenu du document que vous soumettez est transmis à ce prestataire le temps de l'analyse. Ces traitements servent uniquement à rendre le service que vous demandez.",
+      "Quatre fonctionnalités reposent sur une intelligence artificielle fournie par Mistral : la correction orthographique, la génération de designs, l'assistant de la FAQ et la modération des avis. Pour la correction, le contenu du document que vous soumettez est transmis à ce prestataire le temps de l'analyse ; pour la génération, c'est la description que vous saisissez qui lui est transmise le temps de produire le support. Ces traitements servent uniquement à rendre le service que vous demandez.",
     ],
   },
   {
@@ -67,6 +67,7 @@ const privacySections = [
       "• Les données de votre compte : tant que votre compte est actif.",
       "• Les fichiers que vous téléversez pour impression : effacés 7 jours après que la commande est terminée.",
       "• Les documents soumis à la correction orthographique : effacés 7 jours après.",
+      "• Les descriptions et designs de la génération par IA : effacés 7 jours après votre dernière activité les concernant.",
       "• Les cartes d'identité et étudiantes : effacées dès la décision de vérification.",
       "• Les factures : conservées 7 ans, comme l'impose la loi comptable belge ; passé ce délai, elles sont détruites.",
     ],
@@ -103,7 +104,7 @@ const Confidentialite = () => {
             <h1 className="font-display text-3xl md:text-5xl font-bold mb-4 max-w-3xl">
               Confidentialité & RGPD
             </h1>
-            <p className="text-sm text-primary-foreground/80">Dernière mise à jour : 14 août 2026</p>
+            <p className="text-sm text-primary-foreground/80">Dernière mise à jour : 17 août 2026</p>
           </div>
         </section>
 

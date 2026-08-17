@@ -56,6 +56,13 @@ const cgvSections = [
     ],
   },
   {
+    title: "Génération de designs par IA",
+    content: [
+      "PrintNow propose un service optionnel et payant de génération de supports (CV, flyers, cartes de visite) par intelligence artificielle : à partir de la description que vous fournissez, plusieurs propositions vous sont présentées et vous retenez celle de votre choix, qui rejoint alors votre commande. La génération et l'aperçu des propositions sont gratuits ; seul le design retenu et joint à une commande est facturé, au tarif indiqué avant paiement. Ce service n'est proposé que pour les supports que l'imprimerie sélectionnée est en mesure d'imprimer.",
+      "Ce service repose sur une intelligence artificielle : la description que vous saisissez est transmise à un prestataire spécialisé le temps de produire le contenu. Les propositions sont fournies à titre d'aperçu et peuvent comporter des imprécisions ; il vous appartient d'en vérifier le contenu avant impression. Le montant de la génération revient à PrintNow et n'entre pas dans la part reversée à l'imprimeur.",
+    ],
+  },
+  {
     title: "Livraison et retrait",
     content: [
       "Le client peut choisir entre le retrait en magasin et la livraison. Les délais et modalités de livraison sont indiqués par l'imprimeur partenaire. Les frais de livraison éventuels sont à la charge du client, sauf offre promotionnelle spécifique.",
