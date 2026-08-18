@@ -96,6 +96,15 @@
     "activeCount_other": "{{count}} actifs",
     "hint": "Cochez les services que vous proposez et configurez vos options de finition.",
     "basePrice": "Prix base",
+    "catalog": {
+      "bw-a4": "Impression N&B A4",
+      "color-a4": "Impression couleur A4",
+      "bw-a3": "Impression N&B A3",
+      "color-a3": "Impression couleur A3",
+      "business-cards": "Cartes de visite",
+      "flyers": "Flyers / Dépliants",
+      "posters": "Affiches grand format"
+    },
     "offerLamination": "Proposer Plastification",
     "offerBinding": "Proposer Reliure",
     "laminationTypes": {

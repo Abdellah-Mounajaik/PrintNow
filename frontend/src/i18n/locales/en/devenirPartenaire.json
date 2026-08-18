@@ -1,5 +1,23 @@
 {
   "feeAmount": "{{fee}}€",
+  "servicesCatalog": {
+    "bw-a4": "B&W A4 printing",
+    "color-a4": "Color A4 printing",
+    "bw-a3": "B&W A3 printing",
+    "color-a3": "Color A3 printing",
+    "business-cards": "Business cards",
+    "flyers": "Flyers / Leaflets",
+    "posters": "Large-format posters"
+  },
+  "daysOfWeek": {
+    "mon": "Monday",
+    "tue": "Tuesday",
+    "wed": "Wednesday",
+    "thu": "Thursday",
+    "fri": "Friday",
+    "sat": "Saturday",
+    "sun": "Sunday"
+  },
   "hero": {
     "title": "Become a partner print shop",
     "subtitleBeforeFee": "A one-time registration fee of ",

@@ -1075,7 +1075,7 @@ const DashboardImprimeur = () => {
                             checked={state.enabled}
                             onCheckedChange={(v) => updateSvc(s.id, "enabled", Boolean(v))}
                           />
-                          <div className="flex-1 font-medium">{s.name}</div>
+                          <div className="flex-1 font-medium">{t(`services.catalog.${s.id}`)}</div>
                           <div className="flex items-center gap-2">
                             <Label className="text-xs text-muted-foreground hidden sm:block">{t("services.basePrice")}</Label>
                             <Input

@@ -658,7 +658,7 @@ const DevenirPartenaire = () => {
                         <div className={`flex items-center gap-4 p-4 ${state.enabled && showOptionsPanel ? "bg-primary/5 border-b border-primary/20" : state.enabled ? "bg-primary/5" : ""}`}>
                           <Checkbox checked={state.enabled} onCheckedChange={() => toggleService(s.id)} />
                           <div className="flex-1">
-                            <div className="font-medium">{s.name}</div>
+                            <div className="font-medium">{t(`servicesCatalog.${s.id}`)}</div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Label className="text-xs text-muted-foreground hidden sm:block">{t("step2.services.basePrice")}</Label>
@@ -830,7 +830,7 @@ const DevenirPartenaire = () => {
                     const h = hours[d.key];
                     return (
                       <div key={d.key} className="grid grid-cols-12 gap-3 items-center p-3 border border-border rounded-lg">
-                        <div className="col-span-12 sm:col-span-3 font-medium">{d.label}</div>
+                        <div className="col-span-12 sm:col-span-3 font-medium">{t(`daysOfWeek.${d.key}`)}</div>
                         <div className="col-span-12 sm:col-span-3 flex items-center gap-2">
                           <Checkbox checked={h.closed} onCheckedChange={(v) => updateHours(d.key, "closed", Boolean(v))} />
                           <span className="text-sm text-muted-foreground">{t("step2.hours.closed")}</span>

@@ -96,6 +96,15 @@
     "activeCount_other": "{{count}} active",
     "hint": "Check the services you offer and configure your finishing options.",
     "basePrice": "Base price",
+    "catalog": {
+      "bw-a4": "B&W A4 printing",
+      "color-a4": "Color A4 printing",
+      "bw-a3": "B&W A3 printing",
+      "color-a3": "Color A3 printing",
+      "business-cards": "Business cards",
+      "flyers": "Flyers / Leaflets",
+      "posters": "Large-format posters"
+    },
     "offerLamination": "Offer lamination",
     "offerBinding": "Offer binding",
     "laminationTypes": {

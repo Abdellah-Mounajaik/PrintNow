@@ -1,5 +1,23 @@
 {
   "feeAmount": "{{fee}}€",
+  "servicesCatalog": {
+    "bw-a4": "Impression N&B A4",
+    "color-a4": "Impression couleur A4",
+    "bw-a3": "Impression N&B A3",
+    "color-a3": "Impression couleur A3",
+    "business-cards": "Cartes de visite",
+    "flyers": "Flyers / Dépliants",
+    "posters": "Affiches grand format"
+  },
+  "daysOfWeek": {
+    "mon": "Lundi",
+    "tue": "Mardi",
+    "wed": "Mercredi",
+    "thu": "Jeudi",
+    "fri": "Vendredi",
+    "sat": "Samedi",
+    "sun": "Dimanche"
+  },
   "hero": {
     "title": "Devenez imprimerie partenaire",
     "subtitleBeforeFee": "Inscription unique de ",
