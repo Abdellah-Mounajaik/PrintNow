@@ -1,5 +1,5 @@
 import { API_URL as API_BASE_URL } from "../../../lib/api";
-import type { AvisImprimerie, AvisRequest, AvisResponse } from "../models/avis.model";
+import type { AvisImprimerie, AvisRequest, AvisResponse, AvisTraduction } from "../models/avis.model";
 
 
 
@@ -26,6 +26,17 @@ export const avisService = {
       // Spring peut renvoyer le texte dans "message" (format classique) ou "detail" (ProblemDetail)
       const message = err.message || err.detail || err.error;
       throw new Error(message || "Erreur lors de l'envoi de l'avis");
+    }
+    return response.json();
+  },
+
+  /** Traduction à la demande du commentaire d'un avis ("en" ou "nl"). Rien n'est stocké côté serveur. */
+  traduireAvis: async (avisId: number, langue: string): Promise<AvisTraduction> => {
+    const response = await fetch(`${API_BASE_URL}/avis/${avisId}/traduction?langue=${langue}`);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      const message = err.message || err.detail || err.error;
+      throw new Error(message || "Erreur lors de la traduction de l'avis");
     }
     return response.json();
   },

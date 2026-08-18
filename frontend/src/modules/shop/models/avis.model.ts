@@ -28,3 +28,8 @@ export interface AvisRequest {
   note: number;
   commentaire: string;
 }
+
+/** Réponse de GET /api/avis/{id}/traduction. */
+export interface AvisTraduction {
+  commentaire: string | null;
+}

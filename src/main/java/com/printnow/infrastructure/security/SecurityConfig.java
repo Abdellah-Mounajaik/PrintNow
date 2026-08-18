@@ -97,6 +97,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/partners/**").permitAll()
                 .requestMatchers("/api/fichiers-pdf/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/avis/imprimerie/**").permitAll() // Lecture des avis publique
+                .requestMatchers(HttpMethod.GET, "/api/avis/*/traduction").permitAll() // Traduction d'un avis, publique comme sa lecture
                 .anyRequest().authenticated() // TOUT le reste nécessite un token JWT valide
             );
 

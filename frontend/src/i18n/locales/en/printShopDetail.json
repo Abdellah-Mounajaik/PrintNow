@@ -81,6 +81,11 @@
       "successTitle": "Thank you for your review!",
       "errorTitle": "Review not published",
       "genericError": "Something went wrong. Please try again."
-    }
+    },
+    "translate": "Translate",
+    "translating": "Translating…",
+    "showOriginal": "Show original",
+    "showTranslation": "Show translation",
+    "translationError": "Translation unavailable right now."
   }
 }

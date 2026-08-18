@@ -3,6 +3,7 @@ package com.printnow.module.avis.service;
 import com.printnow.module.avis.dto.AvisImprimerieDTO;
 import com.printnow.module.avis.dto.AvisRequestDTO;
 import com.printnow.module.avis.dto.AvisResponseDTO;
+import com.printnow.module.avis.dto.AvisTraductionDTO;
 import com.printnow.module.avis.mapper.AvisMapper;
 import com.printnow.module.avis.model.Avis;
 import com.printnow.module.avis.repository.AvisRepository;
@@ -29,6 +30,7 @@ public class AvisService {
     private final CommandeRepository commandeRepository;
     private final AvisMapper avisMapper;
     private final ModerationService moderationService;
+    private final TraductionService traductionService;
 
     /**
      * Un client laisse un avis. Conditions :
@@ -101,6 +103,32 @@ public class AvisService {
         }
 
         return dto;
+    }
+
+    /**
+     * Traduit à la volée le commentaire d'un avis existant, sans rien stocker.
+     *
+     * @throws ResponseStatusException BAD_REQUEST si la langue n'est pas prise en charge,
+     *                                  NOT_FOUND si l'avis n'existe pas,
+     *                                  SERVICE_UNAVAILABLE si l'API de traduction échoue
+     */
+    public AvisTraductionDTO traduireCommentaire(Long avisId, String langue) {
+        if (!traductionService.langueSupportee(langue)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Langue non prise en charge : " + langue);
+        }
+
+        Avis avis = avisRepository.findById(avisId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Avis introuvable."));
+
+        if (avis.getCommentaire() == null || avis.getCommentaire().isBlank()) {
+            return new AvisTraductionDTO(null);
+        }
+
+        String traduit = traductionService.traduire(avis.getCommentaire(), langue);
+        if (traduit == null) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Traduction indisponible pour le moment.");
+        }
+        return new AvisTraductionDTO(traduit);
     }
 
     /** Recalcule et stocke la note moyenne + le nombre d'avis sur l'imprimerie. */

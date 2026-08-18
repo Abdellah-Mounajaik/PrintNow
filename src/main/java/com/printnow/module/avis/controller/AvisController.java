@@ -3,6 +3,7 @@ package com.printnow.module.avis.controller;
 import com.printnow.module.avis.dto.AvisImprimerieDTO;
 import com.printnow.module.avis.dto.AvisRequestDTO;
 import com.printnow.module.avis.dto.AvisResponseDTO;
+import com.printnow.module.avis.dto.AvisTraductionDTO;
 import com.printnow.module.avis.service.AvisService;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
@@ -34,6 +35,12 @@ public class AvisController {
     public ResponseEntity<AvisImprimerieDTO> getAvisImprimerie(@PathVariable Long imprimerieId) {
         Long clientId = getConnectedUserIdOrNull();
         return ResponseEntity.ok(avisService.getAvisImprimerie(imprimerieId, clientId));
+    }
+
+    /** Public : traduction à la demande du commentaire d'un avis ("en" ou "nl"). Rien n'est stocké. */
+    @GetMapping("/{id}/traduction")
+    public ResponseEntity<AvisTraductionDTO> traduireAvis(@PathVariable Long id, @RequestParam String langue) {
+        return ResponseEntity.ok(avisService.traduireCommentaire(id, langue));
     }
 
     private User getConnectedUser() {

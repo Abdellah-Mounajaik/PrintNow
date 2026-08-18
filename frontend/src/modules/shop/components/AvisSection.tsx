@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Star, Loader2, AlertCircle } from "lucide-react";
+import { Star, Loader2, AlertCircle, Languages } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Textarea } from "../../../components/ui/textarea";
@@ -52,8 +52,11 @@ interface Props {
   token: string | null;
 }
 
+/** État de la traduction à la demande d'un avis, indexé par id d'avis. */
+type TraductionState = { texte: string | null; loading: boolean; erreur: boolean; showOriginal: boolean };
+
 const AvisSection = ({ imprimerieId, token }: Props) => {
-  const { t } = useTranslation("printShopDetail");
+  const { t, i18n } = useTranslation("printShopDetail");
   const [data, setData] = useState<AvisImprimerie | null>(null);
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState(0);
@@ -61,6 +64,21 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
   const [submitting, setSubmitting] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [tri, setTri] = useState<"recent" | "meilleur" | "pire">("recent");
+  const [traductions, setTraductions] = useState<Record<number, TraductionState>>({});
+
+  const traduireAvis = async (avisId: number) => {
+    setTraductions((prev) => ({ ...prev, [avisId]: { texte: null, loading: true, erreur: false, showOriginal: false } }));
+    try {
+      const { commentaire } = await avisService.traduireAvis(avisId, i18n.language);
+      setTraductions((prev) => ({ ...prev, [avisId]: { texte: commentaire, loading: false, erreur: false, showOriginal: false } }));
+    } catch {
+      setTraductions((prev) => ({ ...prev, [avisId]: { texte: null, loading: false, erreur: true, showOriginal: false } }));
+    }
+  };
+
+  const basculerOriginal = (avisId: number) => {
+    setTraductions((prev) => ({ ...prev, [avisId]: { ...prev[avisId], showOriginal: !prev[avisId].showOriginal } }));
+  };
 
   const charger = () => {
     avisService.getAvisImprimerie(imprimerieId, token)
@@ -181,7 +199,44 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
                           </span>
                         </div>
                         <StarDisplay note={a.note} />
-                        {a.commentaire && <p className="text-sm text-muted-foreground mt-1.5">{a.commentaire}</p>}
+                        {a.commentaire && (() => {
+                          const trad = traductions[a.id];
+                          const texteAffiche = trad?.texte && !trad.showOriginal ? trad.texte : a.commentaire;
+                          return (
+                            <>
+                              <p className="text-sm text-muted-foreground mt-1.5">{texteAffiche}</p>
+                              {i18n.language !== "fr" && (
+                                <div className="mt-1">
+                                  {trad?.loading ? (
+                                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                                      <Loader2 className="h-3 w-3 animate-spin" /> {t("avis.translating")}
+                                    </span>
+                                  ) : trad?.erreur ? (
+                                    <span className="text-xs text-destructive">{t("avis.translationError")}</span>
+                                  ) : trad?.texte ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => basculerOriginal(a.id)}
+                                      className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                                    >
+                                      <Languages className="h-3 w-3" />
+                                      {trad.showOriginal ? t("avis.showTranslation") : t("avis.showOriginal")}
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => traduireAvis(a.id)}
+                                      className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                                    >
+                                      <Languages className="h-3 w-3" />
+                                      {t("avis.translate")}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     ))}
                 </div>

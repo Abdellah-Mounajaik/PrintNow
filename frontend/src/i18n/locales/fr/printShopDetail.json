@@ -81,6 +81,11 @@
       "successTitle": "Merci pour votre avis !",
       "errorTitle": "Avis non publié",
       "genericError": "Une erreur est survenue. Réessayez."
-    }
+    },
+    "translate": "Traduire",
+    "translating": "Traduction…",
+    "showOriginal": "Voir l'original",
+    "showTranslation": "Voir la traduction",
+    "translationError": "Traduction indisponible pour le moment."
   }
 }

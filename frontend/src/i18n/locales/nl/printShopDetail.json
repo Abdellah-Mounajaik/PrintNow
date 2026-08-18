@@ -81,6 +81,11 @@
       "successTitle": "Bedankt voor uw beoordeling!",
       "errorTitle": "Beoordeling niet geplaatst",
       "genericError": "Er is een fout opgetreden. Probeer het opnieuw."
-    }
+    },
+    "translate": "Vertalen",
+    "translating": "Bezig met vertalen…",
+    "showOriginal": "Origineel weergeven",
+    "showTranslation": "Vertaling weergeven",
+    "translationError": "Vertaling momenteel niet beschikbaar."
   }
 }
