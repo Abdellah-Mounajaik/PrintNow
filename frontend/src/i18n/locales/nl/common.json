@@ -1,0 +1,31 @@
+{
+  "nav": {
+    "imprimeries": "Drukkerijen",
+    "partner": "Partner worden",
+    "faq": "Veelgestelde vragen",
+    "contact": "Contact"
+  },
+  "auth": {
+    "login": "Inloggen",
+    "register": "Registreren",
+    "logout": "Uitloggen",
+    "mySpace": "Mijn account"
+  },
+  "legal": {
+    "mentions": "Wettelijke vermeldingen",
+    "cgv": "Algemene voorwaarden",
+    "confidentiality": "Privacybeleid"
+  },
+  "language": "Taal",
+  "notFound": {
+    "title": "404 - Pagina niet gevonden"
+  },
+  "forbidden": {
+    "title": "403",
+    "message": "Toegang geweigerd",
+    "description": "U beschikt niet over de nodige rechten om deze pagina te bekijken.",
+    "backHome": "Terug naar de startpagina",
+    "backToSpace": "Terug naar mijn account",
+    "login": "Inloggen"
+  }
+}

@@ -1,0 +1,258 @@
+{
+  "page": {
+    "backToShop": "Terug naar de drukkerij",
+    "title": "Nieuwe bestelling",
+    "loadErrorTitle": "Fout",
+    "loadErrorDescription": "Drukkerij niet gevonden.",
+    "notFoundTitle": "Drukkerij niet gevonden.",
+    "notFoundBackHome": "Terug naar de startpagina"
+  },
+  "upload": {
+    "title": "Upload uw bestanden",
+    "dropzoneCta": "Klik om te uploaden",
+    "dropzoneHint": "Alleen PDF-formaat (meerdere bestanden mogelijk)",
+    "or": "of",
+    "pdfOnlyHint": "Uw bestanden moeten in PDF-formaat zijn"
+  },
+  "fileCard": {
+    "pageCount_one": "{{count}} pagina",
+    "pageCount_other": "{{count}} pagina's",
+    "product": {
+      "label": "Wat wilt u afdrukken?",
+      "placeholder": "Selecteer een product...",
+      "pricePerPage": "({{price}}€/pagina)",
+      "incompatible": "Formaat niet compatibel met uw bestand",
+      "color": "Kleur",
+      "bw": "Z/W",
+      "businessCards": "Visitekaartjes",
+      "flyers": "Flyers / Folders",
+      "posters": "Grootformaat affiches"
+    },
+    "formatNotOffered": "Deze drukkerij biedt geen formaat aan dat overeenkomt met uw bestand ({{width}}×{{height}} mm). Verwijder het, of kies een andere drukkerij.",
+    "formatMismatch": "Het formaat van dit product komt niet overeen met de afmetingen van uw bestand ({{width}}×{{height}} mm).",
+    "layout": {
+      "label": "Lay-out",
+      "simplex": "Enkelzijdig",
+      "duplex": "Dubbelzijdig (-{{percent}}%)"
+    },
+    "copiesLabel": "Exemplaren van dit bestand",
+    "binding": {
+      "label": "Inbinding",
+      "none": "Geen inbinding"
+    },
+    "lamination": {
+      "label": "Lamineren",
+      "none": "Geen lamineren"
+    },
+    "priceSuffix": "(+{{price}}€)",
+    "subtotal": "Subtotaal bestand"
+  },
+  "fulfillment": {
+    "title": "Leveringsmethode",
+    "pickup": {
+      "label": "Afhalen in de winkel",
+      "description": "Gratis. Rechtstreeks bij de drukkerij."
+    },
+    "delivery": {
+      "label": "Levering",
+      "priceBadge": "+{{price}}€",
+      "description": "Levering aan huis binnen 24-48u."
+    }
+  },
+  "deliveryAddress": {
+    "title": "Leveringsadres",
+    "recipientName": { "label": "Naam van de ontvanger", "placeholder": "Jean Dupont" },
+    "street": { "label": "Straat", "placeholder": "Wetstraat" },
+    "number": { "label": "Nummer", "placeholder": "12B" },
+    "postalCode": { "label": "Postcode", "placeholder": "1000" },
+    "city": { "label": "Stad", "placeholder": "Brussel" },
+    "country": { "label": "Land", "belgium": "België", "france": "Frankrijk" },
+    "phone": { "label": "Telefoon", "placeholder": "+32 4 ..." }
+  },
+  "extraOptions": {
+    "title": "Extra opties",
+    "express": {
+      "label": "Express 2u",
+      "priceBadge": "+{{price}}€",
+      "available": "Klaar binnen 2 uur.",
+      "unavailable": "Niet beschikbaar — de drukkerij sluit binnen minder dan 2 uur of is vandaag gesloten."
+    },
+    "student": {
+      "label": "Studententarief",
+      "discountBadge": "-{{percent}}%",
+      "verificationRequired": "Studentenverificatie vereist — upload uw documenten in uw klantenaccount."
+    }
+  },
+  "promo": {
+    "title": "PrintNow-kortingscode",
+    "appliedPercent": "Korting van {{percent}}% toegepast",
+    "appliedAmount": "Korting van {{amount}}€ toegepast",
+    "remove": "Verwijderen",
+    "inputPlaceholder": "Voer uw code in",
+    "apply": "Toepassen",
+    "errorFallback": "Kan de code niet verifiëren.",
+    "toast": {
+      "removedTitle": "Kortingscode verwijderd",
+      "removedDescription": "Minimumbedrag van {{amount}}€ vereist.",
+      "appliedTitle": "Code toegepast!",
+      "appliedDescriptionPercent": "Korting van {{percent}}%",
+      "appliedDescriptionAmount": "Korting van {{amount}}€"
+    }
+  },
+  "payment": {
+    "title": "Betaling"
+  },
+  "checkoutForm": {
+    "toast": {
+      "stripeNotLoadedTitle": "Fout",
+      "stripeNotLoadedDescription": "Stripe is niet geladen. Controleer uw publieke sleutel.",
+      "sessionExpiredTitle": "Sessie verlopen",
+      "sessionExpiredDescription": "Log opnieuw in om uw bestelling af te ronden.",
+      "incompleteOrderTitle": "Onvolledige bestelling",
+      "incompleteOrderDescription": "Voeg minstens één PDF toe en controleer of het formaat overeenkomt met een product dat deze drukkerij aanbiedt.",
+      "incompleteAddressTitle": "Onvolledig adres",
+      "incompleteAddressDescription": "Gelieve uw leveringsadres in te vullen.",
+      "invalidCardTitle": "Ongeldige kaart",
+      "invalidCardFallback": "Gelieve een geldig kaartnummer in te voeren.",
+      "paymentErrorTitle": "Betalingsfout",
+      "orderNotSavedTitle": "Bestelling niet opgeslagen"
+    },
+    "errors": {
+      "cardElementNotFound": "Kaartelement niet gevonden.",
+      "paymentError": "Betalingsfout.",
+      "paymentNotConfirmed": "Betaling niet bevestigd.",
+      "generic": "Er is een fout opgetreden.",
+      "orderNotSavedRefunded": "Uw bestelling kon niet worden opgeslagen. Uw betaling werd terugbetaald, er wordt niets van u afgeschreven.",
+      "orderNotSavedContactUs": "Uw bestelling kon niet worden opgeslagen. Neem contact met ons op: uw betaling wordt terugbetaald."
+    },
+    "securePayment": "Beveiligde betaling via Stripe (256-bits versleuteling).",
+    "processing": "Verwerken…",
+    "payButton": "Betaal {{total}}€"
+  },
+  "summary": {
+    "title": "Overzicht",
+    "notSelected": "Niet geselecteerd",
+    "totalPages_one": "Totaal: {{count}} pagina in de bestelling",
+    "totalPages_other": "Totaal: {{count}} pagina's in de bestelling",
+    "noFiles": "Geen bestand toegevoegd.",
+    "subtotal": "Subtotaal",
+    "pickupLabel": "Afhalen in de winkel",
+    "deliveryLabel": "Levering",
+    "free": "Gratis",
+    "plusPrice": "+{{price}}€",
+    "minusPrice": "-{{price}}€",
+    "studentDiscountLabel": "Studentenkorting",
+    "promoLabel": "Kortingscode",
+    "totalExclVat": "Totaal excl. btw",
+    "vat": "BTW (21%)",
+    "spellCheckLabel": "Spellingscontrole",
+    "aiDesignLabel": "AI-design ({{count}} × {{price}}€)",
+    "totalToPay": "Totaal te betalen",
+    "cardFormHint": "Vul uw kaartgegevens in het betaalformulier hiernaast in."
+  },
+  "confirmation": {
+    "fileNotSentTitle": "Betaling ontvangen, bestand niet verzonden",
+    "fileNotSentDescription_one": "Uw betaling werd goed geregistreerd, maar uw bestand kon niet naar de drukkerij worden verzonden. Neem contact met ons op met het onderstaande bestelnummer: wij nemen het van daaruit over.",
+    "fileNotSentDescription_other": "Uw betaling werd goed geregistreerd, maar sommige bestanden konden niet naar de drukkerij worden verzonden. Neem contact met ons op met het onderstaande bestelnummer: wij nemen het van daaruit over.",
+    "successTitle": "Bestelling bevestigd!",
+    "successDescription": "Bedankt voor uw bestelling. Er is een e-mail naar u verzonden.",
+    "orderNumber": "Bestelnummer",
+    "paymentLabel": "Betaling",
+    "paidBadge": "Betaald",
+    "filesNotSentLabel_one": "Bestand niet verzonden",
+    "filesNotSentLabel_other": "Bestanden niet verzonden",
+    "deliveryModeLabel": "Leveringsmethode",
+    "pickupMode": "Afhalen in de winkel",
+    "deliveryMode": "Levering via bpost",
+    "trackingNumber": "Trackingnummer",
+    "printingLabel": "Afdrukken",
+    "spellCheckLabel": "Spellingscontrole",
+    "aiDesignLabel": "AI-design",
+    "totalPaid": "Totaal betaald",
+    "close": "Sluiten"
+  },
+  "spellCheck": {
+    "toast": {
+      "errorTitle": "Fout",
+      "noErrorsTitle": "Geen fouten gevonden",
+      "noErrorsDescription": "Uw document lijkt correct."
+    },
+    "progress": {
+      "sendingDocument": "Document verzenden"
+    },
+    "title": "Spelling controleren voor het afdrukken",
+    "freeHint": "Analyse en voorbeeld van de correcties zijn gratis.",
+    "analyzing": "Analyseren…",
+    "analyzeButton": "Analyseren",
+    "noErrorsInDocument": "Geen fouten gevonden in dit document.",
+    "errorsFound_one": "{{count}} fout gevonden",
+    "errorsFound_other": "{{count}} fouten gevonden",
+    "pagesAnalyzed_one": "{{count}} pagina geanalyseerd",
+    "pagesAnalyzed_other": "{{count}} pagina's geanalyseerd",
+    "languageSuffix": " in het {{lang}}",
+    "chooseSuggestionHint": "· kies een andere suggestie, of behoud het oorspronkelijke woord",
+    "pageAbbrev": "p.{{page}}",
+    "fixYourself": "zelf te corrigeren",
+    "restoreCorrection": "Deze correctie herstellen",
+    "keepOriginalWord": "Oorspronkelijke woord behouden",
+    "printCorrectedVersion": "De gecorrigeerde versie afdrukken",
+    "priceSuffix": " +{{price}}€",
+    "correctionsApplied_one": "{{count}} correctie toegepast · verrekend met uw bestelling",
+    "correctionsApplied_other": "{{count}} correcties toegepast · verrekend met uw bestelling",
+    "previewButton": "Voorbeeld",
+    "previewDialog": {
+      "title": "Voorbeeld van het gecorrigeerde document",
+      "description": "Gecorrigeerde woorden zijn groen gemarkeerd. Het PDF-bestand, zonder markering of watermerk, wordt geleverd zodra uw bestelling betaald is.",
+      "pageXOfY": "Pagina {{page}} van {{total}}",
+      "pageAlt": "Pagina {{page}} van het gecorrigeerde document",
+      "generating": "Voorbeeld genereren…",
+      "loadingPage": "Pagina {{page}} van {{total}}…",
+      "imageOnlyHint": "Voorbeeld als afbeelding, niet downloadbaar."
+    }
+  },
+  "designGenerator": {
+    "types": {
+      "cv": {
+        "label": "CV",
+        "example": "Ik heet …, ontwikkelaar, in Brussel. E-mail …, tel …. Bachelor informatica (school, jaar). 1 jaar ervaring bij … in Java/React. Vaardigheden: … . Talen: …"
+      },
+      "flyer": {
+        "label": "Flyer",
+        "example": "Een flyer voor de heropening van mijn restaurant Chez Marco op zaterdag. Lunchmenu voor 15 €. Gezellige sfeer. Adres: Wetstraat 12, Brussel. Tel 02 345 67 89."
+      },
+      "carteVisite": {
+        "label": "Visitekaartje",
+        "example": "Kaartje voor Sarah Lemaire, UX/UI-designer bij Studio Web. Tel 0475 98 76 54, e-mail sarah@studioweb.be, website sarahlemaire.be, Brussel."
+      }
+    },
+    "progress": {
+      "writingContent": "Inhoud opstellen…",
+      "choosingColors": "Kleuren kiezen…",
+      "layout": "3 versies opmaken…"
+    },
+    "errors": {
+      "noResult": "Er werd geen design geproduceerd.",
+      "generic": "Er is een fout opgetreden.",
+      "pdfRetrievalFailed": "Kan de PDF niet ophalen."
+    },
+    "triggerButton": "Ik heb geen bestand — genereren met AI",
+    "dialog": {
+      "title": "Een design genereren",
+      "description": "Kies een type, beschrijf wat u wilt: de AI stelt 3 versies voor, u kiest de uwe."
+    },
+    "charCountHint": "{{length}}/4000 — hoe meer u vermeldt, hoe beter.",
+    "generatingButton": "Genereren… {{percent}}%",
+    "generateButton": "3 versies genereren",
+    "generatingHint": "De AI maakt uw 3 versies…",
+    "chooseVersionPrompt": "Kies uw favoriete versie:",
+    "zoomButton": "Vergroten",
+    "versionLabel": "Versie {{index}}",
+    "useThisVersion": "Deze versie gebruiken",
+    "zoomDialog": {
+      "title": "Vergroot voorbeeld",
+      "description": "Voorbeeld met watermerk — de versie zonder watermerk wordt aan uw bestelling toegevoegd na uw keuze.",
+      "imageAlt": "Vergroot voorbeeld"
+    },
+    "chooseThisVersion": "Deze versie kiezen"
+  }
+}

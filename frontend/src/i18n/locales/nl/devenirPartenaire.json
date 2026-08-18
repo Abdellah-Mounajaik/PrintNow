@@ -1,0 +1,183 @@
+{
+  "feeAmount": "{{fee}}€",
+  "servicesCatalog": {
+    "bw-a4": "Zwart-witprint A4",
+    "color-a4": "Kleurenprint A4",
+    "bw-a3": "Zwart-witprint A3",
+    "color-a3": "Kleurenprint A3",
+    "business-cards": "Visitekaartjes",
+    "flyers": "Flyers / Folders",
+    "posters": "Grootformaat affiches"
+  },
+  "daysOfWeek": {
+    "mon": "Maandag",
+    "tue": "Dinsdag",
+    "wed": "Woensdag",
+    "thu": "Donderdag",
+    "fri": "Vrijdag",
+    "sat": "Zaterdag",
+    "sun": "Zondag"
+  },
+  "hero": {
+    "title": "Word partnerdrukkerij",
+    "subtitleBeforeFee": "Eenmalige inschrijvingskost van ",
+    "subtitleBetween": ", daarna slechts ",
+    "commissionAmount": "{{commission}}% commissie",
+    "subtitleAfter": " per bestelling. Uw winkel is onmiddellijk actief na betaling."
+  },
+  "stepper": {
+    "steps": ["Gegevens", "Diensten & openingsuren", "Betaling {{fee}}€"]
+  },
+  "step1": {
+    "title": "Gegevens van de drukkerij",
+    "shopName": {
+      "label": "Naam van de drukkerij *",
+      "placeholder": "Bv. Drukkerij Centrum"
+    },
+    "email": {
+      "label": "Professioneel e-mailadres *",
+      "placeholder": "contact@mijndrukkerij.be"
+    },
+    "phone": {
+      "label": "Telefoon *",
+      "placeholder": "+32 2 123 45 67"
+    },
+    "address": {
+      "label": "Adres (straat en nummer) *",
+      "placeholder": "Straat en nummer"
+    },
+    "city": {
+      "label": "Stad *",
+      "placeholder": "Brussel"
+    },
+    "country": {
+      "label": "Land *",
+      "placeholder": "België"
+    },
+    "vat": {
+      "label": "BTW-nummer *",
+      "placeholder": "BE0123456789"
+    },
+    "password": {
+      "label": "Wachtwoord *",
+      "placeholder": "Min. 8 tekens, letters en cijfers"
+    },
+    "confirmPassword": {
+      "label": "Bevestig wachtwoord *",
+      "placeholder": "Herhaal het wachtwoord"
+    },
+    "description": {
+      "label": "Beschrijving van uw drukkerij *",
+      "placeholder": "Stel uw winkel voor: specialiteiten, uitrusting..."
+    },
+    "logo": {
+      "label": "Logo van de drukkerij *",
+      "uploading": "Uploaden…",
+      "alt": "Logo van de drukkerij",
+      "uploaded": "Logo geüpload — klik om te wijzigen",
+      "cta": "Klik om te uploaden (PNG, JPG)",
+      "defaultError": "Fout bij het uploaden van het logo"
+    },
+    "continue": "Doorgaan",
+    "errors": {
+      "shopName": "naam van de drukkerij",
+      "email": "e-mailadres",
+      "emailInvalid": "ongeldig e-mailadres",
+      "phone": "telefoonnummer",
+      "phoneInvalid": "ongeldig telefoonnummer",
+      "address": "adres",
+      "city": "stad",
+      "vat": "BTW-nummer",
+      "password": "wachtwoord (min. 8 tekens, letters en cijfers)",
+      "passwordMismatch": "de wachtwoorden komen niet overeen",
+      "description": "beschrijving van de drukkerij",
+      "logo": "logo van de drukkerij"
+    },
+    "invalidFormTitle": "Ongeldig formulier",
+    "invalidFormDescription": "Gelieve te corrigeren: {{error}}"
+  },
+  "step2": {
+    "services": {
+      "title": "Aangeboden diensten",
+      "selectedCount_one": "{{count}} geselecteerd",
+      "selectedCount_other": "{{count}} geselecteerd",
+      "hint": "Vink de diensten aan die u aanbiedt en stel uw afwerkingsopties in.",
+      "basePrice": "Basisprijs",
+      "offerLamination": "Lamineren aanbieden",
+      "offerBinding": "Inbinding aanbieden",
+      "laminationTypes": {
+        "MAT": "Mat",
+        "BRILLANT": "Glanzend",
+        "SOFT_TOUCH": "Soft touch"
+      },
+      "bindingTypes": {
+        "SPIRALE_PLASTIQUE": "Plastic spiraal",
+        "SPIRALE_METALLIQUE": "Metalen spiraal",
+        "DOS_CARRE_COLLE": "Lijmbinding",
+        "AGRAFE_DEUX_POINTS": "Nietjes (2 punten)",
+        "THERMIQUE": "Thermische inbinding"
+      }
+    },
+    "extraOptions": {
+      "title": "Extra opties",
+      "express": {
+        "label": "Spoed 2u",
+        "description": "Dringende bestelling? Bied afdrukken binnen 2 uur aan.",
+        "feePlaceholder": "Kosten"
+      },
+      "delivery": {
+        "label": "Levering",
+        "feePlaceholder": "Kosten"
+      },
+      "studentDiscount": {
+        "label": "Studententarief"
+      },
+      "duplexDiscount": {
+        "label": "Korting dubbelzijdig",
+        "description": "Korting toegepast op de afdrukkosten wanneer de klant kiest voor dubbelzijdig afdrukken."
+      }
+    },
+    "hours": {
+      "title": "Openingsuren",
+      "closed": "Gesloten"
+    },
+    "back": "Terug",
+    "continueToPayment": "Doorgaan naar betaling"
+  },
+  "step3": {
+    "title": "Beveiligde betaling",
+    "summary": {
+      "title": "Overzicht",
+      "shop": "Drukkerij",
+      "servicesActive": "Actieve diensten",
+      "total": "Totaal"
+    }
+  },
+  "payment": {
+    "back": "Terug",
+    "processing": "Beveiligde verwerking...",
+    "payButton": "Betaal {{amount}}€ en activeer",
+    "errors": {
+      "paymentFailed": "De betaling is mislukt.",
+      "paymentNotConfirmed": "De betaling kon niet worden bevestigd.",
+      "communicationError": "Er is een communicatiefout opgetreden."
+    }
+  },
+  "success": {
+    "title": "Welkom bij PrintNow! 🎉",
+    "paymentConfirmedBefore": "Betaling van ",
+    "paymentConfirmedAfter": " bevestigd.",
+    "descriptionBefore": "Uw drukkerij ",
+    "descriptionAfter": " is nu zichtbaar in de catalogus en klaar om bestellingen te ontvangen.",
+    "stats": {
+      "services": "Diensten",
+      "openDays": "Open dagen",
+      "status": "Status",
+      "statusActive": "● Actief"
+    },
+    "goToSpace": "Ga naar mijn account",
+    "backHome": "Terug naar de startpagina",
+    "toastTitle": "Betaling bevestigd ✅",
+    "toastDescription": "Uw drukkerij is nu succesvol geactiveerd!"
+  }
+}

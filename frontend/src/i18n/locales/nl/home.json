@@ -1,0 +1,115 @@
+{
+  "hero": {
+    "title": {
+      "line1": "Uw drukwerk,",
+      "highlight": "geleverd of afgehaald",
+      "line2": "in één klik"
+    },
+    "subtitle": "Vind de ideale drukkerij bij u in de buurt. Documenten, flyers, affiches, visitekaartjes: vergelijk de reële prijzen en plaats uw bestelling in enkele minuten.",
+    "cta": "Bekijk de drukkerijen",
+    "categories": [
+      {
+        "title": "Documenten",
+        "description": "Dossiers, rapporten, scripties"
+      },
+      {
+        "title": "Flyers & affiches",
+        "description": "Evenementen en marketing"
+      },
+      {
+        "title": "Visitekaartjes",
+        "description": "Standaard, luxe, getextureerd"
+      }
+    ],
+    "stats": [
+      {
+        "value": "150+",
+        "label": "Drukkerijen"
+      },
+      {
+        "value": "50k+",
+        "label": "Bestellingen"
+      },
+      {
+        "value": "4.8",
+        "label": "Klantbeoordelingen"
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "Hoe werkt het?",
+    "subtitle": "Uw drukwerk bestellen was nog nooit zo eenvoudig",
+    "steps": [
+      {
+        "title": "Zoek",
+        "description": "Zoek een drukkerij bij u in de buurt en vergelijk de diensten en tarieven."
+      },
+      {
+        "title": "Upload",
+        "description": "Stuur uw PDF-bestand en stel uw afdrukopties in."
+      },
+      {
+        "title": "Betaal",
+        "description": "Betaal veilig online via Stripe."
+      },
+      {
+        "title": "Ontvang",
+        "description": "Haal uw bestelling af of laat ze aan huis leveren."
+      }
+    ]
+  },
+  "features": {
+    "title": "Waarom kiezen voor PrintNow?",
+    "subtitle": "Een platform ontworpen om uw drukwerk dagelijks te vereenvoudigen",
+    "items": [
+      {
+        "title": "Express 2u",
+        "description": "Dringend nodig? Sommige drukkerijen bieden express afdrukken binnen 2 uur."
+      },
+      {
+        "title": "Spellingscorrectie",
+        "description": "Laat uw documenten nalezen vóór het afdrukken: fouten worden rechtstreeks in de PDF verbeterd, zonder iets aan uw opmaak te wijzigen."
+      },
+      {
+        "title": "Genereer een ontwerp",
+        "description": "Nog geen visual klaar? Beschrijf uw idee en de AI creëert uw cv, flyer of visitekaartje, klaar om af te drukken."
+      },
+      {
+        "title": "Studententarief",
+        "description": "Geniet van exclusieve kortingen bij voorlegging van uw studentenkaart."
+      },
+      {
+        "title": "Levering",
+        "description": "Laat u rechtstreeks thuis of op kantoor leveren."
+      },
+      {
+        "title": "Opvolging in real time",
+        "description": "Volg de status van uw bestelling stap voor stap."
+      }
+    ]
+  },
+  "cta": {
+    "badge": "Voor professionals",
+    "title": {
+      "line1": "Bent u drukker?",
+      "line2": "Word lid van ons netwerk"
+    },
+    "subtitle": "Laat uw activiteit groeien door lid te worden van PrintNow. Bereik nieuwe klanten en beheer uw bestellingen op een eenvoudige manier.",
+    "primaryCta": "Partner worden",
+    "secondaryCta": "Neem contact op",
+    "benefits": [
+      {
+        "value": "100€",
+        "label": "Eenmalige inschrijvingskosten"
+      },
+      {
+        "value": "10%",
+        "label": "Vaste commissie"
+      },
+      {
+        "value": "24/7",
+        "label": "Toegewijde ondersteuning"
+      }
+    ]
+  }
+}

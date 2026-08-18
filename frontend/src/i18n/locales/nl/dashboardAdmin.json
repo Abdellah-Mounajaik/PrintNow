@@ -1,0 +1,201 @@
+{
+  "header": {
+    "title": "Beheer",
+    "subtitle": "PrintNow back-office · Platformbreed beheer",
+    "badge": "Admin"
+  },
+  "kpis": {
+    "users": {
+      "label": "Gebruikers",
+      "deletedCount": "{{count}} account(s) verwijderd"
+    },
+    "shops": {
+      "label": "Actieve drukkerijen",
+      "totalCount": "{{count}} in totaal"
+    },
+    "revenue": {
+      "label": "Totale omzet",
+      "commission": "Commissie: {{amount}}€",
+      "corrections": "Correcties: {{amount}}€",
+      "designs": "AI-designs: {{amount}}€"
+    },
+    "orders": {
+      "label": "Totaal aantal bestellingen"
+    }
+  },
+  "tabs": {
+    "signups": "Recente inschrijvingen",
+    "shops": "Drukkerijen",
+    "users": "Gebruikers",
+    "orders": "Bestellingen",
+    "verifications": "Studentenverificaties"
+  },
+  "pagination": {
+    "previous": "Vorige",
+    "next": "Volgende"
+  },
+  "signups": {
+    "title": "Recente inschrijvingen",
+    "subtitle": "Recentste drukkerijen die zich op het platform hebben ingeschreven.",
+    "empty": "Nog geen drukkerijen.",
+    "viewButton": "Bekijken"
+  },
+  "shops": {
+    "title": "Partnerdrukkerijen",
+    "searchPlaceholder": "Zoeken op naam, stad of e-mail...",
+    "empty": "Geen drukkerijen.",
+    "emptyFiltered": {
+      "title": "Geen resultaten",
+      "description": "Geen enkele drukkerij komt overeen met \"{{query}}\"."
+    },
+    "columns": {
+      "name": "Drukkerij",
+      "city": "Stad",
+      "email": "E-mail",
+      "status": "Status",
+      "action": "Actie"
+    },
+    "status": {
+      "active": "Actief",
+      "inactive": "Inactief"
+    },
+    "closeAriaLabel": "Drukkerij {{name}} sluiten"
+  },
+  "users": {
+    "title": "Gebruikersbeheer",
+    "searchPlaceholder": "Zoeken op naam of e-mail...",
+    "filters": {
+      "all": "Alle",
+      "clients": "Klanten",
+      "shops": "Drukkerijen"
+    },
+    "empty": "Geen gebruikers.",
+    "emptyFiltered": {
+      "title": "Geen resultaten",
+      "descriptionSearch": "Geen enkele gebruiker komt overeen met \"{{query}}\".",
+      "descriptionRole": "Geen gebruikers voor deze rol."
+    },
+    "columns": {
+      "name": "Naam",
+      "email": "E-mail",
+      "role": "Rol",
+      "status": "Status",
+      "action": "Actie"
+    },
+    "status": {
+      "active": "Actief",
+      "inactive": "Inactief",
+      "deletedOn": "Verwijderd op {{date}}"
+    },
+    "deleteAriaLabel": "Account van {{name}} verwijderen",
+    "deletedPlaceholder": {
+      "firstName": "Verwijderd",
+      "lastName": "account"
+    }
+  },
+  "orders": {
+    "title": "Alle bestellingen",
+    "searchPlaceholder": "Zoeken op bestelnr., klant of drukkerij...",
+    "totalCommissionLabel": "Totale commissie:",
+    "empty": "Geen bestellingen.",
+    "emptyFiltered": {
+      "title": "Geen resultaten",
+      "description": "Geen enkele bestelling komt overeen met \"{{query}}\"."
+    },
+    "columns": {
+      "number": "Bestelnr.",
+      "client": "Klant",
+      "shop": "Drukkerij",
+      "totalTtc": "Totaal incl. btw",
+      "commission": "Commissie (10%)",
+      "correction": "Correctie",
+      "aiDesign": "AI-design",
+      "statement": "Overzicht"
+    },
+    "statementAriaLabel": "Inkomstenoverzicht van bestelling {{number}}",
+    "statementTitle": "PrintNow-inkomstenoverzicht",
+    "summary": {
+      "totalRevenue": "Totale omzet platform",
+      "platformRevenue": "Inkomsten PrintNow",
+      "totalCommissions": "Totale commissies",
+      "includingCorrections": "waarvan {{amount}}€ correcties",
+      "includingAiDesigns": "waarvan {{amount}}€ AI-designs"
+    }
+  },
+  "verifications": {
+    "title": "Studentenverificaties",
+    "subtitle": "Geldig tot 30 juni · jaarlijkse verlenging verplicht",
+    "pendingBadge": "{{count}} in behandeling",
+    "empty": "Geen aanvragen ontvangen.",
+    "columns": {
+      "student": "Student",
+      "email": "E-mail",
+      "submittedOn": "Ingediend op",
+      "validUntil": "Geldig tot",
+      "status": "Status",
+      "file": "Dossier"
+    },
+    "viewButton": "Bekijken",
+    "status": {
+      "enAttente": "In behandeling",
+      "accepte": "Geaccepteerd",
+      "refuse": "Geweigerd",
+      "expire": "Verlopen"
+    },
+    "studentCardLabel": "Studentenkaart",
+    "idCardLabel": "Identiteitskaart",
+    "imageNotFound": "{{alt}} niet gevonden",
+    "loadingImage": "{{alt}} laden…",
+    "previousRefusalReason": "Reden van vorige weigering",
+    "refusalPlaceholder": "Reden van weigering (optioneel) — zichtbaar voor de student",
+    "acceptButton": "Accepteren",
+    "refuseButton": "Weigeren"
+  },
+  "deleteUserDialog": {
+    "title": "Dit account verwijderen?",
+    "point1": "Naam, e-mailadres en telefoonnummer worden definitief gewist.",
+    "point2": "Bestellingen en facturen blijven bewaard, zoals wettelijk verplicht, maar dragen niet langer deze naam. Beheert de gebruiker een drukkerij, dan wordt die gesloten.",
+    "irreversible": "Deze actie is onomkeerbaar.",
+    "cancel": "Annuleren",
+    "deleting": "Bezig met verwijderen...",
+    "confirmButton": "Definitief verwijderen"
+  },
+  "closeShopDialog": {
+    "title": "Deze drukkerij sluiten?",
+    "point1": "Ze verdwijnt uit de catalogus en ontvangt geen bestellingen meer.",
+    "point2": "Lopende bestellingen en facturen blijven intact, en de zaakvoerder behoudt toegang tot zijn dashboard om ze af te handelen.",
+    "point3": "U kunt ze later opnieuw openen door ze te heractiveren.",
+    "cancel": "Annuleren",
+    "closing": "Bezig met sluiten...",
+    "confirmButton": "Drukkerij sluiten"
+  },
+  "toasts": {
+    "shopClosed": {
+      "title": "Drukkerij gesloten",
+      "description": "Ze staat niet meer in de catalogus en ontvangt geen bestellingen meer."
+    },
+    "shopCloseError": {
+      "title": "Sluiten mislukt",
+      "defaultDescription": "Probeer het straks opnieuw."
+    },
+    "verificationAccepted": {
+      "title": "Verificatie geaccepteerd"
+    },
+    "verificationRefused": {
+      "title": "Verificatie geweigerd"
+    },
+    "userDeleted": {
+      "title": "Account verwijderd",
+      "description": "De persoonsgegevens zijn gewist; de bestellingen blijven geregistreerd."
+    },
+    "userDeleteError": {
+      "title": "Verwijderen mislukt",
+      "defaultDescription": "Probeer het straks opnieuw."
+    },
+    "error": {
+      "title": "Fout",
+      "validationFailed": "Kon de verificatie niet accepteren.",
+      "refusalFailed": "Kon de verificatie niet weigeren."
+    }
+  }
+}

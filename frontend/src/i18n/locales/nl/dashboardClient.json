@@ -1,0 +1,169 @@
+{
+  "greeting": "Hallo, {{name}} 👋",
+  "subtitle": "Beheer uw bestellingen en profiel vanuit uw klantenzone",
+  "stats": {
+    "totalBadge": "Totaal",
+    "activeBadge": "Actief",
+    "thisMonthBadge": "Deze maand",
+    "ordersLabel": "Bestellingen",
+    "inProgressLabel": "In behandeling",
+    "spentLabel": "Uitgegeven"
+  },
+  "tabs": {
+    "orders": "Mijn bestellingen",
+    "invoices": "Facturen",
+    "student": "Studentenverificatie",
+    "profile": "Profiel"
+  },
+  "pagination": {
+    "previous": "Vorige",
+    "next": "Volgende"
+  },
+  "orders": {
+    "title": "Mijn bestellingen",
+    "delivery": "Levering",
+    "filters": {
+      "all": "Alle",
+      "inProgress": "In behandeling"
+    },
+    "empty": {
+      "title": "Geen bestellingen",
+      "description": "U heeft nog geen bestelling geplaatst.",
+      "cta": "Zoek een drukkerij"
+    },
+    "emptyFiltered": {
+      "title": "Geen resultaten",
+      "description": "Geen bestellingen in \"{{filter}}\"."
+    },
+    "status": {
+      "retrait": {
+        "enAttentePaiement": "In afwachting van betaling",
+        "payee": "Bevestigd",
+        "enCoursImpression": "Wordt afgedrukt",
+        "prete": "Klaar om af te halen",
+        "livree": "Afgehaald",
+        "annulee": "Geannuleerd"
+      },
+      "livraison": {
+        "enAttentePaiement": "In afwachting van betaling",
+        "payee": "Bevestigd",
+        "enCoursImpression": "Wordt afgedrukt",
+        "prete": "Verzonden",
+        "livree": "Geleverd",
+        "annulee": "Geannuleerd"
+      }
+    },
+    "tracking": {
+      "numberLabel": "bpost trackingnummer",
+      "statusLabel": "Status: {{status}}",
+      "trackButton": "Volgen op bpost",
+      "notShippedYet": "Uw pakket is nog niet afgegeven bij bpost."
+    }
+  },
+  "invoices": {
+    "title": "Mijn facturen",
+    "searchPlaceholder": "Zoek op bestelnummer of drukkerij...",
+    "empty": {
+      "title": "Geen facturen",
+      "description": "Een factuur is beschikbaar zodra een bestelling betaald is."
+    },
+    "emptyFiltered": {
+      "title": "Geen resultaten",
+      "description": "Geen factuur komt overeen met \"{{query}}\"."
+    },
+    "download": "Downloaden"
+  },
+  "student": {
+    "title": "Studentenverificatie",
+    "description": "Upload uw studentenkaart en identiteitskaart om te genieten van het verminderde tarief. De verificatie is geldig tot 30 juni en moet jaarlijks vernieuwd worden.",
+    "status": {
+      "accepted": {
+        "label": "Verificatie geaccepteerd ✓",
+        "validUntil": "Geldig tot {{date}}"
+      },
+      "pending": {
+        "label": "Aanvraag wordt beoordeeld",
+        "submittedOn": "Ingediend op {{date}} · de beheerder zal uw documenten controleren."
+      },
+      "refused": {
+        "label": "Aanvraag geweigerd — u kunt opnieuw indienen.",
+        "reason": "Reden: {{motif}}"
+      },
+      "expired": {
+        "label": "Verificatie verlopen — vernieuw uw aanvraag."
+      }
+    },
+    "form": {
+      "studentCardLabel": "Studentenkaart",
+      "idCardLabel": "Identiteitskaart",
+      "submit": "Documenten versturen",
+      "submitting": "Bezig met versturen…"
+    }
+  },
+  "profile": {
+    "firstNameLabel": "Voornaam",
+    "lastNameLabel": "Achternaam",
+    "emailLabel": "E-mail",
+    "phoneLabel": "Telefoon",
+    "phonePlaceholder": "+32 ...",
+    "saveButton": "Profiel bijwerken",
+    "saving": "Bezig met opslaan...",
+    "password": {
+      "title": "Wachtwoord wijzigen",
+      "currentLabel": "Huidig wachtwoord",
+      "newLabel": "Nieuw wachtwoord",
+      "confirmLabel": "Bevestig nieuw wachtwoord",
+      "changeButton": "Wachtwoord wijzigen",
+      "saving": "Bezig met opslaan..."
+    },
+    "deleteAccount": {
+      "title": "Mijn account verwijderen",
+      "description": "Uw persoonsgegevens worden definitief gewist en u kunt niet meer inloggen. Uw facturen worden bewaard, zoals de wet vereist, maar zullen uw naam niet meer vermelden.",
+      "button": "Mijn account verwijderen"
+    }
+  },
+  "newOrderCta": "Nieuwe bestelling plaatsen",
+  "deleteDialog": {
+    "success": {
+      "title": "Uw account is verwijderd",
+      "description": "Uw persoonsgegevens zijn gewist. Bedankt voor het gebruik van PrintNow.",
+      "backHome": "Terug naar de startpagina"
+    },
+    "confirm": {
+      "title": "Uw account verwijderen?",
+      "description": "Deze actie is definitief en kan niet ongedaan worden gemaakt.",
+      "point1": "Uw naam, e-mailadres en telefoonnummer worden gewist.",
+      "point2": "Uw facturen worden zeven jaar bewaard, zoals de wet vereist, maar zullen uw naam niet meer vermelden.",
+      "point3": "U wordt onmiddellijk uitgelogd.",
+      "cancel": "Annuleren",
+      "deleting": "Bezig met verwijderen...",
+      "confirmButton": "Ja, mijn account verwijderen"
+    }
+  },
+  "toasts": {
+    "profileUpdated": {
+      "title": "Profiel bijgewerkt",
+      "emailChangedDescription": "Uw e-mailadres is gewijzigd, log opnieuw in."
+    },
+    "passwordMismatch": "De wachtwoorden komen niet overeen.",
+    "passwordChanged": {
+      "title": "Wachtwoord gewijzigd"
+    },
+    "error": {
+      "title": "Fout"
+    },
+    "deleteError": {
+      "title": "Verwijderen mislukt"
+    },
+    "trackingError": {
+      "description": "Kan de trackinginformatie niet ophalen."
+    },
+    "selectDocuments": {
+      "title": "Selecteer beide documenten"
+    },
+    "verificationSent": {
+      "title": "Aanvraag verstuurd",
+      "description": "De beheerder zal uw documenten controleren."
+    }
+  }
+}

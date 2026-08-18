@@ -1,0 +1,20 @@
+{
+  "tagline": "Het platform dat uw drukwerk verbindt met de beste vakmensen bij u in de buurt.",
+  "services": {
+    "title": "Diensten",
+    "documents": "Documenten & cv's",
+    "flyers": "Flyers & affiches",
+    "businessCards": "Visitekaartjes"
+  },
+  "company": {
+    "title": "Bedrijf"
+  },
+  "contact": {
+    "title": "Contact",
+    "phone": "+32 2 123 45 67"
+  },
+  "languages": {
+    "title": "Talen"
+  },
+  "copyright": "© 2026 PrintNow. Alle rechten voorbehouden."
+}

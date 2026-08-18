@@ -1,0 +1,72 @@
+{
+  "hero": {
+    "badge": "Contact",
+    "title": "Een vraag? Laten we praten",
+    "subtitle": "Ons team staat klaar voor klanten en partnerdrukkerijen van maandag tot vrijdag."
+  },
+  "info": {
+    "email": {
+      "title": "E-mail",
+      "detail": "Antwoord binnen 24 werkuren"
+    },
+    "phone": {
+      "title": "Telefoon",
+      "value": "+32 2 123 45 67",
+      "detail": "Ma – Vr, 9u tot 18u"
+    }
+  },
+  "fields": {
+    "name": "Naam",
+    "email": "E-mail",
+    "subject": "Onderwerp",
+    "message": "Bericht"
+  },
+  "toast": {
+    "missingFields": {
+      "title": "Ontbrekende velden",
+      "description": "Gelieve aan te vullen: {{fields}}."
+    },
+    "invalidEmail": {
+      "title": "Ongeldig e-mailadres",
+      "description": "Gelieve een geldig e-mailadres in te voeren."
+    },
+    "success": {
+      "title": "Bericht verzonden",
+      "description": "Ons team antwoordt u binnen 24 werkuren."
+    },
+    "error": {
+      "title": "Fout"
+    }
+  },
+  "sent": {
+    "title": "Bericht verzonden",
+    "description": "Bedankt {{firstName}}, we hebben uw aanvraag \"{{subject}}\" goed ontvangen. Er wordt een antwoord gestuurd naar {{email}}.",
+    "resetButton": "Nog een bericht versturen"
+  },
+  "form": {
+    "title": "Schrijf ons",
+    "requiredNote": "Alle velden met een * zijn verplicht.",
+    "name": {
+      "label": "Volledige naam *",
+      "placeholder": "Marie Dupont"
+    },
+    "email": {
+      "label": "E-mail *",
+      "placeholder": "marie@voorbeeld.be"
+    },
+    "subject": {
+      "label": "Onderwerp *",
+      "placeholder": "Bv.: Leveringsprobleem, partnerschap, technische vraag…"
+    },
+    "message": {
+      "label": "Bericht *",
+      "placeholder": "Beschrijf uw aanvraag…"
+    },
+    "submitButton": "Bericht versturen"
+  },
+  "printerCta": {
+    "title": "Bent u drukker?",
+    "description": "Word opgenomen in de PrintNow-catalogus: online inschrijving, instelbare diensten en openingsuren, onmiddellijke activering na betaling.",
+    "button": "Partner worden"
+  }
+}

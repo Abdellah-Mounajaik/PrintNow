@@ -1,0 +1,86 @@
+{
+  "loading": "Laden...",
+  "error": {
+    "generic": "Fout: {{message}}"
+  },
+  "actions": {
+    "back": "Terug",
+    "reservedForClients": "Voorbehouden voor klanten",
+    "loginToOrder": "Log in om te bestellen",
+    "orderNow": "Nu bestellen"
+  },
+  "reviews": {
+    "count_one": "({{count}} beoordeling)",
+    "count_other": "({{count}} beoordelingen)"
+  },
+  "badges": {
+    "express": "Express 2u beschikbaar",
+    "studentDiscount": "-{{percent}}% voor studenten",
+    "delivery": "Levering beschikbaar"
+  },
+  "services": {
+    "title": "Diensten & tarieven",
+    "empty": "Geen tarieven beschikbaar.",
+    "documents": {
+      "name": "Documenten",
+      "description": "Afdrukken van documenten A4/A3"
+    },
+    "flyers": {
+      "name": "Flyers & posters",
+      "description": "Flyers, affiches en posters"
+    },
+    "cartes": {
+      "name": "Visitekaartjes",
+      "description": "Professionele visitekaartjes"
+    },
+    "reliure": {
+      "name": "Inbinden & afwerking",
+      "description": "Opties voor inbinden en lamineren"
+    }
+  },
+  "items": {
+    "documentBwA4": "Z/W A4",
+    "documentColorA4": "Kleur A4",
+    "documentBwA3": "Z/W A3",
+    "documentColorA3": "Kleur A3",
+    "flyers": "Flyers / Folders",
+    "posters": "Grootformaat affiches",
+    "businessCards": "Visitekaartjes",
+    "standardFormat": "Standaard",
+    "perDocument": "Per document",
+    "perPage": "Per pagina",
+    "binding": "Inbinden {{type}}",
+    "lamination": "Lamineren {{type}}"
+  },
+  "pricing": {
+    "perUnit": "/ stuk"
+  },
+  "contact": {
+    "title": "Contact"
+  },
+  "hours": {
+    "title": "Openingsuren",
+    "closed": "Gesloten",
+    "empty": "Openingsuren niet beschikbaar."
+  },
+  "avis": {
+    "title": "Klantbeoordelingen",
+    "formTitle": "Laat uw beoordeling achter",
+    "commentPlaceholder": "Deel uw ervaring (optioneel)…",
+    "submit": "Beoordeling plaatsen",
+    "alreadyReviewed": "U hebt al een beoordeling achtergelaten voor deze drukkerij.",
+    "empty": "Nog geen beoordelingen. Wees de eerste om een beoordeling achter te laten na een bestelling!",
+    "sort": {
+      "recent": "Meest recent",
+      "best": "Hoogste beoordeling",
+      "worst": "Laagste beoordeling"
+    },
+    "toast": {
+      "ratingRequiredTitle": "Beoordeling vereist",
+      "ratingRequiredDescription": "Selecteer een score van 1 tot 5 sterren.",
+      "successTitle": "Bedankt voor uw beoordeling!",
+      "errorTitle": "Beoordeling niet geplaatst",
+      "genericError": "Er is een fout opgetreden. Probeer het opnieuw."
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "hero": {
+    "badge": "Veelgestelde vragen",
+    "title": "Stel uw vraag, de assistent antwoordt",
+    "subtitle": "Bestellingen, prijzen, termijnen, levering, facturen of partnerschap: onmiddellijk antwoord."
+  },
+  "chat": {
+    "assistantName": "PrintNow-assistent",
+    "online": "Online",
+    "reset": "Opnieuw beginnen",
+    "welcomeMessage": "Hallo 👋 Ik ben de PrintNow-assistent. Stel me uw vraag over bestellingen, prijzen, levering, facturen of het drukkerspartnerschap.",
+    "inputPlaceholder": "Typ uw vraag…",
+    "errorFallback": "De assistent is momenteel niet beschikbaar."
+  },
+  "questions": [
+    "Hoe plaats ik een bestelling?",
+    "Hoe wordt de prijs berekend?",
+    "Kunnen jullie de fouten in mijn document corrigeren?",
+    "Welke bestandsformaten aanvaarden jullie?",
+    "Levering of afhalen in de winkel?",
+    "Kan ik mijn bestelling wijzigen of annuleren?",
+    "Wat zijn de afdruktermijnen?",
+    "Is er een studententarief?",
+    "Hoe gebruik ik een kortingscode?",
+    "Hoe volg ik mijn bestelling op?",
+    "Hoe word ik een partnerdrukker?",
+    "Welke commissie rekent PrintNow aan?"
+  ],
+  "sidebar": {
+    "questionsTitle": "Veelgestelde vragen",
+    "noAnswerTitle": "Geen antwoord gevonden?",
+    "noAnswerText": "Ons team antwoordt u binnen 24 werkuren per e-mail.",
+    "contactButton": "Contacteer de klantendienst"
+  }
+}

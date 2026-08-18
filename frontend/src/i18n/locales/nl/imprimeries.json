@@ -1,0 +1,99 @@
+{
+  "section": {
+    "title": "Drukkerijen in uw buurt",
+    "searching": "Bezig met zoeken...",
+    "resultsCount": "{{count}} drukkerijen gevonden in de catalogus"
+  },
+  "search": {
+    "placeholder": "Zoek een drukkerij..."
+  },
+  "sort": {
+    "placeholder": "Sorteren op",
+    "distance": "Afstand",
+    "rating": "Beoordeling",
+    "priceAsc": "Prijs oplopend",
+    "priceDesc": "Prijs aflopend"
+  },
+  "priceType": {
+    "placeholder": "Producttype",
+    "any": "Startprijs (alle producten)",
+    "types": [
+      { "id": "DOCUMENT", "label": "Documenten" },
+      { "id": "FLYER", "label": "Flyers" },
+      { "id": "CARTE_VISITE", "label": "Visitekaartjes" },
+      { "id": "POSTER", "label": "Posters" }
+    ]
+  },
+  "geo": {
+    "locationRequired": "Schakel locatie in om op afstand te sorteren."
+  },
+  "filters": {
+    "button": "Filters",
+    "title": "Drukkerijen filteren",
+    "openNow": "Nu open",
+    "servicesTitle": "Diensten",
+    "optionsTitle": "Opties",
+    "services": {
+      "documents": "Documenten",
+      "flyers": "Flyers & posters",
+      "cartes": "Visitekaartjes"
+    },
+    "options": {
+      "express": "Express 2u",
+      "student": "Studententarief",
+      "delivery": "Levering"
+    },
+    "clear": "Filters wissen"
+  },
+  "status": {
+    "open": "Open",
+    "closed": "Gesloten",
+    "closedToday": "Vandaag gesloten",
+    "seeHours": "Openingsuren bekijken",
+    "closedWithHours": "Gesloten (Openingsuren: {{hours}})"
+  },
+  "toast": {
+    "errorTitle": "Fout",
+    "loadError": "De drukkerijen konden niet worden geladen."
+  },
+  "loading": "Partnerdrukkerijen worden geladen...",
+  "emptyStates": {
+    "noPartners": {
+      "title": "Nog geen partners",
+      "description": "Wees de eerste om uw drukkerij te registreren!"
+    },
+    "noResults": {
+      "title": "Geen resultaten",
+      "withQuery": "Geen enkele drukkerij komt overeen met \"{{query}}\".",
+      "withoutQuery": "Geen enkele drukkerij komt overeen met deze filters."
+    }
+  },
+  "pagination": {
+    "previous": "Vorige",
+    "next": "Volgende"
+  },
+  "card": {
+    "express": "Express",
+    "studentDiscount": "-10%",
+    "delivery": "Levering",
+    "priceFrom": "vanaf {{price}} €",
+    "priceUnavailable": "Prijs niet beschikbaar",
+    "distanceUnknown": "In de buurt"
+  },
+  "map": {
+    "trigger": "Bekijk op de kaart",
+    "title": "Drukkerijen op de kaart",
+    "empty": "Er is nog geen drukkerij gelokaliseerd.",
+    "legend": {
+      "yourPosition": "Uw locatie"
+    },
+    "travel": {
+      "positionRequired": "Locatie vereist voor de routebeschrijving",
+      "calculating": "Berekenen...",
+      "unavailable": "Routebeschrijving niet beschikbaar",
+      "walking": "te voet",
+      "driving": "met de auto"
+    },
+    "viewDetails": "Bekijk fiche"
+  }
+}

@@ -34,9 +34,22 @@ import dashboardClientEn from "./locales/en/dashboardClient.json";
 import dashboardAdminEn from "./locales/en/dashboardAdmin.json";
 import dashboardImprimeurEn from "./locales/en/dashboardImprimeur.json";
 
-// Le sélecteur de langue propose aussi "NL", mais aucune ressource n'existe
-// encore pour ce namespace : i18next retombe alors silencieusement sur
-// fallbackLng (fr) tant que les traductions néerlandaises ne sont pas ajoutées.
+import commonNl from "./locales/nl/common.json";
+import headerNl from "./locales/nl/header.json";
+import footerNl from "./locales/nl/footer.json";
+import homeNl from "./locales/nl/home.json";
+import imprimeriesNl from "./locales/nl/imprimeries.json";
+import printShopDetailNl from "./locales/nl/printShopDetail.json";
+import devenirPartenaireNl from "./locales/nl/devenirPartenaire.json";
+import orderNl from "./locales/nl/order.json";
+import faqNl from "./locales/nl/faq.json";
+import contactNl from "./locales/nl/contact.json";
+import legalNl from "./locales/nl/legal.json";
+import authNl from "./locales/nl/auth.json";
+import dashboardClientNl from "./locales/nl/dashboardClient.json";
+import dashboardAdminNl from "./locales/nl/dashboardAdmin.json";
+import dashboardImprimeurNl from "./locales/nl/dashboardImprimeur.json";
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -76,9 +89,26 @@ i18n
         dashboardAdmin: dashboardAdminEn,
         dashboardImprimeur: dashboardImprimeurEn,
       },
+      nl: {
+        common: commonNl,
+        header: headerNl,
+        footer: footerNl,
+        home: homeNl,
+        imprimeries: imprimeriesNl,
+        printShopDetail: printShopDetailNl,
+        devenirPartenaire: devenirPartenaireNl,
+        order: orderNl,
+        faq: faqNl,
+        contact: contactNl,
+        legal: legalNl,
+        auth: authNl,
+        dashboardClient: dashboardClientNl,
+        dashboardAdmin: dashboardAdminNl,
+        dashboardImprimeur: dashboardImprimeurNl,
+      },
     },
     fallbackLng: "fr",
-    supportedLngs: ["fr", "en"],
+    supportedLngs: ["fr", "en", "nl"],
     ns: [
       "common",
       "header",

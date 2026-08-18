@@ -1,0 +1,271 @@
+{
+  "loading": "Uw zakelijke ruimte wordt geladen...",
+  "notFound": {
+    "title": "Drukkerij niet gevonden",
+    "description": "Er is geen drukkerij gekoppeld aan uw account."
+  },
+  "header": {
+    "subtitle": "Zakelijke ruimte voor drukkerijen",
+    "statusOnline": "● Winkel zichtbaar online",
+    "statusOffline": "● Winkel offline"
+  },
+  "kpi": {
+    "totalOrders": "Totaal aantal bestellingen",
+    "pending": "Te verwerken",
+    "revenue": "Omzet",
+    "ratingLabel": "Gemiddelde score",
+    "reviewsCount_one": "({{count}} beoordeling)",
+    "reviewsCount_other": "({{count}} beoordelingen)"
+  },
+  "tabs": {
+    "orders": "Bestellingen",
+    "services": "Diensten & Tarieven",
+    "options": "Opties",
+    "hours": "Openingsuren",
+    "shop": "Mijn winkel",
+    "promos": "Promocodes"
+  },
+  "orders": {
+    "title": "Ontvangen bestellingen",
+    "searchPlaceholder": "Zoeken op bestelnummer of klant...",
+    "filters": {
+      "all": "Alle",
+      "toProcess": "Te verwerken"
+    },
+    "delivery": "Levering",
+    "express": "Express",
+    "empty": {
+      "title": "Geen bestellingen",
+      "description": "Uw bestellingen verschijnen hier zodra een klant een bestelling plaatst."
+    },
+    "emptyFiltered": {
+      "title": "Geen resultaten",
+      "searchDescription": "Geen enkele bestelling komt overeen met \"{{query}}\".",
+      "filterDescription": "Geen bestellingen in \"{{filter}}\"."
+    },
+    "status": {
+      "retrait": {
+        "enAttente": "In afwachting",
+        "prete": "Klaar om af te halen",
+        "livree": "Afgehaald",
+        "annulee": "Geannuleerd"
+      },
+      "livraison": {
+        "enAttente": "In afwachting",
+        "enCoursImpression": "In productie",
+        "prete": "Verzonden",
+        "livree": "Geleverd",
+        "annulee": "Geannuleerd"
+      }
+    },
+    "nextAction": {
+      "markReady": "Markeren als klaar om af te halen",
+      "markPrinting": "Markeren als in productie",
+      "markShipped": "Markeren als verzonden",
+      "markDelivered": "Markeren als geleverd"
+    },
+    "details": {
+      "filesTitle": "Af te drukken bestanden",
+      "pages_one": "{{count}} pagina",
+      "pages_other": "{{count}} pagina's",
+      "copies_one": "{{count}} exemplaar",
+      "copies_other": "{{count}} exemplaren",
+      "duplex": "Dubbelzijdig",
+      "binding": "Inbinden: {{type}}",
+      "lamination": "Lamineren: {{type}}",
+      "filePagesAbbrev": "({{count}}p)",
+      "totalTTC": "Totaal (incl. btw)",
+      "salesReport": "Verkoopoverzicht",
+      "clientInvoice": "Klantfactuur",
+      "deliveryAddressTitle": "Leveringsadres",
+      "phone": "Tel.: {{phone}}",
+      "trackingTitle": "bpost-trackingnummer",
+      "trackingPlaceholder": "bv. 010123456789",
+      "save": "Opslaan",
+      "completed": "Bestelling voltooid.",
+      "cancelled": "Bestelling geannuleerd."
+    },
+    "pagination": {
+      "previous": "Vorige",
+      "next": "Volgende"
+    }
+  },
+  "services": {
+    "title": "Aangeboden diensten",
+    "activeCount_one": "{{count}} actief",
+    "activeCount_other": "{{count}} actief",
+    "hint": "Vink de diensten aan die u aanbiedt en stel uw afwerkingsopties in.",
+    "basePrice": "Basisprijs",
+    "catalog": {
+      "bw-a4": "Zwart-witprint A4",
+      "color-a4": "Kleurenprint A4",
+      "bw-a3": "Zwart-witprint A3",
+      "color-a3": "Kleurenprint A3",
+      "business-cards": "Visitekaartjes",
+      "flyers": "Flyers / Folders",
+      "posters": "Grootformaat affiches"
+    },
+    "offerLamination": "Lamineren aanbieden",
+    "offerBinding": "Inbinden aanbieden",
+    "laminationTypes": {
+      "MAT": "Mat",
+      "BRILLANT": "Glanzend",
+      "SOFT_TOUCH": "Soft touch"
+    },
+    "bindingTypes": {
+      "SPIRALE_PLASTIQUE": "Plastic spiraal",
+      "SPIRALE_METALLIQUE": "Metalen spiraal",
+      "DOS_CARRE_COLLE": "Lijmbinding",
+      "AGRAFE_DEUX_POINTS": "Nietjes (2 punten)",
+      "THERMIQUE": "Thermische inbinding"
+    },
+    "saving": "Bezig met opslaan...",
+    "save": "Wijzigingen opslaan"
+  },
+  "options": {
+    "title": "Opties aangeboden aan klanten",
+    "discountLabel": "Korting:",
+    "studentDiscount": {
+      "label": "Studententarief",
+      "description": "Korting voor studenten op vertoon van hun studentenkaart."
+    },
+    "express": {
+      "label": "Express afdrukken (2u)",
+      "description": "Dringend nodig? Bied afdrukken binnen 2 uur aan.",
+      "feeLabel": "Expresskosten:"
+    },
+    "delivery": {
+      "label": "Levering aan huis",
+      "description": "Activeer levering rond uw winkel.",
+      "feeLabel": "Leveringskosten:"
+    },
+    "duplexDiscount": {
+      "label": "Korting dubbelzijdig afdrukken",
+      "description": "Korting toegepast op de afdrukkosten wanneer de klant kiest voor dubbelzijdig afdrukken."
+    }
+  },
+  "hours": {
+    "title": "Openingsuren",
+    "days": {
+      "LUNDI": "Maandag",
+      "MARDI": "Dinsdag",
+      "MERCREDI": "Woensdag",
+      "JEUDI": "Donderdag",
+      "VENDREDI": "Vrijdag",
+      "SAMEDI": "Zaterdag",
+      "DIMANCHE": "Zondag"
+    },
+    "closed": "Gesloten",
+    "opening": "Opening",
+    "closing": "Sluiting",
+    "edit": "Wijzigen",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "saving": "...",
+    "empty": "Openingsuren niet ingesteld."
+  },
+  "shop": {
+    "title": "Winkelgegevens",
+    "edit": "Wijzigen",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "saving": "Bezig met opslaan...",
+    "logo": {
+      "label": "Logo van de drukkerij",
+      "uploading": "Bezig met uploaden…",
+      "alt": "Logo van de drukkerij",
+      "changeCta": "Klik om het logo te wijzigen",
+      "uploadCta": "Klik om een logo te uploaden (PNG, JPG)",
+      "none": "Geen logo"
+    },
+    "fields": {
+      "name": "Naam van de drukkerij",
+      "vat": "Btw-nummer",
+      "phone": "Telefoon",
+      "email": "E-mail",
+      "address": "Adres",
+      "city": "Stad",
+      "country": "Land",
+      "description": "Beschrijving"
+    },
+    "deleteAccount": {
+      "title": "Mijn account verwijderen",
+      "description": "Uw persoonsgegevens worden definitief gewist en uw winkel wordt gesloten: ze verdwijnt uit de catalogus en ontvangt geen bestellingen meer. Uw facturen worden bewaard, zoals de wet voorschrijft.",
+      "button": "Mijn account verwijderen"
+    }
+  },
+  "promos": {
+    "title": "Promocodes",
+    "subtitle": "Maak kortingscodes aan voor uw klanten.",
+    "form": {
+      "newCode": "Nieuwe code",
+      "codeLabel": "Code",
+      "codePlaceholder": "BV. WELKOM10",
+      "typeLabel": "Type korting",
+      "typePercentage": "Percentage (%)",
+      "typeFixed": "Vast bedrag (€)",
+      "valueLabelPercentage": "Waarde (%)",
+      "valueLabelFixed": "Waarde (€)",
+      "expiryLabel": "Vervaldatum (optioneel)",
+      "maxUsesLabel": "Maximaal aantal keer per persoon (optioneel)",
+      "maxUsesPlaceholder": "Onbeperkt",
+      "minAmountLabel": "Minimumbedrag bestelling (optioneel)",
+      "minAmountPlaceholder": "Geen",
+      "submit": "Code aanmaken"
+    },
+    "empty": "Nog geen promocodes.",
+    "expiresOn": "Vervalt op {{date}}",
+    "maxUses_one": "Max {{max}}x/persoon · {{count}} keer gebruikt in totaal",
+    "maxUses_other": "Max {{max}}x/persoon · {{count}} keer gebruikt in totaal",
+    "minAmount": "Min. €{{amount}}"
+  },
+  "deleteDialog": {
+    "success": {
+      "title": "Uw account is verwijderd",
+      "description": "Uw persoonsgegevens zijn gewist en uw winkel is gesloten. Bedankt dat u partner was van PrintNow.",
+      "backHome": "Terug naar de startpagina"
+    },
+    "confirm": {
+      "title": "Uw account verwijderen?",
+      "description": "Deze actie is definitief en kan niet ongedaan worden gemaakt.",
+      "point1": "Uw naam, e-mailadres en telefoonnummer worden gewist.",
+      "point2": "Uw winkel wordt gesloten: ze verdwijnt uit de catalogus en ontvangt geen enkele bestelling meer.",
+      "point3": "Uw facturen worden zeven jaar bewaard, zoals de wet voorschrijft, en blijven tot dan downloadbaar.",
+      "cancel": "Annuleren",
+      "deleting": "Bezig met verwijderen...",
+      "confirmButton": "Ja, mijn account verwijderen"
+    }
+  },
+  "toasts": {
+    "error": { "title": "Fout" },
+    "success": { "title": "Gelukt" },
+    "deleteAccountError": { "title": "Verwijderen mislukt" },
+    "loadError": { "description": "De gegevens konden niet worden geladen." },
+    "servicesUpdated": { "description": "Diensten bijgewerkt." },
+    "servicesSaveError": { "description": "De diensten konden niet worden opgeslagen." },
+    "shopUpdated": { "description": "Gegevens bijgewerkt." },
+    "genericSaveError": { "description": "Kon niet worden opgeslagen." },
+    "logoDefaultError": "Fout bij het uploaden van het logo",
+    "expressPriceUpdated": { "title": "Expresprijs bijgewerkt" },
+    "deliveryPriceUpdated": { "title": "Leveringsprijs bijgewerkt" },
+    "studentDiscountUpdated": { "title": "Studentenkorting bijgewerkt" },
+    "duplexDiscountUpdated": { "title": "Korting dubbelzijdig afdrukken bijgewerkt" },
+    "promoCreated": { "title": "Promocode aangemaakt!" },
+    "promoDeleted": { "title": "Code verwijderd" },
+    "optionUpdated": { "title": "Optie bijgewerkt" },
+    "optionUpdateError": { "description": "De optie kon niet worden gewijzigd." },
+    "horaireUpdated": { "description": "Openingsuren bijgewerkt." },
+    "horaireSaveError": { "description": "De openingsuren konden niet worden opgeslagen." },
+    "pdfOpenError": { "description": "Kan {{filename}} niet openen." },
+    "statutUpdated": {
+      "title": "Status bijgewerkt",
+      "description": "Bestelling gewijzigd naar \"{{status}}\"."
+    },
+    "statutUpdateError": { "description": "De status kon niet worden bijgewerkt." },
+    "suiviSaved": {
+      "title": "Trackingnummer opgeslagen",
+      "description": "De klant kan nu zijn bpost-pakket volgen."
+    },
+    "suiviSaveError": { "description": "Het trackingnummer kon niet worden opgeslagen." }
+  }
+}

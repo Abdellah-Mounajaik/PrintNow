@@ -1,0 +1,275 @@
+{
+  "mentions": {
+    "hero": {
+      "badge": "Wettelijke informatie",
+      "title": "Wettelijke vermeldingen"
+    },
+    "sections": [
+      {
+        "title": "Uitgever van de website",
+        "content": [
+          "PrintNow",
+          "Maatschappelijke zetel: Rue de l'Imprimerie 42, 1000 Brussel, België",
+          "Ondernemingsnummer: BE 0123.456.789",
+          "Btw: BE0123456789",
+          "Verantwoordelijke uitgever: Abdellah",
+          "E-mail: contact@printnow.be",
+          "Telefoon: +32 2 123 45 67"
+        ]
+      },
+      {
+        "title": "Hosting",
+        "content": [
+          "Gehost op beveiligde servers.",
+          "Voor elke technische vraag over de beschikbaarheid van het platform kunt u contact opnemen met ons supportteam."
+        ]
+      },
+      {
+        "title": "Doel van het platform",
+        "content": [
+          "PrintNow is een online marktplaats die klanten (particulieren en professionals) in contact brengt met partnerdrukkerijen. PrintNow is zelf geen drukkerij: het platform vergemakkelijkt het contact, de bestelling en de betaling, maar komt niet tussen in de fysieke productie van de documenten."
+        ]
+      },
+      {
+        "title": "Intellectuele eigendom",
+        "content": [
+          "Alle elementen van de website (logo's, teksten, grafische elementen, interfaces, broncode) zijn beschermd door het auteursrecht en de intellectuele eigendom. Elke reproductie, verspreiding of gebruik zonder schriftelijke toestemming is strikt verboden."
+        ]
+      },
+      {
+        "title": "Aansprakelijkheid",
+        "content": [
+          "PrintNow streeft ernaar de juistheid van de gepubliceerde informatie te waarborgen. De kwaliteit van de afdrukken, de productietermijnen en de conformiteit van de producten vallen echter onder de verantwoordelijkheid van de partnerdrukkerij die door de klant is geselecteerd. PrintNow treedt op als technische en betalingsintermediair."
+        ]
+      },
+      {
+        "title": "Contactgegevens",
+        "content": [
+          "Voor elke vraag met betrekking tot deze wettelijke vermeldingen kunt u ons contacteren via contact@printnow.be of per post op het hierboven vermelde adres van de maatschappelijke zetel."
+        ]
+      }
+    ],
+    "cta": {
+      "question": "Een vraag over onze voorwaarden of ons privacybeleid?",
+      "cgv": "Algemene voorwaarden",
+      "confidentiality": "Privacy & AVG",
+      "contact": "Contacteer ons"
+    }
+  },
+  "cgv": {
+    "hero": {
+      "badge": "Gebruiksvoorwaarden",
+      "title": "Algemene verkoops- en gebruiksvoorwaarden"
+    },
+    "sections": [
+      {
+        "title": "Preambule",
+        "content": [
+          "Deze Algemene Verkoops- en Gebruiksvoorwaarden ('Voorwaarden') regelen de toegang tot en het gebruik van het PrintNow-platform, alsook de relatie tussen PrintNow, de klanten en de partnerdrukkerijen. Door de website te gebruiken, aanvaardt u deze Voorwaarden zonder voorbehoud."
+        ]
+      },
+      {
+        "title": "Definities",
+        "content": [
+          "‘Klant’: iedere natuurlijke persoon of rechtspersoon die een bestelling plaatst via PrintNow.",
+          "‘Partnerdrukkerij’: drukwerkprofessional die op het platform is geregistreerd en de partnerschapsvoorwaarden heeft aanvaard.",
+          "‘Bestelling’: verzoek tot productie van een of meer documenten, dat een klant via PrintNow overmaakt aan een partnerdrukkerij.",
+          "‘Dienst’: het geheel van functionaliteiten die PrintNow aanbiedt om het contact, de bestelling en de betaling te vergemakkelijken."
+        ]
+      },
+      {
+        "title": "Registratie en gebruikersaccount",
+        "content": [
+          "Voor het gebruik van bepaalde functionaliteiten is de aanmaak van een account vereist. De gebruiker verbindt zich ertoe juiste en actuele informatie te verstrekken. Het account is persoonlijk en het wachtwoord ervan moet vertrouwelijk worden bewaard."
+        ]
+      },
+      {
+        "title": "Plaatsen van een bestelling",
+        "content": [
+          "De klant kiest een partnerdrukkerij, uploadt zijn PDF-bestanden, selecteert de afdrukopties en de wijze van afhaling of levering, en gaat vervolgens over tot betaling. De bestelling wordt bevestigd zodra de betaling is gevalideerd.",
+          "De klant is verantwoordelijk voor de kwaliteit en de conformiteit van de doorgestuurde bestanden. PrintNow controleert de inhoud van de documenten niet voorafgaand aan het afdrukken."
+        ]
+      },
+      {
+        "title": "Prijs en betaling",
+        "content": [
+          "De prijzen worden bepaald door de partnerdrukkerij en kunnen variëren naargelang de gekozen opties. De betaling gebeurt beveiligd en online op het moment van de bestelling.",
+          "PrintNow rekent een commissie van 10% aan op de bestellingen die via het platform worden geplaatst, ingehouden op het bedrag dat door de partnerdrukkerij wordt geïnd.",
+          "Drukkerijen die zich bij de catalogus willen aansluiten, betalen een inschrijvingskost van 100 €. Dit bedrag wordt gefactureerd bij de inschrijving en geeft toegang tot de automatische activering van het partneraccount."
+        ]
+      },
+      {
+        "title": "Opties, kortingen en promotiecodes",
+        "content": [
+          "Afhankelijk van de partnerdrukkerij kunnen betalende opties worden aangeboden, zoals spoedafdruk (kortere levertermijn) tegen een supplement dat vóór de betaling wordt weergegeven.",
+          "Een studentenkorting kan worden toegepast na verificatie van uw status. Deze verificatie vereist het overmaken van een studentenkaart en een identiteitsbewijs, die worden verwerkt in overeenstemming met ons privacybeleid.",
+          "Een partnerdrukkerij kan promotiecodes uitgeven. Een code is enkel geldig bij de drukkerij die hem heeft uitgegeven en onder de voorwaarden die deze heeft vastgesteld (periode, minimumbedrag, aantal gebruiken)."
+        ]
+      },
+      {
+        "title": "Spelling- en grammaticacorrectie",
+        "content": [
+          "PrintNow biedt een optionele, betalende dienst voor spelling- en grammaticacorrectie van uw documenten aan, die samen met de bestelling wordt afgerekend. De analyse en de voorvertoning van de fouten zijn gratis; enkel de toepassing van de correcties wordt gefactureerd.",
+          "Deze dienst is gebaseerd op kunstmatige intelligentie: de inhoud van het document wordt voor de duur van de verwerking overgemaakt aan een gespecialiseerde dienstverlener. Het bedrag van de correctie komt toe aan PrintNow en maakt geen deel uit van het aan de drukkerij uitgekeerde bedrag."
+        ]
+      },
+      {
+        "title": "Generatie van designs via AI",
+        "content": [
+          "PrintNow biedt een optionele, betalende dienst aan voor het genereren van drukwerk (cv's, flyers, visitekaartjes) met behulp van kunstmatige intelligentie: op basis van de door u verstrekte beschrijving worden u verschillende voorstellen getoond en kiest u het voorstel van uw keuze, dat vervolgens aan uw bestelling wordt toegevoegd. Het genereren en bekijken van de voorstellen is gratis; enkel het gekozen design dat aan een bestelling wordt gekoppeld, wordt gefactureerd, tegen het tarief dat vóór de betaling wordt weergegeven. Deze dienst wordt enkel aangeboden voor de types drukwerk die de geselecteerde drukkerij kan afdrukken.",
+          "Deze dienst is gebaseerd op kunstmatige intelligentie: de door u ingevoerde beschrijving wordt overgemaakt aan een gespecialiseerde dienstverlener voor de tijd die nodig is om de inhoud te produceren. De voorstellen worden louter ter voorvertoning verstrekt en kunnen onnauwkeurigheden bevatten; het is uw verantwoordelijkheid de inhoud ervan te controleren vóór het afdrukken. Het bedrag van de generatie komt toe aan PrintNow en maakt geen deel uit van het aan de drukkerij uitgekeerde bedrag."
+        ]
+      },
+      {
+        "title": "Levering en afhaling",
+        "content": [
+          "De klant kan kiezen tussen afhaling in de winkel en levering. De levertermijnen en -voorwaarden worden bepaald door de partnerdrukkerij. Eventuele leveringskosten zijn ten laste van de klant, tenzij een specifieke promotionele aanbieding van toepassing is."
+        ]
+      },
+      {
+        "title": "Herroepingsrecht",
+        "content": [
+          "Overeenkomstig de Belgische wetgeving genieten bestellingen van gepersonaliseerde of op maat gedrukte goederen niet van het herroepingsrecht zodra de productie is gestart. Elke annulering moet snel worden aangevraagd en blijft onderworpen aan de aanvaarding door de partnerdrukkerij."
+        ]
+      },
+      {
+        "title": "Aansprakelijkheid",
+        "content": [
+          "PrintNow treedt op als technische tussenpersoon. De verantwoordelijkheid met betrekking tot de afdrukkwaliteit, de termijnen en de geleverde producten berust bij de partnerdrukkerij. PrintNow kan niet aansprakelijk worden gesteld voor vertragingen of gebreken die aan de drukkerij of aan overmacht te wijten zijn."
+        ]
+      },
+      {
+        "title": "Intellectuele eigendom",
+        "content": [
+          "De klant garandeert te beschikken over alle nodige rechten op de doorgestuurde bestanden en inhoud. PrintNow en de partnerdrukkerij kunnen niet aansprakelijk worden gesteld voor een eventuele schending van intellectuele-eigendomsrechten door de klant."
+        ]
+      },
+      {
+        "title": "Klantenbeoordelingen",
+        "content": [
+          "Een klant die een bestelling heeft ontvangen, kan een beoordeling achterlaten over de betrokken drukkerij, met een maximum van één beoordeling per drukkerij. Beoordelingen zijn onderworpen aan automatische moderatie: elke beledigende of ongepaste inhoud wordt geweigerd. PrintNow kan een kennelijk misbruikende beoordeling verwijderen."
+        ]
+      },
+      {
+        "title": "Wijziging van de voorwaarden",
+        "content": [
+          "PrintNow behoudt zich het recht voor deze Voorwaarden op elk moment te wijzigen. De toepasselijke voorwaarden zijn die welke van kracht zijn op het moment van de bestelling of de inschrijving."
+        ]
+      },
+      {
+        "title": "Toepasselijk recht en bevoegde rechtbank",
+        "content": [
+          "Deze Voorwaarden worden beheerst door het Belgisch recht. In geval van geschil verbinden de partijen zich ertoe een minnelijke oplossing te zoeken alvorens de bevoegde rechtbanken van Brussel te vatten."
+        ]
+      }
+    ],
+    "cta": {
+      "question": "Vragen over onze voorwaarden? Ons team staat tot uw beschikking.",
+      "mentions": "Wettelijke vermeldingen",
+      "confidentiality": "Privacy & AVG",
+      "contact": "Contacteer ons"
+    }
+  },
+  "confidentiality": {
+    "hero": {
+      "badge": "Gegevensbescherming",
+      "title": "Privacy & AVG",
+      "lastUpdate": "Laatste update: 17 augustus 2026"
+    },
+    "sections": [
+      {
+        "title": "Wie is de verwerkingsverantwoordelijke?",
+        "content": [
+          "De verwerkingsverantwoordelijke voor de persoonsgegevens is PrintNow, met maatschappelijke zetel te Rue de l'Imprimerie 42, 1000 Brussel, België. Voor elke vraag over de bescherming van uw gegevens kunt u contact opnemen met ons privacyteam via contact@printnow.be."
+        ]
+      },
+      {
+        "title": "Welke gegevens verzamelen wij?",
+        "content": [
+          "Afhankelijk van de functionaliteiten die u gebruikt: uw identiteit (naam, voornaam), uw e-mailadres, uw telefoonnummer, uw postadres, uw betalingsgegevens (verwerkt door onze dienstverlener Stripe — PrintNow heeft hier nooit toegang toe), de geschiedenis van uw bestellingen, de PDF-bestanden die u uploadt om af te drukken, de documenten die u indient voor spelling- en grammaticacorrectie, de beschrijvingen die u invoert en de designs die worden geproduceerd wanneer u de AI-generatie gebruikt, en, indien u het studententarief aanvraagt, uw studentenkaart en uw identiteitskaart (enkel voor de duur van de verificatie, zie verder).",
+          "Met uw toestemming gebruiken wij ook uw locatie om u drukkerijen in de buurt te tonen en reistijden te ramen. Deze locatie wordt niet bewaard."
+        ]
+      },
+      {
+        "title": "Waarom gebruiken wij uw gegevens?",
+        "content": [
+          "Uw gegevens worden gebruikt om: uw account aan te maken en te beheren, uw bestellingen te verwerken, de levering of afhaling te verzekeren, uw documenten te corrigeren en designs te genereren wanneer u dit vraagt, uw studentenstatus te verifiëren, met u te communiceren, fraude te voorkomen, onze diensten te verbeteren en onze wettelijke verplichtingen na te leven."
+        ]
+      },
+      {
+        "title": "Wie heeft toegang tot uw gegevens? Onze verwerkers",
+        "content": [
+          "Uw gegevens zijn toegankelijk voor PrintNow en, voor de uitvoering van uw bestelling, voor de partnerdrukkerij die u heeft gekozen.",
+          "Wij doen een beroep op gespecialiseerde verwerkers, uitsluitend voor wat noodzakelijk is voor de dienst: Stripe (betalingen), Mistral AI (spelling- en grammaticacorrectie, generatie van designs, FAQ-assistent en moderatie van beoordelingen), bpost en AfterShip (opvolging van leveringen), onze dienstverlener voor het verzenden van e-mails, en een dienst voor routeberekening (reistijden). Wij verkopen uw gegevens nooit."
+        ]
+      },
+      {
+        "title": "Gebruik van kunstmatige intelligentie",
+        "content": [
+          "Vier functionaliteiten zijn gebaseerd op kunstmatige intelligentie geleverd door Mistral: de spelling- en grammaticacorrectie, de generatie van designs, de FAQ-assistent en de moderatie van beoordelingen. Voor de correctie wordt de inhoud van het document dat u indient, overgemaakt aan deze dienstverlener voor de duur van de analyse; voor de generatie is het de door u ingevoerde beschrijving die hem wordt overgemaakt voor de tijd die nodig is om het drukwerk te produceren. Deze verwerkingen dienen uitsluitend om de door u gevraagde dienst te leveren."
+        ]
+      },
+      {
+        "title": "Verificatie van de studentenstatus",
+        "content": [
+          "Om u het studententarief toe te kennen, vragen wij u om uw studentenkaart en uw identiteitskaart, teneinde te verifiëren dat de studentenkaart wel degelijk de uwe is. Deze afbeeldingen worden uitsluitend gebruikt voor deze verificatie: ze worden gewist zodra ons team een beslissing heeft genomen. Wij bewaren vervolgens enkel het resultaat — aanvaarde of geweigerde status en de geldigheidsduur ervan."
+        ]
+      },
+      {
+        "title": "Gegevensbeveiliging",
+        "content": [
+          "Wij implementeren technische en organisatorische maatregelen om uw gegevens te beschermen tegen verlies, ongeoorloofde toegang of openbaarmaking. De toegang tot uw documenten is voorbehouden aan uzelf, de betrokken drukkerij en, in voorkomend geval, onze administratie. Betalingen worden verwerkt door een gecertificeerde dienstverlener en de uitwisselingen zijn beveiligd."
+        ]
+      },
+      {
+        "title": "Cookies en soortgelijke technologieën",
+        "content": [
+          "PrintNow gebruikt enkel de cookies en de lokale opslag die strikt noodzakelijk zijn voor de werking van de website — bijvoorbeeld om u aangemeld te houden. Wij gebruiken geen reclamecookies of trackers van derden voor profileringsdoeleinden."
+        ]
+      },
+      {
+        "title": "Uw rechten als gebruiker",
+        "content": [
+          "Overeenkomstig de AVG beschikt u over de volgende rechten: recht op inzage, rectificatie, wissing, beperking van de verwerking, bezwaar, overdraagbaarheid en intrekking van uw toestemming. Om deze rechten uit te oefenen, stuurt u ons een verzoek naar contact@printnow.be samen met een identiteitsbewijs."
+        ]
+      },
+      {
+        "title": "Bewaartermijn",
+        "content": [
+          "Wij bewaren uw gegevens enkel gedurende de tijd die nodig is voor elk doeleinde:",
+          "• De gegevens van uw account: zolang uw account actief is.",
+          "• De bestanden die u uploadt om af te drukken: gewist 7 dagen nadat de bestelling is voltooid.",
+          "• De documenten die worden ingediend voor spelling- en grammaticacorrectie: 7 dagen nadien gewist.",
+          "• De beschrijvingen en designs van de AI-generatie: gewist 7 dagen na uw laatste activiteit met betrekking tot deze gegevens.",
+          "• De identiteits- en studentenkaarten: gewist zodra de verificatiebeslissing is genomen.",
+          "• De facturen: bewaard gedurende 7 jaar, zoals opgelegd door de Belgische boekhoudwetgeving; na deze termijn worden ze vernietigd."
+        ]
+      },
+      {
+        "title": "Wijzigingen van dit beleid",
+        "content": [
+          "Dit privacybeleid kan worden bijgewerkt. Wij nodigen u uit het regelmatig te raadplegen."
+        ]
+      }
+    ],
+    "rights": {
+      "title": "Uw AVG-rechten",
+      "items": [
+        "Recht op inzage in uw gegevens",
+        "Recht op rectificatie",
+        "Recht op wissing",
+        "Recht op beperking van de verwerking",
+        "Recht van bezwaar",
+        "Recht op overdraagbaarheid",
+        "Recht om uw toestemming in te trekken"
+      ],
+      "cta": "Een recht uitoefenen"
+    },
+    "cta": {
+      "question": "Voor elke vraag staat ons team klaar om u te begeleiden.",
+      "mentions": "Wettelijke vermeldingen",
+      "cgv": "Algemene voorwaarden",
+      "contact": "Contacteer ons"
+    }
+  }
+}
