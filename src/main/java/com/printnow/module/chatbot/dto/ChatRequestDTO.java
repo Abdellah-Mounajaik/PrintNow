@@ -19,4 +19,7 @@ public class ChatRequestDTO {
     @Size(max = 20)
     @Valid
     private List<ChatMessageDTO> messages;
+
+    /** Langue affichée sur le site ("fr", "en", "nl"). Optionnel : repli sur le français si absent. */
+    private String langue;
 }

@@ -17,7 +17,7 @@ export const chatbotService = {
    * @return la réponse de l'assistant
    * @throws Error dont le message est directement affichable au visiteur
    */
-  demander: async (conversation: MessageChat[]): Promise<string> => {
+  demander: async (conversation: MessageChat[], langue: string): Promise<string> => {
     let response: Response;
     try {
       response = await fetch(`${API_URL}/chat`, {
@@ -28,6 +28,7 @@ export const chatbotService = {
             role: m.role,
             content: m.content.slice(0, MAX_CARACTERES),
           })),
+          langue,
         }),
       });
     } catch {

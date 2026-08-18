@@ -11,7 +11,7 @@ import type { MessageChat } from "@/models/chatbot.model";
 type Message = { id: string; role: "bot" | "user"; text: string };
 
 const FAQ = () => {
-  const { t } = useTranslation("faq");
+  const { t, i18n } = useTranslation("faq");
 
   /**
    * Questions proposées au visiteur. Ce ne sont que des raccourcis de saisie :
@@ -31,6 +31,20 @@ const FAQ = () => {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, typing]);
+
+  useEffect(() => {
+    // Le message d'accueil est capturé dans l'état au premier rendu : sans ce
+    // correctif, il resterait figé dans la langue active à ce moment-là même
+    // après un changement de langue. On ne le met à jour que si la
+    // conversation n'a pas encore commencé, pour ne pas traduire après coup
+    // des réponses déjà données par l'assistant dans une autre langue.
+    setMessages((prev) =>
+      prev.length === 1 && prev[0].id === "welcome"
+        ? [{ id: "welcome", role: "bot", text: t("chat.welcomeMessage") }]
+        : prev
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -56,7 +70,7 @@ const FAQ = () => {
         .filter((m) => m.id !== "welcome")
         .map((m) => ({ role: m.role === "bot" ? "assistant" : "user", content: m.text }));
 
-      const reponse = await chatbotService.demander(historique);
+      const reponse = await chatbotService.demander(historique, i18n.language);
       setMessages((prev) => [...prev, { id: `b-${Date.now()}`, role: "bot", text: reponse }]);
     } catch (e) {
       // Le service formule déjà un message compréhensible par le visiteur.

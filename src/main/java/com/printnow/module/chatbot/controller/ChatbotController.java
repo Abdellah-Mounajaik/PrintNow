@@ -31,7 +31,7 @@ public class ChatbotController {
                     .body(Map.of("message", "Trop de messages envoyés. Merci de patienter un instant."));
         }
 
-        String reponse = chatbotService.repondre(request.getMessages());
+        String reponse = chatbotService.repondre(request.getMessages(), request.getLangue());
         if (reponse == null) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(Map.of("message", "L'assistant est momentanément indisponible. Réessayez ou écrivez-nous via la page Contact."));
