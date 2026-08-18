@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Header from "../../../components/layout/Header";
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
@@ -162,6 +163,7 @@ interface CheckoutFormProps {
 const CheckoutForm: React.FC<CheckoutFormProps> = ({
   total, canPay, addressValid, fulfillment, token, verifierFormats, onSuccess,
 }) => {
+  const { t } = useTranslation("order");
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
@@ -170,30 +172,29 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
   const handlePay = async () => {
     if (!stripe || !elements) {
-      toast({ title: "Erreur", description: "Stripe n'est pas chargé. Vérifiez votre clé publique.", variant: "destructive" });
+      toast({ title: t("checkoutForm.toast.stripeNotLoadedTitle"), description: t("checkoutForm.toast.stripeNotLoadedDescription"), variant: "destructive" });
       return;
     }
     // La page entière est déjà réservée aux clients connectés ; ce contrôle
     // n'existe que pour que le jeton soit certainement présent ici.
     if (!token) {
-      toast({ title: "Session expirée", description: "Reconnectez-vous pour finaliser votre commande.", variant: "destructive" });
+      toast({ title: t("checkoutForm.toast.sessionExpiredTitle"), description: t("checkoutForm.toast.sessionExpiredDescription"), variant: "destructive" });
       return;
     }
     if (!canPay) {
       toast({
-        title: "Commande incomplète",
-        description: "Ajoutez au moins un PDF, et vérifiez que son format correspond bien "
-          + "à un produit proposé par cette imprimerie.",
+        title: t("checkoutForm.toast.incompleteOrderTitle"),
+        description: t("checkoutForm.toast.incompleteOrderDescription"),
         variant: "destructive",
       });
       return;
     }
     if (fulfillment === "delivery" && !addressValid) {
-      toast({ title: "Adresse incomplète", description: "Veuillez renseigner votre adresse de livraison.", variant: "destructive" });
+      toast({ title: t("checkoutForm.toast.incompleteAddressTitle"), description: t("checkoutForm.toast.incompleteAddressDescription"), variant: "destructive" });
       return;
     }
     if (!cardComplete) {
-      toast({ title: "Carte invalide", description: cardError ?? "Veuillez entrer un numéro de carte valide.", variant: "destructive" });
+      toast({ title: t("checkoutForm.toast.invalidCardTitle"), description: cardError ?? t("checkoutForm.toast.invalidCardFallback"), variant: "destructive" });
       return;
     }
 
@@ -209,23 +210,25 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
       // 2. Confirm with real card via Stripe.js
       const cardElement = elements.getElement(CardElement);
-      if (!cardElement) throw new Error("Élément de carte introuvable.");
+      if (!cardElement) throw new Error(t("checkoutForm.errors.cardElementNotFound"));
 
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: { card: cardElement },
       });
-      if (error) throw new Error(error.message ?? "Erreur de paiement.");
-      if (!paymentIntent) throw new Error("Paiement non confirmé.");
+      if (error) throw new Error(error.message ?? t("checkoutForm.errors.paymentError"));
+      if (!paymentIntent) throw new Error(t("checkoutForm.errors.paymentNotConfirmed"));
 
       // 3. Create the order only after successful payment
       await onSuccess(paymentIntent.id);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Une erreur est survenue.";
+      const message = err instanceof Error ? err.message : t("checkoutForm.errors.generic");
       // Le titre suit ce qui a échoué : parler d'« erreur de paiement » alors
-      // que la carte a bien été débitée inquiéterait pour rien.
-      const paiementPasse = /rembours|enregistr/i.test(message);
+      // que la carte a bien été débitée inquiéterait pour rien. Le marqueur
+      // `orderNotSaved` (posé par handleCreateOrder) évite de devoir deviner
+      // ça depuis le texte du message, qui est maintenant traduit.
+      const paiementPasse = (err as Error & { orderNotSaved?: boolean } | null)?.orderNotSaved === true;
       toast({
-        title: paiementPasse ? "Commande non enregistrée" : "Erreur de paiement",
+        title: paiementPasse ? t("checkoutForm.toast.orderNotSavedTitle") : t("checkoutForm.toast.paymentErrorTitle"),
         description: message,
         variant: "destructive",
       });
@@ -259,7 +262,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         />
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Lock className="h-3.5 w-3.5" /> Paiement sécurisé Stripe (Chiffrement 256 bits).
+        <Lock className="h-3.5 w-3.5" /> {t("checkoutForm.securePayment")}
       </div>
       <Button
         variant="hero"
@@ -269,9 +272,9 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         onClick={handlePay}
       >
         {processing ? (
-          <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Traitement…</>
+          <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> {t("checkoutForm.processing")}</>
         ) : (
-          <><CreditCard className="h-5 w-5 mr-2" /> Payer {total.toFixed(2)}€</>
+          <><CreditCard className="h-5 w-5 mr-2" /> {t("checkoutForm.payButton", { total: total.toFixed(2) })}</>
         )}
       </Button>
     </div>
@@ -282,6 +285,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 // Order page
 // ──────────────────────────────────────────────────────────────────────────────
 const Order = () => {
+  const { t } = useTranslation("order");
   const { slug } = useParams<{ slug: string }>();
   const { token, user } = useAuth();
   const navigate = useNavigate();
@@ -318,7 +322,7 @@ const Order = () => {
           setIsLoading(false);
         })
         .catch(() => {
-          toast({ title: "Erreur", description: "Imprimerie introuvable.", variant: "destructive" });
+          toast({ title: t("page.loadErrorTitle"), description: t("page.loadErrorDescription"), variant: "destructive" });
           setIsLoading(false);
         });
     } else {
@@ -346,11 +350,11 @@ const Order = () => {
 
   const getProductLabel = (p: { typeProduit: string; formatImpression: string; couleur?: boolean }): string => {
     if (p.typeProduit === "DOCUMENT") {
-      return `${p.couleur ? "Couleur" : "N&B"} ${p.formatImpression}`;
+      return `${p.couleur ? t("fileCard.product.color") : t("fileCard.product.bw")} ${p.formatImpression}`;
     }
-    if (p.typeProduit === "CARTE_VISITE") return "Cartes de visite";
-    if (p.typeProduit === "FLYER") return "Flyers / Dépliants";
-    if (p.typeProduit === "POSTER") return "Affiches grand format";
+    if (p.typeProduit === "CARTE_VISITE") return t("fileCard.product.businessCards");
+    if (p.typeProduit === "FLYER") return t("fileCard.product.flyers");
+    if (p.typeProduit === "POSTER") return t("fileCard.product.posters");
     return `${formatEnumName(p.typeProduit)} ${p.formatImpression}`;
   };
 
@@ -533,7 +537,7 @@ const Order = () => {
   useEffect(() => {
     if (appliedPromo?.montantMinimum && totalAvantPromo * 1.21 < appliedPromo.montantMinimum) {
       setAppliedPromo(null);
-      toast({ title: "Code promo retiré", description: `Montant minimum de ${appliedPromo.montantMinimum.toFixed(2)}€ requis.`, variant: "destructive" });
+      toast({ title: t("promo.toast.removedTitle"), description: t("promo.toast.removedDescription", { amount: appliedPromo.montantMinimum.toFixed(2) }), variant: "destructive" });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalAvantPromo]);
@@ -552,11 +556,16 @@ const Order = () => {
         montantMinimum: promo.montantMinimumCommande ? Number(promo.montantMinimumCommande) : undefined,
       });
       setPromoError(null);
-      toast({ title: "Code appliqué !", description: promo.typeReduction === "POURCENTAGE" ? `Réduction de ${promo.valeurReduction}%` : `Réduction de ${Number(promo.valeurReduction).toFixed(2)}€` });
+      toast({
+        title: t("promo.toast.appliedTitle"),
+        description: promo.typeReduction === "POURCENTAGE"
+          ? t("promo.toast.appliedDescriptionPercent", { percent: promo.valeurReduction })
+          : t("promo.toast.appliedDescriptionAmount", { amount: Number(promo.valeurReduction).toFixed(2) }),
+      });
     } catch (e) {
       // Le serveur dit pourquoi il refuse (code expiré, mauvaise imprimerie,
       // montant minimum…) : c'est cette phrase qui aide, pas un message générique.
-      setPromoError(e instanceof Error ? e.message : "Impossible de vérifier le code.");
+      setPromoError(e instanceof Error ? e.message : t("promo.errorFallback"));
     }
   };
 
@@ -649,8 +658,11 @@ const Order = () => {
           // réclame nous-mêmes avant d'annoncer l'échec au client.
           const rembourse = await reclamerLeRemboursement(paymentIntentId);
           (e as Error).message = rembourse
-            ? "Votre commande n'a pas pu être enregistrée. Votre paiement a été remboursé, rien ne vous sera prélevé."
-            : "Votre commande n'a pas pu être enregistrée. Contactez-nous : votre paiement vous sera remboursé.";
+            ? t("checkoutForm.errors.orderNotSavedRefunded")
+            : t("checkoutForm.errors.orderNotSavedContactUs");
+          // Marqueur indépendant de la langue : CheckoutForm s'en sert pour
+          // choisir le titre du toast sans avoir à analyser le texte du message.
+          (e as Error & { orderNotSaved?: boolean }).orderNotSaved = true;
         }
         throw e;
       }
@@ -725,7 +737,7 @@ const Order = () => {
   };
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-muted/30"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
-  if (!shop) return <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 text-destructive"><p className="text-xl font-bold">Imprimerie introuvable.</p><Button className="mt-4" asChild><Link to="/">Retour à l'accueil</Link></Button></div>;
+  if (!shop) return <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 text-destructive"><p className="text-xl font-bold">{t("page.notFoundTitle")}</p><Button className="mt-4" asChild><Link to="/">{t("page.notFoundBackHome")}</Link></Button></div>;
 
   const activeProducts = shop.produits?.filter(p => p.actif) || [];
 
@@ -772,14 +784,14 @@ const Order = () => {
           <Button variant="ghost" size="sm" className="mb-6" asChild>
             <Link to={`/imprimerie/${slug}`}>
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Retour à l'imprimerie
+              {t("page.backToShop")}
             </Link>
           </Button>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               <div>
-                <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">Nouvelle commande</h1>
+                <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">{t("page.title")}</h1>
                 <p className="text-muted-foreground">{shop.nom} • {shop.ville}</p>
               </div>
 
@@ -788,7 +800,7 @@ const Order = () => {
                 <CardHeader>
                   <CardTitle className="font-display text-lg flex items-center gap-2">
                     <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">1</span>
-                    Téléverser vos fichiers
+                    {t("upload.title")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -800,8 +812,8 @@ const Order = () => {
                           <Upload className="h-7 w-7 text-muted-foreground" />
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">Cliquez pour téléverser</p>
-                          <p className="text-sm text-muted-foreground">Format PDF uniquement (plusieurs possibles)</p>
+                          <p className="font-medium text-foreground">{t("upload.dropzoneCta")}</p>
+                          <p className="text-sm text-muted-foreground">{t("upload.dropzoneHint")}</p>
                         </div>
                       </div>
                     </label>
@@ -813,7 +825,7 @@ const Order = () => {
                     <>
                       <div className="flex items-center gap-3 my-4">
                         <div className="h-px flex-1 bg-border" />
-                        <span className="text-xs text-muted-foreground">ou</span>
+                        <span className="text-xs text-muted-foreground">{t("upload.or")}</span>
                         <div className="h-px flex-1 bg-border" />
                       </div>
                       <GenerateurBouton
@@ -825,7 +837,7 @@ const Order = () => {
 
                   {files.length === 0 && (
                     <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
-                      <AlertCircle className="h-4 w-4" /> Vos fichiers doivent être au format PDF
+                      <AlertCircle className="h-4 w-4" /> {t("upload.pdfOnlyHint")}
                     </div>
                   )}
                 </CardContent>
@@ -855,7 +867,7 @@ const Order = () => {
                               {uploadedFile.file.name}
                             </CardTitle>
                             <p className="text-xs text-muted-foreground mt-1">
-                              {uploadedFile.pageCount} page{uploadedFile.pageCount > 1 ? "s" : ""} • {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
+                              {t("fileCard.pageCount", { count: uploadedFile.pageCount })} • {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
                             </p>
                           </div>
                         </div>
@@ -864,10 +876,10 @@ const Order = () => {
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-primary">Que souhaitez-vous imprimer ?</Label>
+                        <Label className="text-sm font-semibold text-primary">{t("fileCard.product.label")}</Label>
                         <Select value={uploadedFile.options.productId.toString()} onValueChange={(v) => updateFileOption(index, "productId", Number(v))}>
                           <SelectTrigger className="border-primary/30 bg-primary/5">
-                            <SelectValue placeholder="Sélectionnez un produit..." />
+                            <SelectValue placeholder={t("fileCard.product.placeholder")} />
                           </SelectTrigger>
                           <SelectContent>
                             {activeProducts.map((p) => {
@@ -880,9 +892,9 @@ const Order = () => {
                                   {dims && (
                                     <span className="text-muted-foreground ml-1">({dims.width}×{dims.height} mm)</span>
                                   )}{" "}
-                                  <span className="text-muted-foreground ml-2">({p.prixBase.toFixed(2)}€/page)</span>
+                                  <span className="text-muted-foreground ml-2">{t("fileCard.product.pricePerPage", { price: p.prixBase.toFixed(2) })}</span>
                                   {!compatible && (
-                                    <span className="text-destructive ml-2 text-xs">Format incompatible avec votre fichier</span>
+                                    <span className="text-destructive ml-2 text-xs">{t("fileCard.product.incompatible")}</span>
                                   )}
                                 </SelectItem>
                               );
@@ -893,16 +905,14 @@ const Order = () => {
                           <p className="flex items-start gap-1.5 text-xs text-destructive">
                             <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                             <span>
-                              Cette imprimerie ne propose aucun format correspondant à votre fichier
-                              ({Math.round(fileDims.width)}×{Math.round(fileDims.height)} mm).
-                              Retirez-le, ou choisissez une autre imprimerie.
+                              {t("fileCard.formatNotOffered", { width: Math.round(fileDims.width), height: Math.round(fileDims.height) })}
                             </span>
                           </p>
                         )}
                         {fileDims && selectedProduct && anyCompatible && !formatMatchesDimensions(selectedProduct.formatImpression, fileDims) && (
                           <p className="flex items-center gap-1.5 text-xs text-destructive">
                             <AlertCircle className="h-3.5 w-3.5" />
-                            Le format de ce produit ne correspond pas aux dimensions de votre fichier ({Math.round(fileDims.width)}×{Math.round(fileDims.height)} mm).
+                            {t("fileCard.formatMismatch", { width: Math.round(fileDims.width), height: Math.round(fileDims.height) })}
                           </p>
                         )}
                       </div>
@@ -910,15 +920,15 @@ const Order = () => {
                       <div className={`grid gap-4 ${selectedProduct?.typeProduit === "POSTER" ? "grid-cols-1" : "grid-cols-2"}`}>
                         {selectedProduct?.typeProduit !== "POSTER" && (
                           <div className="space-y-3">
-                            <Label className="text-sm">Mise en page</Label>
+                            <Label className="text-sm">{t("fileCard.layout.label")}</Label>
                             <RadioGroup value={uploadedFile.options.recto} onValueChange={(v) => updateFileOption(index, "recto", v as "recto" | "rectoverso")} className="flex gap-4">
-                              <div className="flex items-center space-x-2"><RadioGroupItem value="recto" id={`recto-${index}`} /><Label htmlFor={`recto-${index}`} className="cursor-pointer">Recto</Label></div>
-                              <div className="flex items-center space-x-2"><RadioGroupItem value="rectoverso" id={`rv-${index}`} /><Label htmlFor={`rv-${index}`} className="cursor-pointer">Recto-Verso (-{shop?.pourcentageRemiseRectoVerso ?? 15}%)</Label></div>
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="recto" id={`recto-${index}`} /><Label htmlFor={`recto-${index}`} className="cursor-pointer">{t("fileCard.layout.simplex")}</Label></div>
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="rectoverso" id={`rv-${index}`} /><Label htmlFor={`rv-${index}`} className="cursor-pointer">{t("fileCard.layout.duplex", { percent: shop?.pourcentageRemiseRectoVerso ?? 15 })}</Label></div>
                             </RadioGroup>
                           </div>
                         )}
                         <div className="space-y-2">
-                          <Label className="text-sm">Copies du fichier</Label>
+                          <Label className="text-sm">{t("fileCard.copiesLabel")}</Label>
                           <Input type="number" min={1} value={uploadedFile.options.copies} onChange={(e) => updateFileOption(index, "copies", Math.max(1, parseInt(e.target.value) || 1))} />
                         </div>
                       </div>
@@ -927,14 +937,14 @@ const Order = () => {
                         <div className="pt-4 border-t grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {selectedProduct.proposeReliure && selectedProduct.prixParTypeReliure && (
                             <div className="space-y-2">
-                              <Label className="text-sm flex items-center gap-2"><Book className="w-4 h-4 text-muted-foreground" /> Reliure</Label>
+                              <Label className="text-sm flex items-center gap-2"><Book className="w-4 h-4 text-muted-foreground" /> {t("fileCard.binding.label")}</Label>
                               <Select value={uploadedFile.options.binding} onValueChange={(v) => updateFileOption(index, "binding", v)}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="AUCUNE">Aucune reliure</SelectItem>
+                                  <SelectItem value="AUCUNE">{t("fileCard.binding.none")}</SelectItem>
                                   {Object.entries(selectedProduct.prixParTypeReliure).map(([type, prix]) => {
                                     if (type === "AUCUNE" || prix == null) return null;
-                                    return <SelectItem key={type} value={type}>{formatEnumName(type)} (+{Number(prix).toFixed(2)}€)</SelectItem>;
+                                    return <SelectItem key={type} value={type}>{formatEnumName(type)} {t("fileCard.priceSuffix", { price: Number(prix).toFixed(2) })}</SelectItem>;
                                   })}
                                 </SelectContent>
                               </Select>
@@ -942,14 +952,14 @@ const Order = () => {
                           )}
                           {selectedProduct.proposePlastification && selectedProduct.prixParTypePlastification && (
                             <div className="space-y-2">
-                              <Label className="text-sm flex items-center gap-2"><Layers className="w-4 h-4 text-muted-foreground" /> Plastification</Label>
+                              <Label className="text-sm flex items-center gap-2"><Layers className="w-4 h-4 text-muted-foreground" /> {t("fileCard.lamination.label")}</Label>
                               <Select value={uploadedFile.options.finish} onValueChange={(v) => updateFileOption(index, "finish", v)}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="AUCUNE">Aucune plastification</SelectItem>
+                                  <SelectItem value="AUCUNE">{t("fileCard.lamination.none")}</SelectItem>
                                   {Object.entries(selectedProduct.prixParTypePlastification).map(([type, prix]) => {
                                     if (type === "AUCUNE" || prix == null) return null;
-                                    return <SelectItem key={type} value={type}>{formatEnumName(type)} (+{Number(prix).toFixed(2)}€)</SelectItem>;
+                                    return <SelectItem key={type} value={type}>{formatEnumName(type)} {t("fileCard.priceSuffix", { price: Number(prix).toFixed(2) })}</SelectItem>;
                                   })}
                                 </SelectContent>
                               </Select>
@@ -969,7 +979,7 @@ const Order = () => {
                       )}
 
                       <div className="flex items-center justify-between pt-4 border-t mt-4">
-                        <span className="text-sm text-muted-foreground">Sous-total fichier</span>
+                        <span className="text-sm text-muted-foreground">{t("fileCard.subtotal")}</span>
                         <span className="font-semibold text-primary">{computeFilePrice(uploadedFile).toFixed(2)}€</span>
                       </div>
                     </CardContent>
@@ -982,7 +992,7 @@ const Order = () => {
                 <CardHeader>
                   <CardTitle className="font-display text-lg flex items-center gap-2">
                     <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">2</span>
-                    Mode de réception
+                    {t("fulfillment.title")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -991,8 +1001,8 @@ const Order = () => {
                       <div className="flex items-start gap-3">
                         <RadioGroupItem value="pickup" id="pickup" className="mt-1" />
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 font-medium"><Store className="h-4 w-4" /> Retrait en magasin</div>
-                          <p className="text-sm text-muted-foreground mt-1">Gratuit. Directement à l'imprimerie.</p>
+                          <div className="flex items-center gap-2 font-medium"><Store className="h-4 w-4" /> {t("fulfillment.pickup.label")}</div>
+                          <p className="text-sm text-muted-foreground mt-1">{t("fulfillment.pickup.description")}</p>
                         </div>
                       </div>
                     </Label>
@@ -1002,9 +1012,9 @@ const Order = () => {
                           <RadioGroupItem value="delivery" id="delivery" className="mt-1" />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 font-medium">
-                              <Truck className="h-4 w-4" /> Livraison <Badge variant="secondary" className="ml-auto">+{(shop.prixLivraison ?? 4.99).toFixed(2)}€</Badge>
+                              <Truck className="h-4 w-4" /> {t("fulfillment.delivery.label")} <Badge variant="secondary" className="ml-auto">{t("fulfillment.delivery.priceBadge", { price: (shop.prixLivraison ?? 4.99).toFixed(2) })}</Badge>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">Livraison à domicile sous 24-48h.</p>
+                            <p className="text-sm text-muted-foreground mt-1">{t("fulfillment.delivery.description")}</p>
                           </div>
                         </div>
                       </Label>
@@ -1018,48 +1028,48 @@ const Order = () => {
                 <Card className="shadow-card border-primary/20">
                   <CardHeader>
                     <CardTitle className="font-display text-lg flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-primary" /> Adresse de livraison
+                      <MapPin className="h-5 w-5 text-primary" /> {t("deliveryAddress.title")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="addr-name" className="text-sm">Nom du destinataire</Label>
-                      <Input id="addr-name" placeholder="Jean Dupont" value={address.nomDestinataire} onChange={(e) => setAddress({ ...address, nomDestinataire: e.target.value })} />
+                      <Label htmlFor="addr-name" className="text-sm">{t("deliveryAddress.recipientName.label")}</Label>
+                      <Input id="addr-name" placeholder={t("deliveryAddress.recipientName.placeholder")} value={address.nomDestinataire} onChange={(e) => setAddress({ ...address, nomDestinataire: e.target.value })} />
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="col-span-2 space-y-2">
-                        <Label htmlFor="addr-rue" className="text-sm">Rue</Label>
-                        <Input id="addr-rue" placeholder="Rue de la Loi" value={address.rue} onChange={(e) => setAddress({ ...address, rue: e.target.value })} />
+                        <Label htmlFor="addr-rue" className="text-sm">{t("deliveryAddress.street.label")}</Label>
+                        <Input id="addr-rue" placeholder={t("deliveryAddress.street.placeholder")} value={address.rue} onChange={(e) => setAddress({ ...address, rue: e.target.value })} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="addr-num" className="text-sm">Numéro</Label>
-                        <Input id="addr-num" placeholder="12B" value={address.numero} onChange={(e) => setAddress({ ...address, numero: e.target.value })} />
+                        <Label htmlFor="addr-num" className="text-sm">{t("deliveryAddress.number.label")}</Label>
+                        <Input id="addr-num" placeholder={t("deliveryAddress.number.placeholder")} value={address.numero} onChange={(e) => setAddress({ ...address, numero: e.target.value })} />
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="addr-cp" className="text-sm">Code postal</Label>
-                        <Input id="addr-cp" placeholder="1000" value={address.codePostal} onChange={(e) => setAddress({ ...address, codePostal: e.target.value })} />
+                        <Label htmlFor="addr-cp" className="text-sm">{t("deliveryAddress.postalCode.label")}</Label>
+                        <Input id="addr-cp" placeholder={t("deliveryAddress.postalCode.placeholder")} value={address.codePostal} onChange={(e) => setAddress({ ...address, codePostal: e.target.value })} />
                       </div>
                       <div className="col-span-2 space-y-2">
-                        <Label htmlFor="addr-ville" className="text-sm">Ville</Label>
-                        <Input id="addr-ville" placeholder="Bruxelles" value={address.ville} onChange={(e) => setAddress({ ...address, ville: e.target.value })} />
+                        <Label htmlFor="addr-ville" className="text-sm">{t("deliveryAddress.city.label")}</Label>
+                        <Input id="addr-ville" placeholder={t("deliveryAddress.city.placeholder")} value={address.ville} onChange={(e) => setAddress({ ...address, ville: e.target.value })} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="addr-pays" className="text-sm">Pays</Label>
+                        <Label htmlFor="addr-pays" className="text-sm">{t("deliveryAddress.country.label")}</Label>
                         <Select value={address.pays} onValueChange={(v) => setAddress({ ...address, pays: v })}>
                           <SelectTrigger id="addr-pays"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Belgique">Belgique</SelectItem>
-                            <SelectItem value="France">France</SelectItem>
+                            <SelectItem value="Belgique">{t("deliveryAddress.country.belgium")}</SelectItem>
+                            <SelectItem value="France">{t("deliveryAddress.country.france")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="addr-tel" className="text-sm">Téléphone</Label>
-                        <Input id="addr-tel" placeholder="+32 4 ..." value={address.telephone} onChange={(e) => setAddress({ ...address, telephone: e.target.value })} />
+                        <Label htmlFor="addr-tel" className="text-sm">{t("deliveryAddress.phone.label")}</Label>
+                        <Input id="addr-tel" placeholder={t("deliveryAddress.phone.placeholder")} value={address.telephone} onChange={(e) => setAddress({ ...address, telephone: e.target.value })} />
                       </div>
                     </div>
                   </CardContent>
@@ -1072,7 +1082,7 @@ const Order = () => {
                   <CardHeader>
                     <CardTitle className="font-display text-lg flex items-center gap-2">
                       <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">3</span>
-                      Options supplémentaires
+                      {t("extraOptions.title")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1083,10 +1093,10 @@ const Order = () => {
                           <Checkbox id="express" checked={expressOption} disabled={!expressOk} onCheckedChange={(checked) => setExpressOption(checked === true)} />
                           <div className="flex-1">
                             <Label htmlFor="express" className={`flex items-center gap-2 ${expressOk ? "cursor-pointer" : "cursor-not-allowed"}`}>
-                              <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">Express 2h</span> <Badge variant="secondary" className="ml-auto">+{(shop?.prixExpress2h ?? 5).toFixed(2)}€</Badge>
+                              <Zap className="h-4 w-4 text-secondary" /> <span className="font-medium">{t("extraOptions.express.label")}</span> <Badge variant="secondary" className="ml-auto">{t("extraOptions.express.priceBadge", { price: (shop?.prixExpress2h ?? 5).toFixed(2) })}</Badge>
                             </Label>
                             <p className="text-sm text-muted-foreground mt-1">
-                              {expressOk ? "Prêt dans les 2 heures." : "Indisponible — l'imprimerie ferme dans moins de 2h ou est fermée aujourd'hui."}
+                              {expressOk ? t("extraOptions.express.available") : t("extraOptions.express.unavailable")}
                             </p>
                           </div>
                         </div>
@@ -1103,11 +1113,11 @@ const Order = () => {
                         <div className="flex-1">
                           <Label htmlFor="student" className={`flex items-center gap-2 ${studentVerified ? "cursor-pointer" : "cursor-not-allowed"}`}>
                             <GraduationCap className="h-4 w-4 text-info" />
-                            <span className="font-medium">Tarif étudiant</span>
-                            <Badge variant="outline" className="ml-auto text-success border-success">-{shop.pourcentageRemiseEtudiant}%</Badge>
+                            <span className="font-medium">{t("extraOptions.student.label")}</span>
+                            <Badge variant="outline" className="ml-auto text-success border-success">{t("extraOptions.student.discountBadge", { percent: shop.pourcentageRemiseEtudiant })}</Badge>
                           </Label>
                           {!studentVerified && (
-                            <p className="text-sm text-destructive mt-1">Vérification étudiant requise — déposez vos documents dans votre espace client.</p>
+                            <p className="text-sm text-destructive mt-1">{t("extraOptions.student.verificationRequired")}</p>
                           )}
                         </div>
                       </div>
@@ -1123,7 +1133,7 @@ const Order = () => {
                     <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">
                       {(shop.proposeExpress2h || shop.proposeTarifEtudiant) ? "4" : "3"}
                     </span>
-                    Code promo PrintNow
+                    {t("promo.title")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1135,12 +1145,12 @@ const Order = () => {
                           <div className="font-medium">{appliedPromo.code}</div>
                           <div className="text-sm text-muted-foreground">
                             {appliedPromo.typeReduction === "POURCENTAGE"
-                              ? `Réduction de ${appliedPromo.valeurReduction}% appliquée`
-                              : `Réduction de ${appliedPromo.valeurReduction.toFixed(2)}€ appliquée`}
+                              ? t("promo.appliedPercent", { percent: appliedPromo.valeurReduction })
+                              : t("promo.appliedAmount", { amount: appliedPromo.valeurReduction.toFixed(2) })}
                           </div>
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={removePromo}>Retirer</Button>
+                      <Button variant="ghost" size="sm" onClick={removePromo}>{t("promo.remove")}</Button>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -1148,13 +1158,13 @@ const Order = () => {
                         <div className="relative flex-1">
                           <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
-                            placeholder="Entrez votre code"
+                            placeholder={t("promo.inputPlaceholder")}
                             value={promoInput}
                             onChange={(e) => { setPromoInput(e.target.value); setPromoError(null); }}
                             className={`pl-9 uppercase ${promoError ? "border-destructive" : ""}`}
                           />
                         </div>
-                        <Button variant="outline" onClick={applyPromo}>Appliquer</Button>
+                        <Button variant="outline" onClick={applyPromo}>{t("promo.apply")}</Button>
                       </div>
                       {promoError && (
                         <p className="text-sm text-destructive flex items-center gap-1">
@@ -1173,7 +1183,7 @@ const Order = () => {
                     <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">
                       {(shop.proposeExpress2h || shop.proposeTarifEtudiant) ? "5" : "4"}
                     </span>
-                    Paiement
+                    {t("payment.title")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1197,7 +1207,7 @@ const Order = () => {
             <div className="lg:sticky lg:top-24 h-fit">
               <Card className="shadow-card border-primary/20">
                 <CardHeader className="bg-primary/5 rounded-t-lg">
-                  <CardTitle className="font-display text-lg">Récapitulatif</CardTitle>
+                  <CardTitle className="font-display text-lg">{t("summary.title")}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                   {files.length > 0 ? (
@@ -1210,66 +1220,66 @@ const Order = () => {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">{uploadedFile.file.name}</p>
                               <p className="text-xs text-muted-foreground">
-                                {prod ? getProductLabel(prod) : "Non sélectionné"} • {uploadedFile.options.copies}x
+                                {prod ? getProductLabel(prod) : t("summary.notSelected")} • {uploadedFile.options.copies}x
                               </p>
                             </div>
                             <span className="text-sm font-medium">{computeFilePrice(uploadedFile).toFixed(2)}€</span>
                           </div>
                         );
                       })}
-                      <p className="text-xs text-muted-foreground text-center mt-3">Total: {totalPages} pages dans la commande</p>
+                      <p className="text-xs text-muted-foreground text-center mt-3">{t("summary.totalPages", { count: totalPages })}</p>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">Aucun fichier ajouté.</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">{t("summary.noFiles")}</p>
                   )}
 
                   <div className="space-y-2 text-sm border-t pt-4">
-                    <div className="flex justify-between"><span className="text-muted-foreground">Sous-total</span><span>{subtotal.toFixed(2)}€</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">{t("summary.subtotal")}</span><span>{subtotal.toFixed(2)}€</span></div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground flex items-center gap-1">
                         {fulfillment === "pickup" ? <Store className="h-3 w-3" /> : <Truck className="h-3 w-3" />}
-                        {fulfillment === "pickup" ? "Retrait magasin" : "Livraison"}
+                        {fulfillment === "pickup" ? t("summary.pickupLabel") : t("summary.deliveryLabel")}
                       </span>
-                      <span>{fulfillment === "pickup" ? "Gratuit" : `+${deliveryPrice.toFixed(2)}€`}</span>
+                      <span>{fulfillment === "pickup" ? t("summary.free") : t("summary.plusPrice", { price: deliveryPrice.toFixed(2) })}</span>
                     </div>
-                    {expressOption && <div className="flex justify-between"><span className="text-muted-foreground">Express 2h</span><span>+{expressAmount.toFixed(2)}€</span></div>}
-                    {studentDiscount && <div className="flex justify-between text-success"><span>Réduction étudiant</span><span>-{studentDiscountAmount.toFixed(2)}€</span></div>}
-                    {appliedPromo && <div className="flex justify-between text-success"><span>Code promo</span><span>-{promoDiscountAmount.toFixed(2)}€</span></div>}
+                    {expressOption && <div className="flex justify-between"><span className="text-muted-foreground">{t("extraOptions.express.label")}</span><span>{t("summary.plusPrice", { price: expressAmount.toFixed(2) })}</span></div>}
+                    {studentDiscount && <div className="flex justify-between text-success"><span>{t("summary.studentDiscountLabel")}</span><span>{t("summary.minusPrice", { price: studentDiscountAmount.toFixed(2) })}</span></div>}
+                    {appliedPromo && <div className="flex justify-between text-success"><span>{t("summary.promoLabel")}</span><span>{t("summary.minusPrice", { price: promoDiscountAmount.toFixed(2) })}</span></div>}
                   </div>
 
                   <div className="border-t pt-4 space-y-1 text-sm">
                     <div className="flex justify-between text-muted-foreground">
-                      <span>Total HT</span><span>{totalHT.toFixed(2)}€</span>
+                      <span>{t("summary.totalExclVat")}</span><span>{totalHT.toFixed(2)}€</span>
                     </div>
                     <div className="flex justify-between text-muted-foreground">
-                      <span>TVA (21%)</span><span>+{tva.toFixed(2)}€</span>
+                      <span>{t("summary.vat")}</span><span>{t("summary.plusPrice", { price: tva.toFixed(2) })}</span>
                     </div>
                     {totalCorrections > 0 && (
                       <div className="flex justify-between text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <SpellCheck2 className="h-3.5 w-3.5" />
-                          Correction orthographique
+                          {t("summary.spellCheckLabel")}
                         </span>
-                        <span>+{totalCorrections.toFixed(2)}€</span>
+                        <span>{t("summary.plusPrice", { price: totalCorrections.toFixed(2) })}</span>
                       </div>
                     )}
                     {totalGenerations > 0 && (
                       <div className="flex justify-between text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <Sparkles className="h-3.5 w-3.5" />
-                          Design IA ({generationsActives.length} × {PRIX_GENERATION.toFixed(2)}€)
+                          {t("summary.aiDesignLabel", { count: generationsActives.length, price: PRIX_GENERATION.toFixed(2) })}
                         </span>
-                        <span>+{totalGenerations.toFixed(2)}€</span>
+                        <span>{t("summary.plusPrice", { price: totalGenerations.toFixed(2) })}</span>
                       </div>
                     )}
                     <div className="flex justify-between items-center pt-2 border-t">
-                      <span className="font-semibold text-lg">Total à payer</span>
+                      <span className="font-semibold text-lg">{t("summary.totalToPay")}</span>
                       <span className="font-display font-bold text-2xl text-primary">{totalAPayer.toFixed(2)}€</span>
                     </div>
                   </div>
 
                   <p className="text-xs text-muted-foreground text-center pt-2 border-t">
-                    Remplissez vos informations de carte dans le formulaire de paiement ci-contre.
+                    {t("summary.cardFormHint")}
                   </p>
                 </CardContent>
               </Card>
@@ -1288,13 +1298,10 @@ const Order = () => {
                   <AlertCircle className="h-7 w-7 text-destructive" />
                 </div>
                 <DialogTitle className="text-center font-display text-2xl">
-                  Paiement reçu, fichier non transmis
+                  {t("confirmation.fileNotSentTitle")}
                 </DialogTitle>
                 <DialogDescription className="text-center">
-                  Votre paiement a bien été enregistré, mais {confirmation.fichiersNonEnvoyes.length > 1
-                    ? "certains fichiers n'ont pas pu être envoyés"
-                    : "votre fichier n'a pas pu être envoyé"} à l'imprimerie.
-                  Contactez-nous en indiquant le numéro de commande ci-dessous : nous reprendrons la main.
+                  {t("confirmation.fileNotSentDescription", { count: confirmation.fichiersNonEnvoyes.length })}
                 </DialogDescription>
               </>
             ) : (
@@ -1302,8 +1309,8 @@ const Order = () => {
                 <div className="mx-auto w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mb-2">
                   <Check className="h-7 w-7 text-success" />
                 </div>
-                <DialogTitle className="text-center font-display text-2xl">Commande confirmée !</DialogTitle>
-                <DialogDescription className="text-center">Merci pour votre commande. Un email vous a été envoyé.</DialogDescription>
+                <DialogTitle className="text-center font-display text-2xl">{t("confirmation.successTitle")}</DialogTitle>
+                <DialogDescription className="text-center">{t("confirmation.successDescription")}</DialogDescription>
               </>
             )}
           </DialogHeader>
@@ -1311,17 +1318,17 @@ const Order = () => {
           {confirmation && (
             <div className="space-y-3 text-sm">
               <div className="flex justify-between p-3 rounded-lg bg-muted/50">
-                <span className="text-muted-foreground">N° de commande</span>
+                <span className="text-muted-foreground">{t("confirmation.orderNumber")}</span>
                 <span className="font-mono font-medium">{confirmation.numeroCommande}</span>
               </div>
               <div className="flex justify-between p-3 rounded-lg bg-muted/50">
-                <span className="text-muted-foreground flex items-center gap-2"><CreditCard className="h-4 w-4" /> Paiement</span>
-                <Badge className="bg-success/15 text-success border-success/20" variant="outline">Payé</Badge>
+                <span className="text-muted-foreground flex items-center gap-2"><CreditCard className="h-4 w-4" /> {t("confirmation.paymentLabel")}</span>
+                <Badge className="bg-success/15 text-success border-success/20" variant="outline">{t("confirmation.paidBadge")}</Badge>
               </div>
               {confirmation.fichiersNonEnvoyes.length > 0 && (
                 <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5">
                   <p className="text-destructive font-medium mb-1">
-                    Fichier{confirmation.fichiersNonEnvoyes.length > 1 ? "s" : ""} non transmis
+                    {t("confirmation.filesNotSentLabel", { count: confirmation.fichiersNonEnvoyes.length })}
                   </p>
                   <ul className="list-disc list-inside text-muted-foreground">
                     {confirmation.fichiersNonEnvoyes.map((nom) => (
@@ -1332,27 +1339,27 @@ const Order = () => {
               )}
               <div className="flex justify-between p-3 rounded-lg bg-muted/50">
                 <span className="text-muted-foreground flex items-center gap-2">
-                  {confirmation.modeRetrait === "RETRAIT_MAGASIN" ? <Store className="h-4 w-4" /> : <Truck className="h-4 w-4" />} Mode de retrait
+                  {confirmation.modeRetrait === "RETRAIT_MAGASIN" ? <Store className="h-4 w-4" /> : <Truck className="h-4 w-4" />} {t("confirmation.deliveryModeLabel")}
                 </span>
-                <span className="font-medium">{confirmation.modeRetrait === "RETRAIT_MAGASIN" ? "Retrait magasin" : "Livraison bpost"}</span>
+                <span className="font-medium">{confirmation.modeRetrait === "RETRAIT_MAGASIN" ? t("confirmation.pickupMode") : t("confirmation.deliveryMode")}</span>
               </div>
               {confirmation.numeroSuivi && (
                 <div className="flex justify-between p-3 rounded-lg bg-muted/50">
-                  <span className="text-muted-foreground">N° de suivi</span>
+                  <span className="text-muted-foreground">{t("confirmation.trackingNumber")}</span>
                   <span className="font-mono">{confirmation.numeroSuivi}</span>
                 </div>
               )}
               {(confirmation.correction > 0 || confirmation.generation > 0) && (
                 <div className="space-y-1 pt-2 border-t text-muted-foreground">
                   <div className="flex justify-between">
-                    <span>Impression</span>
+                    <span>{t("confirmation.printingLabel")}</span>
                     <span>{confirmation.total.toFixed(2)}€</span>
                   </div>
                   {confirmation.correction > 0 && (
                     <div className="flex justify-between">
                       <span className="flex items-center gap-1.5">
                         <SpellCheck2 className="h-3.5 w-3.5" />
-                        Correction orthographique
+                        {t("confirmation.spellCheckLabel")}
                       </span>
                       <span>{confirmation.correction.toFixed(2)}€</span>
                     </div>
@@ -1361,7 +1368,7 @@ const Order = () => {
                     <div className="flex justify-between">
                       <span className="flex items-center gap-1.5">
                         <Sparkles className="h-3.5 w-3.5" />
-                        Design IA
+                        {t("confirmation.aiDesignLabel")}
                       </span>
                       <span>{confirmation.generation.toFixed(2)}€</span>
                     </div>
@@ -1369,7 +1376,7 @@ const Order = () => {
                 </div>
               )}
               <div className="flex justify-between pt-2 border-t">
-                <span className="font-semibold">Total payé</span>
+                <span className="font-semibold">{t("confirmation.totalPaid")}</span>
                 <span className="font-display font-bold text-primary">
                   {(confirmation.total + confirmation.correction + confirmation.generation).toFixed(2)}€
                 </span>
@@ -1378,7 +1385,7 @@ const Order = () => {
           )}
 
           <DialogFooter className="sm:justify-center mt-4">
-            <Button variant="hero" className="w-full" onClick={handleFermerConfirmation}>Fermer</Button>
+            <Button variant="hero" className="w-full" onClick={handleFermerConfirmation}>{t("confirmation.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

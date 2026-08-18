@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Sparkles, Loader2, Check, ZoomIn } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import {
@@ -13,27 +14,9 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { studioService } from "../services/studio.service";
 
 const TYPES = [
-  {
-    value: "CV",
-    label: "CV",
-    exemple:
-      "Je m'appelle …, développeur, à Bruxelles. Email …, tél …. Bachelier en informatique " +
-      "(école, année). 1 an d'expérience chez … en Java/React. Compétences : … . Langues : …",
-  },
-  {
-    value: "FLYER",
-    label: "Flyer",
-    exemple:
-      "Un flyer pour la réouverture de mon restaurant Chez Marco samedi. Menu du midi à 15 €. " +
-      "Ambiance chaleureuse. Adresse : rue de la Loi 12, Bruxelles. Tél 02 345 67 89.",
-  },
-  {
-    value: "CARTE_VISITE",
-    label: "Carte de visite",
-    exemple:
-      "Carte pour Sarah Lemaire, designer UX/UI chez Studio Web. Tél 0475 98 76 54, " +
-      "email sarah@studioweb.be, site sarahlemaire.be, Bruxelles.",
-  },
+  { value: "CV", labelKey: "designGenerator.types.cv.label", exempleKey: "designGenerator.types.cv.example" },
+  { value: "FLYER", labelKey: "designGenerator.types.flyer.label", exempleKey: "designGenerator.types.flyer.example" },
+  { value: "CARTE_VISITE", labelKey: "designGenerator.types.carteVisite.label", exempleKey: "designGenerator.types.carteVisite.example" },
 ] as const;
 
 type TypeSupport = (typeof TYPES)[number]["value"];
@@ -56,9 +39,12 @@ interface Props {
  * commande comme un fichier téléversé normal.
  */
 const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
+  const { t } = useTranslation("order");
   const { token } = useAuth();
-  // On ne montre que les types imprimables par cette imprimerie.
-  const typesAffiches = TYPES.filter((t) => !typesDisponibles || typesDisponibles.includes(t.value));
+  // On ne montre que les types imprimables par cette imprimerie, avec leurs libellés traduits.
+  const typesAffiches = TYPES
+    .filter((meta) => !typesDisponibles || typesDisponibles.includes(meta.value))
+    .map((meta) => ({ value: meta.value, label: t(meta.labelKey), exemple: t(meta.exempleKey) }));
   const [ouvert, setOuvert] = useState(false);
   const [type, setType] = useState<TypeSupport>(typesAffiches[0]?.value ?? "CV");
   const [brief, setBrief] = useState("");
@@ -70,7 +56,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
   const [progres, setProgres] = useState(0);
   const minuteur = useRef<number | null>(null);
 
-  const exemple = TYPES.find((t) => t.value === type)!.exemple;
+  const exemple = typesAffiches.find((meta) => meta.value === type)?.exemple ?? "";
 
   // Progression simulée : le backend est synchrone (aucune vraie progression),
   // mais la barre monte par paliers vers ~92 % puis termine à la réponse. Les
@@ -93,10 +79,10 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
   useEffect(() => arreterProgres, []);
 
   const etape = progres < 30
-    ? "Rédaction du contenu…"
+    ? t("designGenerator.progress.writingContent")
     : progres < 58
-      ? "Choix des couleurs…"
-      : "Mise en page des 3 versions…";
+      ? t("designGenerator.progress.choosingColors")
+      : t("designGenerator.progress.layout");
 
   const reinitialiser = () => {
     setBrief("");
@@ -119,7 +105,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
     demarrerProgres();
     try {
       const generation = await studioService.generer(type, brief.trim(), token);
-      if (generation.propositions.length === 0) throw new Error("Aucun rendu n'a été produit.");
+      if (generation.propositions.length === 0) throw new Error(t("designGenerator.errors.noResult"));
       const charges = await Promise.all(
         generation.propositions.map(async (p) => ({
           id: p.id,
@@ -130,7 +116,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
       setApercus(charges);
       setChoisiId(charges[0].id);
     } catch (e) {
-      setErreur(e instanceof Error ? e.message : "Une erreur est survenue.");
+      setErreur(e instanceof Error ? e.message : t("designGenerator.errors.generic"));
     } finally {
       arreterProgres();
       setChargement(false);
@@ -145,7 +131,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
       setOuvert(false);
       reinitialiser();
     } catch {
-      setErreur("Impossible de récupérer le PDF.");
+      setErreur(t("designGenerator.errors.pdfRetrievalFailed"));
     }
   };
 
@@ -155,30 +141,30 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
           <Sparkles className="h-4 w-4 mr-2" />
-          Je n'ai pas de fichier — générer avec l'IA
+          {t("designGenerator.triggerButton")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Générer un support
+            {t("designGenerator.dialog.title")}
           </DialogTitle>
           <DialogDescription>
-            Choisissez un type, décrivez ce que vous voulez : l'IA en propose 3 versions, vous choisissez la vôtre.
+            {t("designGenerator.dialog.description")}
           </DialogDescription>
         </DialogHeader>
 
         {/* Type */}
         <div className="flex flex-wrap gap-2">
-          {typesAffiches.map((t) => (
+          {typesAffiches.map((meta) => (
             <Button
-              key={t.value}
-              variant={type === t.value ? "default" : "outline"}
+              key={meta.value}
+              variant={type === meta.value ? "default" : "outline"}
               size="sm"
-              onClick={() => { setType(t.value); setApercus([]); setChoisiId(null); }}
+              onClick={() => { setType(meta.value); setApercus([]); setChoisiId(null); }}
             >
-              {t.label}
+              {meta.label}
             </Button>
           ))}
         </div>
@@ -195,13 +181,13 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
                        focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
           />
           <div className="flex items-center justify-between mt-1">
-            <span className="text-xs text-muted-foreground">{brief.length}/4000 — plus vous en dites, mieux c'est.</span>
+            <span className="text-xs text-muted-foreground">{t("designGenerator.charCountHint", { length: brief.length })}</span>
           </div>
           <Button className="mt-2 w-full" onClick={generer} disabled={chargement || brief.trim().length === 0}>
             {chargement ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Génération… {Math.round(progres)}%</>
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("designGenerator.generatingButton", { percent: Math.round(progres) })}</>
             ) : (
-              <><Sparkles className="h-4 w-4 mr-2" />Générer 3 propositions</>
+              <><Sparkles className="h-4 w-4 mr-2" />{t("designGenerator.generateButton")}</>
             )}
           </Button>
           {erreur && <p className="mt-2 text-sm text-destructive">{erreur}</p>}
@@ -220,11 +206,11 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
                 style={{ width: `${progres}%` }}
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-3 text-center">L'IA fabrique vos 3 versions…</p>
+            <p className="text-xs text-muted-foreground mt-3 text-center">{t("designGenerator.generatingHint")}</p>
           </div>
         ) : apercus.length > 0 ? (
           <div>
-            <p className="text-sm font-medium mb-2">Choisissez votre version préférée :</p>
+            <p className="text-sm font-medium mb-2">{t("designGenerator.chooseVersionPrompt")}</p>
             <div className="grid grid-cols-3 gap-3">
               {apercus.map((a, i) => (
                 <div
@@ -237,25 +223,25 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
                     choisiId === a.id ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/40"
                   }`}
                 >
-                  <img src={a.url} alt={`Version ${i + 1}`} className="w-full rounded" />
+                  <img src={a.url} alt={t("designGenerator.versionLabel", { index: i + 1 })} className="w-full rounded" />
                   {/* Agrandir pour lire le détail, sans quitter la sélection. */}
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setAgrandi(a); }}
-                    title="Agrandir"
-                    aria-label="Agrandir"
+                    title={t("designGenerator.zoomButton")}
+                    aria-label={t("designGenerator.zoomButton")}
                     className="absolute top-2 right-2 rounded-md border border-border bg-background/85 p-1
                                text-muted-foreground shadow-sm hover:text-foreground"
                   >
                     <ZoomIn className="h-4 w-4" />
                   </button>
-                  <span className="block text-center text-xs text-muted-foreground mt-1">Version {i + 1}</span>
+                  <span className="block text-center text-xs text-muted-foreground mt-1">{t("designGenerator.versionLabel", { index: i + 1 })}</span>
                 </div>
               ))}
             </div>
             <Button className="mt-4 w-full" onClick={utiliser} disabled={choisiId == null}>
               <Check className="h-4 w-4 mr-2" />
-              Utiliser cette version
+              {t("designGenerator.useThisVersion")}
             </Button>
           </div>
         ) : null}
@@ -268,17 +254,17 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ZoomIn className="h-5 w-5 text-primary" />
-            Aperçu agrandi
+            {t("designGenerator.zoomDialog.title")}
           </DialogTitle>
           <DialogDescription>
-            Aperçu filigrané — la version sans filigrane rejoint votre commande une fois choisie.
+            {t("designGenerator.zoomDialog.description")}
           </DialogDescription>
         </DialogHeader>
         {agrandi && (
           <div className="flex flex-col items-center gap-4">
             <img
               src={agrandi.url}
-              alt="Aperçu agrandi"
+              alt={t("designGenerator.zoomDialog.imageAlt")}
               className="max-h-[74vh] max-w-full w-auto rounded border border-border"
             />
             <Button
@@ -286,7 +272,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
               onClick={() => { setChoisiId(agrandi.id); setAgrandi(null); }}
             >
               <Check className="h-4 w-4 mr-2" />
-              Choisir cette version
+              {t("designGenerator.chooseThisVersion")}
             </Button>
           </div>
         )}

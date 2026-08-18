@@ -1,0 +1,258 @@
+{
+  "page": {
+    "backToShop": "Retour à l'imprimerie",
+    "title": "Nouvelle commande",
+    "loadErrorTitle": "Erreur",
+    "loadErrorDescription": "Imprimerie introuvable.",
+    "notFoundTitle": "Imprimerie introuvable.",
+    "notFoundBackHome": "Retour à l'accueil"
+  },
+  "upload": {
+    "title": "Téléverser vos fichiers",
+    "dropzoneCta": "Cliquez pour téléverser",
+    "dropzoneHint": "Format PDF uniquement (plusieurs possibles)",
+    "or": "ou",
+    "pdfOnlyHint": "Vos fichiers doivent être au format PDF"
+  },
+  "fileCard": {
+    "pageCount_one": "{{count}} page",
+    "pageCount_other": "{{count}} pages",
+    "product": {
+      "label": "Que souhaitez-vous imprimer ?",
+      "placeholder": "Sélectionnez un produit...",
+      "pricePerPage": "({{price}}€/page)",
+      "incompatible": "Format incompatible avec votre fichier",
+      "color": "Couleur",
+      "bw": "N&B",
+      "businessCards": "Cartes de visite",
+      "flyers": "Flyers / Dépliants",
+      "posters": "Affiches grand format"
+    },
+    "formatNotOffered": "Cette imprimerie ne propose aucun format correspondant à votre fichier ({{width}}×{{height}} mm). Retirez-le, ou choisissez une autre imprimerie.",
+    "formatMismatch": "Le format de ce produit ne correspond pas aux dimensions de votre fichier ({{width}}×{{height}} mm).",
+    "layout": {
+      "label": "Mise en page",
+      "simplex": "Recto",
+      "duplex": "Recto-Verso (-{{percent}}%)"
+    },
+    "copiesLabel": "Copies du fichier",
+    "binding": {
+      "label": "Reliure",
+      "none": "Aucune reliure"
+    },
+    "lamination": {
+      "label": "Plastification",
+      "none": "Aucune plastification"
+    },
+    "priceSuffix": "(+{{price}}€)",
+    "subtotal": "Sous-total fichier"
+  },
+  "fulfillment": {
+    "title": "Mode de réception",
+    "pickup": {
+      "label": "Retrait en magasin",
+      "description": "Gratuit. Directement à l'imprimerie."
+    },
+    "delivery": {
+      "label": "Livraison",
+      "priceBadge": "+{{price}}€",
+      "description": "Livraison à domicile sous 24-48h."
+    }
+  },
+  "deliveryAddress": {
+    "title": "Adresse de livraison",
+    "recipientName": { "label": "Nom du destinataire", "placeholder": "Jean Dupont" },
+    "street": { "label": "Rue", "placeholder": "Rue de la Loi" },
+    "number": { "label": "Numéro", "placeholder": "12B" },
+    "postalCode": { "label": "Code postal", "placeholder": "1000" },
+    "city": { "label": "Ville", "placeholder": "Bruxelles" },
+    "country": { "label": "Pays", "belgium": "Belgique", "france": "France" },
+    "phone": { "label": "Téléphone", "placeholder": "+32 4 ..." }
+  },
+  "extraOptions": {
+    "title": "Options supplémentaires",
+    "express": {
+      "label": "Express 2h",
+      "priceBadge": "+{{price}}€",
+      "available": "Prêt dans les 2 heures.",
+      "unavailable": "Indisponible — l'imprimerie ferme dans moins de 2h ou est fermée aujourd'hui."
+    },
+    "student": {
+      "label": "Tarif étudiant",
+      "discountBadge": "-{{percent}}%",
+      "verificationRequired": "Vérification étudiant requise — déposez vos documents dans votre espace client."
+    }
+  },
+  "promo": {
+    "title": "Code promo PrintNow",
+    "appliedPercent": "Réduction de {{percent}}% appliquée",
+    "appliedAmount": "Réduction de {{amount}}€ appliquée",
+    "remove": "Retirer",
+    "inputPlaceholder": "Entrez votre code",
+    "apply": "Appliquer",
+    "errorFallback": "Impossible de vérifier le code.",
+    "toast": {
+      "removedTitle": "Code promo retiré",
+      "removedDescription": "Montant minimum de {{amount}}€ requis.",
+      "appliedTitle": "Code appliqué !",
+      "appliedDescriptionPercent": "Réduction de {{percent}}%",
+      "appliedDescriptionAmount": "Réduction de {{amount}}€"
+    }
+  },
+  "payment": {
+    "title": "Paiement"
+  },
+  "checkoutForm": {
+    "toast": {
+      "stripeNotLoadedTitle": "Erreur",
+      "stripeNotLoadedDescription": "Stripe n'est pas chargé. Vérifiez votre clé publique.",
+      "sessionExpiredTitle": "Session expirée",
+      "sessionExpiredDescription": "Reconnectez-vous pour finaliser votre commande.",
+      "incompleteOrderTitle": "Commande incomplète",
+      "incompleteOrderDescription": "Ajoutez au moins un PDF, et vérifiez que son format correspond bien à un produit proposé par cette imprimerie.",
+      "incompleteAddressTitle": "Adresse incomplète",
+      "incompleteAddressDescription": "Veuillez renseigner votre adresse de livraison.",
+      "invalidCardTitle": "Carte invalide",
+      "invalidCardFallback": "Veuillez entrer un numéro de carte valide.",
+      "paymentErrorTitle": "Erreur de paiement",
+      "orderNotSavedTitle": "Commande non enregistrée"
+    },
+    "errors": {
+      "cardElementNotFound": "Élément de carte introuvable.",
+      "paymentError": "Erreur de paiement.",
+      "paymentNotConfirmed": "Paiement non confirmé.",
+      "generic": "Une erreur est survenue.",
+      "orderNotSavedRefunded": "Votre commande n'a pas pu être enregistrée. Votre paiement a été remboursé, rien ne vous sera prélevé.",
+      "orderNotSavedContactUs": "Votre commande n'a pas pu être enregistrée. Contactez-nous : votre paiement vous sera remboursé."
+    },
+    "securePayment": "Paiement sécurisé Stripe (Chiffrement 256 bits).",
+    "processing": "Traitement…",
+    "payButton": "Payer {{total}}€"
+  },
+  "summary": {
+    "title": "Récapitulatif",
+    "notSelected": "Non sélectionné",
+    "totalPages_one": "Total : {{count}} page dans la commande",
+    "totalPages_other": "Total : {{count}} pages dans la commande",
+    "noFiles": "Aucun fichier ajouté.",
+    "subtotal": "Sous-total",
+    "pickupLabel": "Retrait magasin",
+    "deliveryLabel": "Livraison",
+    "free": "Gratuit",
+    "plusPrice": "+{{price}}€",
+    "minusPrice": "-{{price}}€",
+    "studentDiscountLabel": "Réduction étudiant",
+    "promoLabel": "Code promo",
+    "totalExclVat": "Total HT",
+    "vat": "TVA (21%)",
+    "spellCheckLabel": "Correction orthographique",
+    "aiDesignLabel": "Design IA ({{count}} × {{price}}€)",
+    "totalToPay": "Total à payer",
+    "cardFormHint": "Remplissez vos informations de carte dans le formulaire de paiement ci-contre."
+  },
+  "confirmation": {
+    "fileNotSentTitle": "Paiement reçu, fichier non transmis",
+    "fileNotSentDescription_one": "Votre paiement a bien été enregistré, mais votre fichier n'a pas pu être envoyé à l'imprimerie. Contactez-nous en indiquant le numéro de commande ci-dessous : nous reprendrons la main.",
+    "fileNotSentDescription_other": "Votre paiement a bien été enregistré, mais certains fichiers n'ont pas pu être envoyés à l'imprimerie. Contactez-nous en indiquant le numéro de commande ci-dessous : nous reprendrons la main.",
+    "successTitle": "Commande confirmée !",
+    "successDescription": "Merci pour votre commande. Un email vous a été envoyé.",
+    "orderNumber": "N° de commande",
+    "paymentLabel": "Paiement",
+    "paidBadge": "Payé",
+    "filesNotSentLabel_one": "Fichier non transmis",
+    "filesNotSentLabel_other": "Fichiers non transmis",
+    "deliveryModeLabel": "Mode de retrait",
+    "pickupMode": "Retrait magasin",
+    "deliveryMode": "Livraison bpost",
+    "trackingNumber": "N° de suivi",
+    "printingLabel": "Impression",
+    "spellCheckLabel": "Correction orthographique",
+    "aiDesignLabel": "Design IA",
+    "totalPaid": "Total payé",
+    "close": "Fermer"
+  },
+  "spellCheck": {
+    "toast": {
+      "errorTitle": "Erreur",
+      "noErrorsTitle": "Aucune faute détectée",
+      "noErrorsDescription": "Votre document semble correct."
+    },
+    "progress": {
+      "sendingDocument": "Envoi du document"
+    },
+    "title": "Vérifier l'orthographe avant impression",
+    "freeHint": "Analyse et aperçu des corrections gratuits.",
+    "analyzing": "Analyse…",
+    "analyzeButton": "Analyser",
+    "noErrorsInDocument": "Aucune faute détectée dans ce document.",
+    "errorsFound_one": "{{count}} faute détectée",
+    "errorsFound_other": "{{count}} fautes détectées",
+    "pagesAnalyzed_one": "{{count}} page analysée",
+    "pagesAnalyzed_other": "{{count}} pages analysées",
+    "languageSuffix": " en {{lang}}",
+    "chooseSuggestionHint": "· choisissez une autre suggestion, ou conservez le mot d'origine",
+    "pageAbbrev": "p.{{page}}",
+    "fixYourself": "à corriger vous-même",
+    "restoreCorrection": "Rétablir cette correction",
+    "keepOriginalWord": "Conserver le mot d'origine",
+    "printCorrectedVersion": "Imprimer la version corrigée",
+    "priceSuffix": " +{{price}}€",
+    "correctionsApplied_one": "{{count}} correction appliquée · réglé avec votre commande",
+    "correctionsApplied_other": "{{count}} corrections appliquées · réglé avec votre commande",
+    "previewButton": "Aperçu",
+    "previewDialog": {
+      "title": "Aperçu du document corrigé",
+      "description": "Les mots corrigés sont surlignés en vert. Le fichier PDF, sans surlignage ni filigrane, est remis après le règlement de votre commande.",
+      "pageXOfY": "Page {{page}} sur {{total}}",
+      "pageAlt": "Page {{page}} du document corrigé",
+      "generating": "Génération de l'aperçu…",
+      "loadingPage": "Page {{page}} sur {{total}}…",
+      "imageOnlyHint": "Aperçu en image, non téléchargeable."
+    }
+  },
+  "designGenerator": {
+    "types": {
+      "cv": {
+        "label": "CV",
+        "example": "Je m'appelle …, développeur, à Bruxelles. Email …, tél …. Bachelier en informatique (école, année). 1 an d'expérience chez … en Java/React. Compétences : … . Langues : …"
+      },
+      "flyer": {
+        "label": "Flyer",
+        "example": "Un flyer pour la réouverture de mon restaurant Chez Marco samedi. Menu du midi à 15 €. Ambiance chaleureuse. Adresse : rue de la Loi 12, Bruxelles. Tél 02 345 67 89."
+      },
+      "carteVisite": {
+        "label": "Carte de visite",
+        "example": "Carte pour Sarah Lemaire, designer UX/UI chez Studio Web. Tél 0475 98 76 54, email sarah@studioweb.be, site sarahlemaire.be, Bruxelles."
+      }
+    },
+    "progress": {
+      "writingContent": "Rédaction du contenu…",
+      "choosingColors": "Choix des couleurs…",
+      "layout": "Mise en page des 3 versions…"
+    },
+    "errors": {
+      "noResult": "Aucun rendu n'a été produit.",
+      "generic": "Une erreur est survenue.",
+      "pdfRetrievalFailed": "Impossible de récupérer le PDF."
+    },
+    "triggerButton": "Je n'ai pas de fichier — générer avec l'IA",
+    "dialog": {
+      "title": "Générer un support",
+      "description": "Choisissez un type, décrivez ce que vous voulez : l'IA en propose 3 versions, vous choisissez la vôtre."
+    },
+    "charCountHint": "{{length}}/4000 — plus vous en dites, mieux c'est.",
+    "generatingButton": "Génération… {{percent}}%",
+    "generateButton": "Générer 3 propositions",
+    "generatingHint": "L'IA fabrique vos 3 versions…",
+    "chooseVersionPrompt": "Choisissez votre version préférée :",
+    "zoomButton": "Agrandir",
+    "versionLabel": "Version {{index}}",
+    "useThisVersion": "Utiliser cette version",
+    "zoomDialog": {
+      "title": "Aperçu agrandi",
+      "description": "Aperçu filigrané — la version sans filigrane rejoint votre commande une fois choisie.",
+      "imageAlt": "Aperçu agrandi"
+    },
+    "chooseThisVersion": "Choisir cette version"
+  }
+}

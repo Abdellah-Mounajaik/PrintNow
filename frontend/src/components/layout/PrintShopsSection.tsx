@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import PrintShopCard from "./PrintShopCard";
@@ -35,26 +36,8 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Search } from "lucide-react";
 
-const serviceFilters = [
-  { id: "documents", label: "Documents", icon: FileText },
-  { id: "flyers", label: "Flyers & Affiches", icon: ImageIcon },
-  { id: "cartes", label: "Cartes de visite", icon: CreditCard },
-];
-
-const optionFilters = [
-  { id: "express", label: "Express 2h", icon: Zap },
-  { id: "student", label: "Tarif étudiant", icon: GraduationCap },
-  { id: "delivery", label: "Livraison", icon: Truck },
-];
-
-// Types de produits utilisables pour le tri par prix (correspond à l'enum
-// TypeProduit du backend)
-const priceProductTypes = [
-  { id: "DOCUMENT", label: "Documents" },
-  { id: "FLYER", label: "Flyers" },
-  { id: "CARTE_VISITE", label: "Cartes de visite" },
-  { id: "POSTER", label: "Affiches" },
-];
+/** Une option de tri par prix (correspond à l'enum TypeProduit du backend), une fois traduite. */
+type PriceProductTypeOption = { id: string; label: string };
 
 // Mise en cache de la liste des imprimeries au niveau du module (survit au
 // démontage/remontage du composant lors d'une navigation) pour éviter de
@@ -64,8 +47,26 @@ let cachedShops: PrintShop[] | null = null;
 const SHOPS_PER_PAGE = 9;
 
 const PrintShopsSection = () => {
+  const { t } = useTranslation("imprimeries");
   const [shops, setShops] = useState<PrintShop[]>(cachedShops ?? []);
   const [isLoading, setIsLoading] = useState(!cachedShops);
+
+  // Options de filtre "Services" / "Options" du panneau, avec leurs libellés traduits.
+  const serviceFilters = [
+    { id: "documents", label: t("filters.services.documents"), icon: FileText },
+    { id: "flyers", label: t("filters.services.flyers"), icon: ImageIcon },
+    { id: "cartes", label: t("filters.services.cartes"), icon: CreditCard },
+  ];
+
+  const optionFilters = [
+    { id: "express", label: t("filters.options.express"), icon: Zap },
+    { id: "student", label: t("filters.options.student"), icon: GraduationCap },
+    { id: "delivery", label: t("filters.options.delivery"), icon: Truck },
+  ];
+
+  // Types de produits utilisables pour le tri par prix (correspond à l'enum
+  // TypeProduit du backend)
+  const priceProductTypes = t("priceType.types", { returnObjects: true }) as PriceProductTypeOption[];
 
   // Filtres/tri/recherche stockés dans l'URL plutôt qu'en state local : ils
   // survivent ainsi à la navigation vers une fiche imprimerie puis au retour.
@@ -158,7 +159,7 @@ const PrintShopsSection = () => {
   // 1. FONCTION : Statut Ouvert/Fermé en temps réel
   // ========================================================
   const getShopStatus = (horaires: any[]) => {
-    if (!horaires || horaires.length === 0) return { isOpen: false, text: "Voir horaires" };
+    if (!horaires || horaires.length === 0) return { isOpen: false, text: t("status.seeHours") };
 
     const daysMap = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
     const now = new Date();
@@ -167,7 +168,7 @@ const PrintShopsSection = () => {
     const todaySchedule = horaires.find((h: any) => h.jourSemaine === todayString);
 
     if (!todaySchedule || todaySchedule.ferme) {
-      return { isOpen: false, text: "Fermé aujourd'hui" };
+      return { isOpen: false, text: t("status.closedToday") };
     }
 
     const formatTime = (timeStr: string) => {
@@ -184,7 +185,7 @@ const PrintShopsSection = () => {
 
     return {
       isOpen: isOpenNow,
-      text: isOpenNow ? text : `Fermé (Horaires : ${text})`
+      text: isOpenNow ? text : t("status.closedWithHours", { hours: text })
     };
   };
 
@@ -228,7 +229,7 @@ const PrintShopsSection = () => {
             slug: shopApi.slug,
             name: shopApi.nom,
             address: `${shopApi.adresse}, ${shopApi.ville || "Belgique"}`,
-            distance: "À proximité",
+            distance: t("card.distanceUnknown"),
             latitude: shopApi.latitude ?? null,
             longitude: shopApi.longitude ?? null,
             rating: shopApi.noteMoyenne ?? 0,
@@ -258,8 +259,8 @@ const PrintShopsSection = () => {
       } catch (error) {
         console.error("Erreur backend:", error);
         toast({
-          title: "Erreur",
-          description: "Impossible de charger les imprimeries.",
+          title: t("toast.errorTitle"),
+          description: t("toast.loadError"),
           variant: "destructive"
         });
       } finally {
@@ -281,7 +282,7 @@ const PrintShopsSection = () => {
         setGeoError(null);
       },
       () => {
-        setGeoError("Activez la localisation pour trier par distance.");
+        setGeoError(t("geo.locationRequired"));
       },
       { timeout: 10000 }
     );
@@ -432,10 +433,10 @@ const PrintShopsSection = () => {
         <div ref={catalogTopRef} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
-              Imprimeries près de vous
+              {t("section.title")}
             </h2>
             <p className="text-muted-foreground">
-              {isLoading ? "Recherche en cours..." : `${filteredShops.length} imprimeries trouvées dans le catalogue`}
+              {isLoading ? t("section.searching") : t("section.resultsCount", { count: filteredShops.length })}
             </p>
           </div>
 
@@ -445,7 +446,7 @@ const PrintShopsSection = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Rechercher une imprimerie..."
+                placeholder={t("search.placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 w-[220px]"
@@ -455,22 +456,22 @@ const PrintShopsSection = () => {
             {/* Sort Select */}
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Trier par" />
+                <SelectValue placeholder={t("sort.placeholder")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="distance">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    Distance
+                    {t("sort.distance")}
                   </div>
                 </SelectItem>
                 <SelectItem value="rating">
                   <div className="flex items-center gap-2">
-                    ⭐ Note
+                    ⭐ {t("sort.rating")}
                   </div>
                 </SelectItem>
-                <SelectItem value="price-asc">Prix croissant</SelectItem>
-                <SelectItem value="price-desc">Prix décroissant</SelectItem>
+                <SelectItem value="price-asc">{t("sort.priceAsc")}</SelectItem>
+                <SelectItem value="price-desc">{t("sort.priceDesc")}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -478,12 +479,12 @@ const PrintShopsSection = () => {
             {(sortBy === "price-asc" || sortBy === "price-desc") && (
               <Select value={priceProductType || "any"} onValueChange={(v) => setPriceProductType(v === "any" ? "" : v)}>
                 <SelectTrigger className="w-[170px]">
-                  <SelectValue placeholder="Type de produit" />
+                  <SelectValue placeholder={t("priceType.placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="any">Prix de départ (tous produits)</SelectItem>
-                  {priceProductTypes.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                  <SelectItem value="any">{t("priceType.any")}</SelectItem>
+                  {priceProductTypes.map((pt) => (
+                    <SelectItem key={pt.id} value={pt.id}>{pt.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -499,7 +500,7 @@ const PrintShopsSection = () => {
               <SheetTrigger asChild>
                 <Button variant="outline" className="gap-2">
                   <SlidersHorizontal className="h-4 w-4" />
-                  Filtres
+                  {t("filters.button")}
                   {selectedFilters.length > 0 && (
                     <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 justify-center">
                       {selectedFilters.length}
@@ -509,7 +510,7 @@ const PrintShopsSection = () => {
               </SheetTrigger>
               <SheetContent>
                 <SheetHeader>
-                  <SheetTitle className="font-display">Filtrer les imprimeries</SheetTitle>
+                  <SheetTitle className="font-display">{t("filters.title")}</SheetTitle>
                 </SheetHeader>
 
                 <div className="mt-6 space-y-6">
@@ -522,13 +523,13 @@ const PrintShopsSection = () => {
                     />
                     <Label htmlFor="open-only" className="flex items-center gap-2 cursor-pointer">
                       <Clock className="h-4 w-4 text-success" />
-                      Ouvert maintenant
+                      {t("filters.openNow")}
                     </Label>
                   </div>
 
                   {/* Services */}
                   <div>
-                    <h4 className="font-medium mb-3">Services</h4>
+                    <h4 className="font-medium mb-3">{t("filters.servicesTitle")}</h4>
                     <div className="space-y-2">
                       {serviceFilters.map((filter) => (
                         <div key={filter.id} className="flex items-center space-x-3">
@@ -548,7 +549,7 @@ const PrintShopsSection = () => {
 
                   {/* Options */}
                   <div>
-                    <h4 className="font-medium mb-3">Options</h4>
+                    <h4 className="font-medium mb-3">{t("filters.optionsTitle")}</h4>
                     <div className="space-y-2">
                       {optionFilters.map((filter) => (
                         <div key={filter.id} className="flex items-center space-x-3">
@@ -574,7 +575,7 @@ const PrintShopsSection = () => {
                       onClick={clearFilters}
                     >
                       <X className="h-4 w-4 mr-2" />
-                      Effacer les filtres
+                      {t("filters.clear")}
                     </Button>
                   )}
                 </div>
@@ -589,7 +590,7 @@ const PrintShopsSection = () => {
             {showOpenOnly && (
               <Badge variant="secondary" className="gap-1 pr-1">
                 <Clock className="h-3 w-3" />
-                Ouvert
+                {t("status.open")}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -625,26 +626,26 @@ const PrintShopsSection = () => {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary" />
-            <p>Chargement des imprimeries partenaires...</p>
+            <p>{t("loading")}</p>
           </div>
         ) : shops.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
               <Printer className="h-10 w-10 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-bold mb-2">Aucun partenaire pour le moment</h3>
-            <p className="text-muted-foreground">Soyez le premier à inscrire votre imprimerie !</p>
+            <h3 className="text-xl font-bold mb-2">{t("emptyStates.noPartners.title")}</h3>
+            <p className="text-muted-foreground">{t("emptyStates.noPartners.description")}</p>
           </div>
         ) : filteredShops.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
               <Search className="h-10 w-10 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-bold mb-2">Aucun résultat</h3>
+            <h3 className="text-xl font-bold mb-2">{t("emptyStates.noResults.title")}</h3>
             <p className="text-muted-foreground">
               {query
-                ? `Aucune imprimerie ne correspond à "${searchQuery}".`
-                : "Aucune imprimerie ne correspond à ces filtres."}
+                ? t("emptyStates.noResults.withQuery", { query: searchQuery })
+                : t("emptyStates.noResults.withoutQuery")}
             </p>
           </div>
         ) : (
@@ -670,7 +671,7 @@ const PrintShopsSection = () => {
                   disabled={currentPage === 1}
                   onClick={() => setPage(currentPage - 1)}
                 >
-                  Précédent
+                  {t("pagination.previous")}
                 </Button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                   <Button
@@ -689,7 +690,7 @@ const PrintShopsSection = () => {
                   disabled={currentPage === totalPages}
                   onClick={() => setPage(currentPage + 1)}
                 >
-                  Suivant
+                  {t("pagination.next")}
                 </Button>
               </div>
             )}

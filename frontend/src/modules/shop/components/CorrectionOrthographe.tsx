@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -23,6 +24,7 @@ interface Props {
 }
 
 const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
+  const { t } = useTranslation("order");
   const { token } = useAuth();
   const [analyse, setAnalyse] = useState(false);
   /**
@@ -64,7 +66,7 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
         setApercuPages([...pages]);
       }
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("spellCheck.toast.errorTitle"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setApercuChargement(false);
     }
@@ -78,7 +80,7 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
     // interrogeons pendant qu'il travaille : l'analyse demande plusieurs
     // secondes, mieux vaut montrer où elle en est.
     const suivi = crypto.randomUUID();
-    setAvancement({ cible: 0, affiche: 0, libelle: "Envoi du document" });
+    setAvancement({ cible: 0, affiche: 0, libelle: t("spellCheck.progress.sendingDocument") });
 
     const sondage = window.setInterval(async () => {
       const etape = await correctionService.progression(suivi, token);
@@ -105,10 +107,10 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
       // La correction est proposée activée si des fautes ont été trouvées.
       onChange({ verification: data, active: data.nbFautes > 0, fautesIgnorees: [], remplacementsChoisis: {} });
       if (data.nbFautes === 0) {
-        toast({ title: "Aucune faute détectée", description: "Votre document semble correct." });
+        toast({ title: t("spellCheck.toast.noErrorsTitle"), description: t("spellCheck.toast.noErrorsDescription") });
       }
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("spellCheck.toast.errorTitle"), description: (e as Error).message, variant: "destructive" });
     } finally {
       window.clearInterval(sondage);
       window.clearInterval(glissement);
@@ -151,15 +153,15 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
           <div className="flex items-start gap-2 min-w-0">
             <SpellCheck2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-medium">Vérifier l'orthographe avant impression</p>
+              <p className="text-sm font-medium">{t("spellCheck.title")}</p>
               <p className="text-xs text-muted-foreground">
-                Analyse et aperçu des corrections gratuits.
+                {t("spellCheck.freeHint")}
               </p>
             </div>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={analyser} disabled={analyse}>
             {analyse ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-            {analyse ? "Analyse…" : "Analyser"}
+            {analyse ? t("spellCheck.analyzing") : t("spellCheck.analyzeButton")}
           </Button>
         </div>
 
@@ -188,7 +190,7 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
     return (
       <div className="mt-3 p-3 rounded-lg border border-success/30 bg-success/5 flex items-center gap-2">
         <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-        <p className="text-sm">Aucune faute détectée dans ce document.</p>
+        <p className="text-sm">{t("spellCheck.noErrorsInDocument")}</p>
       </div>
     );
   }
@@ -203,14 +205,12 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
         <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
         <div className="min-w-0">
           <p className="text-sm font-medium">
-            {verification.nbFautes} faute{verification.nbFautes > 1 ? "s" : ""} détectée
-            {verification.nbFautes > 1 ? "s" : ""}
+            {t("spellCheck.errorsFound", { count: verification.nbFautes })}
           </p>
           <p className="text-xs text-muted-foreground">
-            {verification.nbPages} page{verification.nbPages > 1 ? "s" : ""} analysée
-            {verification.nbPages > 1 ? "s" : ""}
-            {verification.langue ? ` en ${verification.langue}` : ""} · choisissez une autre suggestion,
-            ou conservez le mot d'origine
+            {t("spellCheck.pagesAnalyzed", { count: verification.nbPages })}
+            {verification.langue ? t("spellCheck.languageSuffix", { lang: verification.langue }) : ""}
+            {" "}{t("spellCheck.chooseSuggestionHint")}
           </p>
         </div>
       </div>
@@ -224,7 +224,7 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
           return (
             <div key={i} className="px-3 py-2 text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground shrink-0 w-8">p.{faute.page}</span>
+                <span className="text-muted-foreground shrink-0 w-8">{t("spellCheck.pageAbbrev", { page: faute.page })}</span>
                 <span className={`min-w-0 flex-1 ${ignoree ? "opacity-40" : ""}`}>
                   <span className={retenue ? "line-through text-destructive" : "text-destructive"}>
                     {faute.motFautif}
@@ -238,14 +238,14 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
                     // Faute repérée mais qu'aucune suggestion ne permet de réparer :
                     // mieux vaut le signaler que de taire le problème.
                     <span className="ml-2 text-muted-foreground italic">
-                      à corriger vous-même
+                      {t("spellCheck.fixYourself")}
                     </span>
                   )}
                 </span>
                 <button
                   type="button"
                   onClick={() => basculerFaute(i)}
-                  title={ignoree ? "Rétablir cette correction" : "Conserver le mot d'origine"}
+                  title={ignoree ? t("spellCheck.restoreCorrection") : t("spellCheck.keepOriginalWord")}
                   className="shrink-0 text-muted-foreground hover:text-foreground"
                 >
                   {ignoree ? <Undo2 className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
@@ -287,28 +287,26 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
             className="mt-0.5"
           />
           <span className="text-sm">
-            Imprimer la version corrigée
-            <span className="font-semibold text-primary"> +{verification.prix.toFixed(2)}€</span>
+            {t("spellCheck.printCorrectedVersion")}
+            <span className="font-semibold text-primary">{t("spellCheck.priceSuffix", { price: verification.prix.toFixed(2) })}</span>
             <span className="block text-xs text-muted-foreground">
-              {aCorriger} correction{aCorriger > 1 ? "s" : ""} appliquée{aCorriger > 1 ? "s" : ""} ·
-              réglé avec votre commande
+              {t("spellCheck.correctionsApplied", { count: aCorriger })}
             </span>
           </span>
         </label>
 
         <Button type="button" variant="outline" size="sm" onClick={ouvrirApercu}>
           <Eye className="h-4 w-4 mr-2" />
-          Aperçu
+          {t("spellCheck.previewButton")}
         </Button>
       </div>
 
       <Dialog open={apercuOuvert} onOpenChange={setApercuOuvert}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Aperçu du document corrigé</DialogTitle>
+            <DialogTitle>{t("spellCheck.previewDialog.title")}</DialogTitle>
             <DialogDescription>
-              Les mots corrigés sont surlignés en vert. Le fichier PDF, sans
-              surlignage ni filigrane, est remis après le règlement de votre commande.
+              {t("spellCheck.previewDialog.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -316,11 +314,11 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
             {apercuPages.map((url, i) => (
               <div key={i} className="space-y-1">
                 <p className="text-xs text-muted-foreground text-center">
-                  Page {i + 1} sur {verification.nbPages}
+                  {t("spellCheck.previewDialog.pageXOfY", { page: i + 1, total: verification.nbPages })}
                 </p>
                 <img
                   src={url}
-                  alt={`Page ${i + 1} du document corrigé`}
+                  alt={t("spellCheck.previewDialog.pageAlt", { page: i + 1 })}
                   className="w-full select-none pointer-events-none rounded border bg-white"
                   draggable={false}
                   onContextMenu={(e) => e.preventDefault()}
@@ -332,15 +330,15 @@ const CorrectionOrthographe = ({ file, etat, onChange }: Props) => {
               <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {apercuPages.length === 0
-                  ? "Génération de l'aperçu…"
-                  : `Page ${apercuPages.length + 1} sur ${verification.nbPages}…`}
+                  ? t("spellCheck.previewDialog.generating")
+                  : t("spellCheck.previewDialog.loadingPage", { page: apercuPages.length + 1, total: verification.nbPages })}
               </div>
             )}
           </div>
 
           <p className="text-xs text-muted-foreground flex items-center gap-1.5">
             <Lock className="h-3.5 w-3.5 shrink-0" />
-            Aperçu en image, non téléchargeable.
+            {t("spellCheck.previewDialog.imageOnlyHint")}
           </p>
         </DialogContent>
       </Dialog>

@@ -1,0 +1,31 @@
+{
+  "nav": {
+    "imprimeries": "Print shops",
+    "partner": "Become a partner",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "mySpace": "My account"
+  },
+  "legal": {
+    "mentions": "Legal notice",
+    "cgv": "Terms of sale",
+    "confidentiality": "Privacy"
+  },
+  "language": "Language",
+  "notFound": {
+    "title": "404 - Page not found"
+  },
+  "forbidden": {
+    "title": "403",
+    "message": "Access denied",
+    "description": "You don't have the necessary permissions to access this page.",
+    "backHome": "Back to home",
+    "backToSpace": "Back to my account",
+    "login": "Log in"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "nav": {
+    "imprimeries": "Imprimeries",
+    "partner": "Devenir partenaire",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion",
+    "mySpace": "Mon espace"
+  },
+  "legal": {
+    "mentions": "Mentions légales",
+    "cgv": "CGV",
+    "confidentiality": "Confidentialité"
+  },
+  "language": "Langue",
+  "notFound": {
+    "title": "404 - Page introuvable"
+  },
+  "forbidden": {
+    "title": "403",
+    "message": "Accès interdit",
+    "description": "Vous n'avez pas les permissions nécessaires pour accéder à cette page.",
+    "backHome": "Retour à l'accueil",
+    "backToSpace": "Retour à mon espace",
+    "login": "Se connecter"
+  }
+}

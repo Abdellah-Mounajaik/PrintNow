@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -26,6 +27,7 @@ const BELGIUM_CENTER: [number, number] = [50.5039, 4.4699];
 
 
 const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
+  const { t } = useTranslation("imprimeries");
   const [open, setOpen] = useState(false);
   // Temps de trajet calculés à la demande (au clic sur un marqueur), pas pour
   // toute la liste — pour rester raisonnable envers les services gratuits utilisés.
@@ -65,15 +67,15 @@ const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
   };
 
   const renderTravelTime = (state: TravelTimeState | undefined, label: string) => {
-    if (!userLocation) return <span>Position requise pour l'itinéraire</span>;
+    if (!userLocation) return <span>{t("map.travel.positionRequired")}</span>;
     if (state === undefined || state === "loading") {
       return (
         <span className="flex items-center gap-1">
-          <Loader2 className="h-3 w-3 animate-spin" /> Calcul...
+          <Loader2 className="h-3 w-3 animate-spin" /> {t("map.travel.calculating")}
         </span>
       );
     }
-    if (state === "error") return <span>Itinéraire indisponible</span>;
+    if (state === "error") return <span>{t("map.travel.unavailable")}</span>;
     return <span>{formatDuration(state)} {label}</span>;
   };
 
@@ -86,31 +88,31 @@ const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" title="Voir sur la carte">
+        <Button variant="outline" size="icon" title={t("map.trigger")}>
           <MapIcon className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="font-display">Imprimeries sur la carte</DialogTitle>
+          <DialogTitle className="font-display">{t("map.title")}</DialogTitle>
         </DialogHeader>
 
         {shopsWithCoords.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-12">
-            Aucune imprimerie localisée pour le moment.
+            {t("map.empty")}
           </p>
         ) : (
           <>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block" /> Ouvert
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block" /> {t("status.open")}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-500 inline-block" /> Fermé
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500 inline-block" /> {t("status.closed")}
               </span>
               {userLocation && (
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-blue-500 inline-block" /> Votre position
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-500 inline-block" /> {t("map.legend.yourPosition")}
                 </span>
               )}
             </div>
@@ -140,7 +142,7 @@ const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
                       radius={9}
                       pathOptions={{ color: "#fff", weight: 2, fillColor: "#3b82f6", fillOpacity: 1 }}
                     >
-                      <Tooltip>Votre position</Tooltip>
+                      <Tooltip>{t("map.legend.yourPosition")}</Tooltip>
                     </CircleMarker>
                   )}
 
@@ -163,17 +165,17 @@ const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
                         <div className="space-y-1">
                           <p className="font-semibold">{shop.name}</p>
                           <p className="text-xs text-muted-foreground">{shop.address}</p>
-                          <p className="text-xs">{shop.isOpen ? "🟢 Ouvert" : "🔴 Fermé"}</p>
+                          <p className="text-xs">{shop.isOpen ? `🟢 ${t("status.open")}` : `🔴 ${t("status.closed")}`}</p>
 
                           {shop.distanceKm != null && (
                             <div className="text-xs text-muted-foreground pt-1 space-y-0.5">
                               <div className="flex items-center gap-1.5">
                                 <Footprints className="h-3 w-3 shrink-0" />
-                                {renderTravelTime(walkTimes[shop.id], "à pied")}
+                                {renderTravelTime(walkTimes[shop.id], t("map.travel.walking"))}
                               </div>
                               <div className="flex items-center gap-1.5">
                                 <Car className="h-3 w-3 shrink-0" />
-                                {renderTravelTime(driveTimes[shop.id], "en voiture")}
+                                {renderTravelTime(driveTimes[shop.id], t("map.travel.driving"))}
                               </div>
                             </div>
                           )}
@@ -182,7 +184,7 @@ const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
                             to={`/imprimerie/${shop.slug ?? shop.id}`}
                             className="text-primary text-xs font-medium hover:underline"
                           >
-                            Voir la fiche →
+                            {t("map.viewDetails")} →
                           </Link>
                         </div>
                       </Popup>

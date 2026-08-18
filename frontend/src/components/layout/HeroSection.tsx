@@ -1,8 +1,25 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
 import { FileText, Megaphone, CreditCard, Star, ArrowRight } from "lucide-react";
 
+const categoryIcons = [FileText, Megaphone, CreditCard];
+
+type HeroCategory = {
+  title: string;
+  description: string;
+};
+
+type HeroStat = {
+  value: string;
+  label: string;
+};
+
 const HeroSection = () => {
+  const { t } = useTranslation("home");
+  const categories = t("hero.categories", { returnObjects: true }) as HeroCategory[];
+  const stats = t("hero.stats", { returnObjects: true }) as HeroStat[];
+
   return (
     <section id="hero" className="relative min-h-[90vh] flex items-center hero-gradient overflow-hidden">
       {/* Background Ambient Glows */}
@@ -24,9 +41,9 @@ const HeroSection = () => {
         <div className="max-w-5xl mx-auto text-center">
           {/* Main Headline */}
           <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground mb-6 leading-[1.1] tracking-tight animate-slide-up">
-            Vos impressions, <br />
-            <span className="text-secondary">livrées ou retirées</span> <br />
-            en un clic
+            {t("hero.title.line1")} <br />
+            <span className="text-secondary">{t("hero.title.highlight")}</span> <br />
+            {t("hero.title.line2")}
           </h1>
 
           {/* Subtitle */}
@@ -34,8 +51,7 @@ const HeroSection = () => {
             className="text-lg md:text-xl text-primary-foreground/70 mb-12 max-w-2xl mx-auto animate-slide-up leading-relaxed"
             style={{ animationDelay: "0.1s" }}
           >
-            Trouvez l'imprimerie idéale près de chez vous. Documents, flyers, affiches,
-            cartes de visite : comparez les prix réels et passez commande en quelques minutes.
+            {t("hero.subtitle")}
           </p>
 
           {/* CTA */}
@@ -45,7 +61,7 @@ const HeroSection = () => {
           >
             <Button variant="secondary" size="lg" asChild className="h-14 px-10 text-lg shadow-glow">
               <Link to="/imprimeries">
-                Voir les imprimeries
+                {t("hero.cta")}
                 <ArrowRight className="h-5 w-5 ml-2" />
               </Link>
             </Button>
@@ -56,50 +72,26 @@ const HeroSection = () => {
             className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-20 animate-slide-up"
             style={{ animationDelay: "0.3s" }}
           >
-            <Link
-              to="/imprimeries"
-              className="group p-6 rounded-2xl bg-primary-foreground/[0.03] border border-primary-foreground/10 hover:border-secondary/50 transition-all duration-300 hover:-translate-y-1 text-left"
-            >
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-primary transition-colors duration-300">
-                <FileText className="h-6 w-6 text-secondary group-hover:text-primary" />
-              </div>
-              <h3 className="font-display font-bold text-primary-foreground text-lg mb-1">
-                Documents
-              </h3>
-              <p className="text-sm text-primary-foreground/50">
-                Dossiers, rapports, mémoires
-              </p>
-            </Link>
-
-            <Link
-              to="/imprimeries"
-              className="group p-6 rounded-2xl bg-primary-foreground/[0.03] border border-primary-foreground/10 hover:border-secondary/50 transition-all duration-300 hover:-translate-y-1 text-left"
-            >
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-primary transition-colors duration-300">
-                <Megaphone className="h-6 w-6 text-secondary group-hover:text-primary" />
-              </div>
-              <h3 className="font-display font-bold text-primary-foreground text-lg mb-1">
-                Flyers & Affiches
-              </h3>
-              <p className="text-sm text-primary-foreground/50">
-                Événements et marketing
-              </p>
-            </Link>
-
-            <Link
-              to="/imprimeries"
-              className="group p-6 rounded-2xl bg-primary-foreground/[0.03] border border-primary-foreground/10 hover:border-secondary/50 transition-all duration-300 hover:-translate-y-1 text-left"
-            >
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-primary transition-colors duration-300">
-                <CreditCard className="h-6 w-6 text-secondary group-hover:text-primary" />
-              </div>
-              <h3 className="font-display font-bold text-primary-foreground text-lg mb-1">
-                Cartes de visite
-              </h3>
-              <p className="text-sm text-primary-foreground/50">
-                Standard, luxe, texturé
-              </p>
-            </Link>
+            {categories.map((category, index) => {
+              const Icon = categoryIcons[index];
+              return (
+                <Link
+                  key={category.title}
+                  to="/imprimeries"
+                  className="group p-6 rounded-2xl bg-primary-foreground/[0.03] border border-primary-foreground/10 hover:border-secondary/50 transition-all duration-300 hover:-translate-y-1 text-left"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-primary transition-colors duration-300">
+                    <Icon className="h-6 w-6 text-secondary group-hover:text-primary" />
+                  </div>
+                  <h3 className="font-display font-bold text-primary-foreground text-lg mb-1">
+                    {category.title}
+                  </h3>
+                  <p className="text-sm text-primary-foreground/50">
+                    {category.description}
+                  </p>
+                </Link>
+              );
+            })}
           </div>
 
           {/* Stats */}
@@ -107,33 +99,21 @@ const HeroSection = () => {
             className="w-full max-w-4xl mx-auto grid grid-cols-3 divide-x divide-primary-foreground/10 border-t border-primary-foreground/10 pt-8 animate-slide-up"
             style={{ animationDelay: "0.4s" }}
           >
-            <div className="flex flex-col items-center px-2">
-              <span className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
-                150+
-              </span>
-              <span className="text-xs md:text-sm text-primary-foreground/50 uppercase tracking-widest mt-1">
-                Imprimeries
-              </span>
-            </div>
-            <div className="flex flex-col items-center px-2">
-              <span className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
-                50k+
-              </span>
-              <span className="text-xs md:text-sm text-primary-foreground/50 uppercase tracking-widest mt-1">
-                Commandes
-              </span>
-            </div>
-            <div className="flex flex-col items-center px-2">
-              <div className="flex items-center gap-1">
-                <span className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
-                  4.8
+            {stats.map((stat, index) => (
+              <div key={stat.label} className="flex flex-col items-center px-2">
+                <div className="flex items-center gap-1">
+                  <span className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
+                    {stat.value}
+                  </span>
+                  {index === stats.length - 1 && (
+                    <Star className="h-5 w-5 md:h-6 md:w-6 text-secondary fill-secondary" />
+                  )}
+                </div>
+                <span className="text-xs md:text-sm text-primary-foreground/50 uppercase tracking-widest mt-1">
+                  {stat.label}
                 </span>
-                <Star className="h-5 w-5 md:h-6 md:w-6 text-secondary fill-secondary" />
               </div>
-              <span className="text-xs md:text-sm text-primary-foreground/50 uppercase tracking-widest mt-1">
-                Avis clients
-              </span>
-            </div>
+            ))}
           </div>
         </div>
       </div>

@@ -1,0 +1,35 @@
+{
+  "hero": {
+    "badge": "Frequently asked questions",
+    "title": "Ask your question, the assistant answers",
+    "subtitle": "Orders, pricing, timelines, delivery, invoices or partnership: instant answers."
+  },
+  "chat": {
+    "assistantName": "PrintNow Assistant",
+    "online": "Online",
+    "reset": "Reset",
+    "welcomeMessage": "Hello 👋 I'm the PrintNow assistant. Ask me anything about orders, pricing, delivery, invoices or the printer partnership.",
+    "inputPlaceholder": "Type your question…",
+    "errorFallback": "The assistant is temporarily unavailable."
+  },
+  "questions": [
+    "How do I place an order?",
+    "How is the price calculated?",
+    "Can you correct the mistakes in my document?",
+    "What file formats do you accept?",
+    "Delivery or in-store pickup?",
+    "Can I change or cancel my order?",
+    "What are the printing turnaround times?",
+    "Is there a student rate?",
+    "How do I use a promo code?",
+    "How do I track my order?",
+    "How do I become a partner printer?",
+    "What commission does PrintNow take?"
+  ],
+  "sidebar": {
+    "questionsTitle": "Frequently asked questions",
+    "noAnswerTitle": "No answer?",
+    "noAnswerText": "Our team replies by email within 24 business hours.",
+    "contactButton": "Contact support"
+  }
+}

@@ -1,0 +1,275 @@
+{
+  "mentions": {
+    "hero": {
+      "badge": "Informations légales",
+      "title": "Mentions légales"
+    },
+    "sections": [
+      {
+        "title": "Éditeur du site",
+        "content": [
+          "PrintNow",
+          "Siège social : Rue de l'Imprimerie 42, 1000 Bruxelles, Belgique",
+          "Numéro d'entreprise : BE 0123.456.789",
+          "TVA : BE0123456789",
+          "Directeur de la publication : Abdellah",
+          "Email : contact@printnow.be",
+          "Téléphone : +32 2 123 45 67"
+        ]
+      },
+      {
+        "title": "Hébergement",
+        "content": [
+          "Hébergé sur des serveurs sécurisés.",
+          "Pour toute question technique relative à la disponibilité de la plateforme, contactez notre équipe support."
+        ]
+      },
+      {
+        "title": "Objet de la plateforme",
+        "content": [
+          "PrintNow est une marketplace en ligne qui met en relation des clients (particuliers et professionnels) avec des imprimeries partenaires. PrintNow n'est pas une imprimerie : elle facilite la mise en relation, la commande et le paiement, mais n'intervient pas dans la production physique des documents."
+        ]
+      },
+      {
+        "title": "Propriété intellectuelle",
+        "content": [
+          "L'ensemble des éléments du site (logos, textes, graphismes, interfaces, code source) est protégé par le droit d'auteur et la propriété intellectuelle. Toute reproduction, distribution ou utilisation sans autorisation écrite est strictement interdite."
+        ]
+      },
+      {
+        "title": "Responsabilité",
+        "content": [
+          "PrintNow s'efforce d'assurer l'exactitude des informations publiées. Cependant, la qualité des impressions, les délais de réalisation et la conformité des produits relèvent de la responsabilité de l'imprimerie partenaire sélectionnée par le client. PrintNow agit comme intermédiaire technique et de paiement."
+        ]
+      },
+      {
+        "title": "Données de contact",
+        "content": [
+          "Pour toute question relative aux mentions légales, vous pouvez nous contacter à l'adresse contact@printnow.be ou par courrier à l'adresse du siège social indiquée ci-dessus."
+        ]
+      }
+    ],
+    "cta": {
+      "question": "Une question sur nos conditions ou notre politique de confidentialité ?",
+      "cgv": "Conditions générales",
+      "confidentiality": "Confidentialité & RGPD",
+      "contact": "Nous contacter"
+    }
+  },
+  "cgv": {
+    "hero": {
+      "badge": "Conditions d'utilisation",
+      "title": "Conditions générales de vente et d'utilisation"
+    },
+    "sections": [
+      {
+        "title": "Préambule",
+        "content": [
+          "Les présentes Conditions Générales de Vente et d'Utilisation (CGV) régissent l'accès et l'utilisation de la plateforme PrintNow, ainsi que les relations entre PrintNow, les clients et les imprimeries partenaires. En utilisant le site, vous acceptez sans réserve les présentes conditions."
+        ]
+      },
+      {
+        "title": "Définitions",
+        "content": [
+          "« Client » : toute personne physique ou morale passant commande via PrintNow.",
+          "« Imprimeur partenaire » : professionnel de l'impression inscrit sur la plateforme et ayant accepté les conditions de partenariat.",
+          "« Commande » : demande de production d'un ou plusieurs documents, transmise par un client à un imprimeur partenaire via PrintNow.",
+          "« Service » : ensemble des fonctionnalités proposées par PrintNow pour faciliter la mise en relation, la commande et le paiement."
+        ]
+      },
+      {
+        "title": "Inscription et compte utilisateur",
+        "content": [
+          "L'utilisation de certaines fonctionnalités nécessite la création d'un compte. L'utilisateur s'engage à fournir des informations exactes et à jour. Le compte est personnel et son mot de passe doit être conservé de manière confidentielle."
+        ]
+      },
+      {
+        "title": "Passage de commande",
+        "content": [
+          "Le client choisit un imprimeur partenaire, téléverse ses fichiers PDF, sélectionne les options d'impression, le mode de retrait ou de livraison, puis procède au paiement. La commande est confirmée après validation du paiement.",
+          "Le client est responsable de la qualité et de la conformité des fichiers transmis. PrintNow ne vérifie pas le contenu des documents avant impression."
+        ]
+      },
+      {
+        "title": "Prix et paiement",
+        "content": [
+          "Les prix sont affichés par l'imprimeur partenaire et peuvent varier selon les options choisies. Le paiement est sécurisé et réalisé en ligne au moment de la commande.",
+          "PrintNow applique une commission de 10% sur les commandes réalisées via la plateforme, prélevée sur le montant encaissé par l'imprimeur partenaire.",
+          "Pour les imprimeurs souhaitant rejoindre le catalogue, un frais d'inscription de 100 € est requis. Ce montant est facturé lors de l'inscription et donne accès à l'activation automatique du compte partenaire."
+        ]
+      },
+      {
+        "title": "Options, réductions et codes promo",
+        "content": [
+          "Selon l'imprimeur partenaire, des options payantes peuvent être proposées, comme l'impression express (délai raccourci) moyennant un supplément affiché avant paiement.",
+          "Une réduction étudiante peut être appliquée après vérification de votre statut. Cette vérification suppose la transmission d'une carte étudiante et d'une pièce d'identité, traitées conformément à notre politique de confidentialité.",
+          "Un imprimeur partenaire peut émettre des codes promotionnels. Un code n'est valable que chez l'imprimerie qui l'a émis et dans les conditions qu'elle a fixées (période, montant minimum, nombre d'utilisations)."
+        ]
+      },
+      {
+        "title": "Correction orthographique",
+        "content": [
+          "PrintNow propose un service optionnel et payant de correction orthographique de vos documents, réglé en même temps que la commande. L'analyse et l'aperçu des fautes sont gratuits ; seule l'application des corrections est facturée.",
+          "Ce service repose sur une intelligence artificielle : le contenu du document est transmis à un prestataire spécialisé le temps du traitement. Le montant de la correction revient à PrintNow et n'entre pas dans la part reversée à l'imprimeur."
+        ]
+      },
+      {
+        "title": "Génération de designs par IA",
+        "content": [
+          "PrintNow propose un service optionnel et payant de génération de supports (CV, flyers, cartes de visite) par intelligence artificielle : à partir de la description que vous fournissez, plusieurs propositions vous sont présentées et vous retenez celle de votre choix, qui rejoint alors votre commande. La génération et l'aperçu des propositions sont gratuits ; seul le design retenu et joint à une commande est facturé, au tarif indiqué avant paiement. Ce service n'est proposé que pour les supports que l'imprimerie sélectionnée est en mesure d'imprimer.",
+          "Ce service repose sur une intelligence artificielle : la description que vous saisissez est transmise à un prestataire spécialisé le temps de produire le contenu. Les propositions sont fournies à titre d'aperçu et peuvent comporter des imprécisions ; il vous appartient d'en vérifier le contenu avant impression. Le montant de la génération revient à PrintNow et n'entre pas dans la part reversée à l'imprimeur."
+        ]
+      },
+      {
+        "title": "Livraison et retrait",
+        "content": [
+          "Le client peut choisir entre le retrait en magasin et la livraison. Les délais et modalités de livraison sont indiqués par l'imprimeur partenaire. Les frais de livraison éventuels sont à la charge du client, sauf offre promotionnelle spécifique."
+        ]
+      },
+      {
+        "title": "Droit de rétractation",
+        "content": [
+          "Conformément à la législation belge, les commandes de biens personnalisés ou imprimés sur mesure ne bénéficient pas du droit de rétractation une fois la production lancée. Toute annulation doit être demandée rapidement et reste soumise à l'acceptation de l'imprimeur partenaire."
+        ]
+      },
+      {
+        "title": "Responsabilité",
+        "content": [
+          "PrintNow agit comme intermédiaire technique. La responsabilité relative à la qualité d'impression, aux délais et aux produits livrés incombe à l'imprimeur partenaire. PrintNow ne saurait être tenue responsable des retards ou défauts imputables à l'imprimeur ou à des cas de force majeure."
+        ]
+      },
+      {
+        "title": "Propriété intellectuelle",
+        "content": [
+          "Le client garantit détenir tous les droits nécessaires sur les fichiers et contenus transmis. PrintNow et l'imprimeur partenaire ne pourront être tenus responsables d'une éventuelle violation de droits de propriété intellectuelle par le client."
+        ]
+      },
+      {
+        "title": "Avis clients",
+        "content": [
+          "Un client ayant reçu une commande peut laisser un avis sur l'imprimerie concernée, à raison d'un avis par imprimerie. Les avis sont soumis à une modération automatique : tout propos injurieux ou inapproprié est refusé. PrintNow peut retirer un avis manifestement abusif."
+        ]
+      },
+      {
+        "title": "Modification des conditions",
+        "content": [
+          "PrintNow se réserve le droit de modifier les présentes conditions à tout moment. Les conditions applicables sont celles en vigueur au moment de la commande ou de l'inscription."
+        ]
+      },
+      {
+        "title": "Loi applicable et juridiction",
+        "content": [
+          "Les présentes conditions sont régies par le droit belge. En cas de litige, les parties s'engagent à rechercher une solution amiable avant de saisir les tribunaux compétents de Bruxelles."
+        ]
+      }
+    ],
+    "cta": {
+      "question": "Des questions sur nos conditions ? Notre équipe reste à votre disposition.",
+      "mentions": "Mentions légales",
+      "confidentiality": "Confidentialité & RGPD",
+      "contact": "Nous contacter"
+    }
+  },
+  "confidentiality": {
+    "hero": {
+      "badge": "Protection des données",
+      "title": "Confidentialité & RGPD",
+      "lastUpdate": "Dernière mise à jour : 17 août 2026"
+    },
+    "sections": [
+      {
+        "title": "Qui est le responsable du traitement ?",
+        "content": [
+          "Le responsable du traitement des données personnelles est PrintNow, dont le siège social est situé Rue de l'Imprimerie 42, 1000 Bruxelles, Belgique. Pour toute question relative à la protection de vos données, vous pouvez contacter notre équipe privacy à contact@printnow.be."
+        ]
+      },
+      {
+        "title": "Quelles données collectons-nous ?",
+        "content": [
+          "Selon les fonctionnalités que vous utilisez : votre identité (nom, prénom), votre adresse email, votre numéro de téléphone, votre adresse postale, vos données de paiement (traitées par notre prestataire Stripe — PrintNow n'y a jamais accès), l'historique de vos commandes, les fichiers PDF que vous téléversez pour impression, les documents que vous soumettez à la correction orthographique, les descriptions que vous saisissez et les designs produits lorsque vous utilisez la génération par IA, et, si vous demandez le tarif étudiant, votre carte étudiante et votre carte d'identité (uniquement le temps de la vérification, voir plus bas).",
+          "Avec votre autorisation, nous utilisons également votre position pour vous montrer les imprimeries proches et estimer les temps de trajet. Cette position n'est pas conservée."
+        ]
+      },
+      {
+        "title": "Pourquoi utilisons-nous vos données ?",
+        "content": [
+          "Vos données servent à : créer et gérer votre compte, traiter vos commandes, assurer la livraison ou le retrait, corriger vos documents et générer des designs lorsque vous le demandez, vérifier votre statut étudiant, communiquer avec vous, prévenir la fraude, améliorer nos services et respecter nos obligations légales."
+        ]
+      },
+      {
+        "title": "Qui a accès à vos données ? Nos sous-traitants",
+        "content": [
+          "Vos données sont accessibles à PrintNow et, pour la réalisation de votre commande, à l'imprimerie partenaire que vous avez choisie.",
+          "Nous faisons appel à des sous-traitants spécialisés, strictement pour ce qui est nécessaire au service : Stripe (paiements), Mistral AI (correction orthographique, génération de designs, assistant de la FAQ et modération des avis), bpost et AfterShip (suivi des livraisons), notre prestataire d'envoi d'e-mails, et un service de calcul d'itinéraires (temps de trajet). Nous ne vendons jamais vos données."
+        ]
+      },
+      {
+        "title": "Recours à l'intelligence artificielle",
+        "content": [
+          "Quatre fonctionnalités reposent sur une intelligence artificielle fournie par Mistral : la correction orthographique, la génération de designs, l'assistant de la FAQ et la modération des avis. Pour la correction, le contenu du document que vous soumettez est transmis à ce prestataire le temps de l'analyse ; pour la génération, c'est la description que vous saisissez qui lui est transmise le temps de produire le support. Ces traitements servent uniquement à rendre le service que vous demandez."
+        ]
+      },
+      {
+        "title": "Vérification du statut étudiant",
+        "content": [
+          "Pour vous accorder le tarif étudiant, nous vous demandons votre carte étudiante et votre carte d'identité, afin de vérifier que la carte étudiante est bien la vôtre. Ces images ne servent qu'à cette vérification : elles sont effacées dès que notre équipe a rendu sa décision. Nous ne conservons alors que le résultat — statut accepté ou refusé et sa durée de validité."
+        ]
+      },
+      {
+        "title": "Sécurité des données",
+        "content": [
+          "Nous mettons en œuvre des mesures techniques et organisationnelles pour protéger vos données contre la perte, l'accès non autorisé ou la divulgation. L'accès à vos documents est réservé à vous-même, à l'imprimerie concernée et, le cas échéant, à notre administration. Les paiements sont traités par un prestataire certifié et les échanges sont sécurisés."
+        ]
+      },
+      {
+        "title": "Cookies et technologies similaires",
+        "content": [
+          "PrintNow n'utilise que les cookies et le stockage local strictement nécessaires au fonctionnement du site — par exemple pour vous garder connecté. Nous n'utilisons pas de cookies publicitaires ni de traceurs tiers à des fins de profilage."
+        ]
+      },
+      {
+        "title": "Vos droits en tant qu'utilisateur",
+        "content": [
+          "Conformément au RGPD, vous disposez des droits suivants : droit d'accès, de rectification, d'effacement, de limitation du traitement, d'opposition, de portabilité et de retrait de votre consentement. Pour exercer ces droits, envoyez-nous une demande à contact@printnow.be avec une preuve d'identité."
+        ]
+      },
+      {
+        "title": "Durée de conservation",
+        "content": [
+          "Nous ne conservons vos données que le temps nécessaire à chaque finalité :",
+          "• Les données de votre compte : tant que votre compte est actif.",
+          "• Les fichiers que vous téléversez pour impression : effacés 7 jours après que la commande est terminée.",
+          "• Les documents soumis à la correction orthographique : effacés 7 jours après.",
+          "• Les descriptions et designs de la génération par IA : effacés 7 jours après votre dernière activité les concernant.",
+          "• Les cartes d'identité et étudiantes : effacées dès la décision de vérification.",
+          "• Les factures : conservées 7 ans, comme l'impose la loi comptable belge ; passé ce délai, elles sont détruites."
+        ]
+      },
+      {
+        "title": "Modifications de la politique",
+        "content": [
+          "Cette politique de confidentialité peut être mise à jour. Nous vous invitons à la consulter régulièrement."
+        ]
+      }
+    ],
+    "rights": {
+      "title": "Vos droits RGPD",
+      "items": [
+        "Droit d'accès à vos données",
+        "Droit de rectification",
+        "Droit à l'effacement",
+        "Droit à la limitation du traitement",
+        "Droit d'opposition",
+        "Droit à la portabilité",
+        "Droit de retirer votre consentement"
+      ],
+      "cta": "Exercer un droit"
+    },
+    "cta": {
+      "question": "Pour toute question, notre équipe est disponible pour vous accompagner.",
+      "mentions": "Mentions légales",
+      "cgv": "Conditions générales",
+      "contact": "Nous contacter"
+    }
+  }
+}

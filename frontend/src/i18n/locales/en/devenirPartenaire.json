@@ -1,0 +1,165 @@
+{
+  "feeAmount": "{{fee}}€",
+  "hero": {
+    "title": "Become a partner print shop",
+    "subtitleBeforeFee": "A one-time registration fee of ",
+    "subtitleBetween": ", then just ",
+    "commissionAmount": "{{commission}}% commission",
+    "subtitleAfter": " per order. Your shop goes live immediately after payment."
+  },
+  "stepper": {
+    "steps": ["Information", "Services & hours", "Payment {{fee}}€"]
+  },
+  "step1": {
+    "title": "Print shop information",
+    "shopName": {
+      "label": "Print shop name *",
+      "placeholder": "E.g. Downtown Print Shop"
+    },
+    "email": {
+      "label": "Business email *",
+      "placeholder": "contact@myprintshop.be"
+    },
+    "phone": {
+      "label": "Phone *",
+      "placeholder": "+32 2 123 45 67"
+    },
+    "address": {
+      "label": "Address (street and number) *",
+      "placeholder": "Street and number"
+    },
+    "city": {
+      "label": "City *",
+      "placeholder": "Brussels"
+    },
+    "country": {
+      "label": "Country *",
+      "placeholder": "Belgium"
+    },
+    "vat": {
+      "label": "VAT number *",
+      "placeholder": "BE0123456789"
+    },
+    "password": {
+      "label": "Password *",
+      "placeholder": "Min. 8 characters, letters and numbers"
+    },
+    "confirmPassword": {
+      "label": "Confirm password *",
+      "placeholder": "Repeat your password"
+    },
+    "description": {
+      "label": "Description of your print shop *",
+      "placeholder": "Introduce your shop, specialties, equipment..."
+    },
+    "logo": {
+      "label": "Print shop logo *",
+      "uploading": "Uploading…",
+      "alt": "Print shop logo",
+      "uploaded": "Logo uploaded — click to change",
+      "cta": "Click to upload (PNG, JPG)",
+      "defaultError": "An error occurred while uploading the logo"
+    },
+    "continue": "Continue",
+    "errors": {
+      "shopName": "print shop name",
+      "email": "email",
+      "emailInvalid": "invalid email",
+      "phone": "phone number",
+      "phoneInvalid": "invalid phone number",
+      "address": "address",
+      "city": "city",
+      "vat": "VAT number",
+      "password": "password (min. 8 characters, letters and numbers)",
+      "passwordMismatch": "passwords do not match",
+      "description": "print shop description",
+      "logo": "print shop logo"
+    },
+    "invalidFormTitle": "Invalid form",
+    "invalidFormDescription": "Please fix: {{error}}"
+  },
+  "step2": {
+    "services": {
+      "title": "Services offered",
+      "selectedCount_one": "{{count}} selected",
+      "selectedCount_other": "{{count}} selected",
+      "hint": "Check the services you offer and configure your finishing options.",
+      "basePrice": "Base price",
+      "offerLamination": "Offer lamination",
+      "offerBinding": "Offer binding",
+      "laminationTypes": {
+        "MAT": "Matte",
+        "BRILLANT": "Gloss",
+        "SOFT_TOUCH": "Soft touch"
+      },
+      "bindingTypes": {
+        "SPIRALE_PLASTIQUE": "Plastic coil",
+        "SPIRALE_METALLIQUE": "Wire coil",
+        "DOS_CARRE_COLLE": "Perfect binding",
+        "AGRAFE_DEUX_POINTS": "Two-point staple",
+        "THERMIQUE": "Thermal binding"
+      }
+    },
+    "extraOptions": {
+      "title": "Additional options",
+      "express": {
+        "label": "Express 2h",
+        "description": "Urgent need? Offer 2-hour printing.",
+        "feePlaceholder": "Fee"
+      },
+      "delivery": {
+        "label": "Delivery",
+        "feePlaceholder": "Fee"
+      },
+      "studentDiscount": {
+        "label": "Student discount"
+      },
+      "duplexDiscount": {
+        "label": "Double-sided discount",
+        "description": "Discount applied to the printing cost when the customer chooses double-sided printing."
+      }
+    },
+    "hours": {
+      "title": "Opening hours",
+      "closed": "Closed"
+    },
+    "back": "Back",
+    "continueToPayment": "Continue to payment"
+  },
+  "step3": {
+    "title": "Secure payment",
+    "summary": {
+      "title": "Summary",
+      "shop": "Print shop",
+      "servicesActive": "Services enabled",
+      "total": "Total"
+    }
+  },
+  "payment": {
+    "back": "Back",
+    "processing": "Processing securely...",
+    "payButton": "Pay {{amount}}€ and activate",
+    "errors": {
+      "paymentFailed": "The payment failed.",
+      "paymentNotConfirmed": "The payment could not be confirmed.",
+      "communicationError": "A communication error occurred."
+    }
+  },
+  "success": {
+    "title": "Welcome to PrintNow! 🎉",
+    "paymentConfirmedBefore": "Payment of ",
+    "paymentConfirmedAfter": " confirmed.",
+    "descriptionBefore": "Your print shop ",
+    "descriptionAfter": " is now visible in the catalog and ready to receive orders.",
+    "stats": {
+      "services": "Services",
+      "openDays": "Open days",
+      "status": "Status",
+      "statusActive": "● Active"
+    },
+    "goToSpace": "Go to my account",
+    "backHome": "Back to home",
+    "toastTitle": "Payment confirmed ✅",
+    "toastDescription": "Your print shop has been successfully activated!"
+  }
+}

@@ -1,0 +1,262 @@
+{
+  "loading": "Loading your business space...",
+  "notFound": {
+    "title": "Print shop not found",
+    "description": "No print shop is linked to your account."
+  },
+  "header": {
+    "subtitle": "Print shop business space",
+    "statusOnline": "● Shop visible online",
+    "statusOffline": "● Shop offline"
+  },
+  "kpi": {
+    "totalOrders": "Total orders",
+    "pending": "To process",
+    "revenue": "Revenue",
+    "ratingLabel": "Average rating",
+    "reviewsCount_one": "({{count}} review)",
+    "reviewsCount_other": "({{count}} reviews)"
+  },
+  "tabs": {
+    "orders": "Orders",
+    "services": "Services & Rates",
+    "options": "Options",
+    "hours": "Hours",
+    "shop": "My shop",
+    "promos": "Promo codes"
+  },
+  "orders": {
+    "title": "Orders received",
+    "searchPlaceholder": "Search by order no. or customer...",
+    "filters": {
+      "all": "All",
+      "toProcess": "To process"
+    },
+    "delivery": "Delivery",
+    "express": "Express",
+    "empty": {
+      "title": "No orders",
+      "description": "Your orders will appear here as soon as a customer places one."
+    },
+    "emptyFiltered": {
+      "title": "No results",
+      "searchDescription": "No order matches \"{{query}}\".",
+      "filterDescription": "No orders in \"{{filter}}\"."
+    },
+    "status": {
+      "retrait": {
+        "enAttente": "Pending",
+        "prete": "Ready for pickup",
+        "livree": "Picked up",
+        "annulee": "Cancelled"
+      },
+      "livraison": {
+        "enAttente": "Pending",
+        "enCoursImpression": "Printing in progress",
+        "prete": "Shipped",
+        "livree": "Delivered",
+        "annulee": "Cancelled"
+      }
+    },
+    "nextAction": {
+      "markReady": "Mark as ready for pickup",
+      "markPrinting": "Mark as printing",
+      "markShipped": "Mark as shipped",
+      "markDelivered": "Mark as delivered"
+    },
+    "details": {
+      "filesTitle": "Files to print",
+      "pages_one": "{{count}} page",
+      "pages_other": "{{count}} pages",
+      "copies_one": "{{count}} copy",
+      "copies_other": "{{count}} copies",
+      "duplex": "Double-sided",
+      "binding": "Binding: {{type}}",
+      "lamination": "Lamination: {{type}}",
+      "filePagesAbbrev": "({{count}}p)",
+      "totalTTC": "Total (incl. VAT)",
+      "salesReport": "Sales report",
+      "clientInvoice": "Customer invoice",
+      "deliveryAddressTitle": "Delivery address",
+      "phone": "Phone: {{phone}}",
+      "trackingTitle": "bpost tracking number",
+      "trackingPlaceholder": "e.g. 010123456789",
+      "save": "Save",
+      "completed": "Order completed.",
+      "cancelled": "Order cancelled."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next"
+    }
+  },
+  "services": {
+    "title": "Services offered",
+    "activeCount_one": "{{count}} active",
+    "activeCount_other": "{{count}} active",
+    "hint": "Check the services you offer and configure your finishing options.",
+    "basePrice": "Base price",
+    "offerLamination": "Offer lamination",
+    "offerBinding": "Offer binding",
+    "laminationTypes": {
+      "MAT": "Matte",
+      "BRILLANT": "Gloss",
+      "SOFT_TOUCH": "Soft touch"
+    },
+    "bindingTypes": {
+      "SPIRALE_PLASTIQUE": "Plastic coil",
+      "SPIRALE_METALLIQUE": "Wire coil",
+      "DOS_CARRE_COLLE": "Perfect binding",
+      "AGRAFE_DEUX_POINTS": "Two-point staple",
+      "THERMIQUE": "Thermal binding"
+    },
+    "saving": "Saving...",
+    "save": "Save changes"
+  },
+  "options": {
+    "title": "Options offered to customers",
+    "discountLabel": "Discount:",
+    "studentDiscount": {
+      "label": "Student rate",
+      "description": "Discount granted to students upon presenting their student card."
+    },
+    "express": {
+      "label": "Express 2h printing",
+      "description": "Urgent need? Offer 2-hour printing.",
+      "feeLabel": "Express fee:"
+    },
+    "delivery": {
+      "label": "Home delivery",
+      "description": "Enable delivery around your shop.",
+      "feeLabel": "Delivery fee:"
+    },
+    "duplexDiscount": {
+      "label": "Double-sided discount",
+      "description": "Discount applied to the printing cost when the customer chooses double-sided printing."
+    }
+  },
+  "hours": {
+    "title": "Opening hours",
+    "days": {
+      "LUNDI": "Monday",
+      "MARDI": "Tuesday",
+      "MERCREDI": "Wednesday",
+      "JEUDI": "Thursday",
+      "VENDREDI": "Friday",
+      "SAMEDI": "Saturday",
+      "DIMANCHE": "Sunday"
+    },
+    "closed": "Closed",
+    "opening": "Opening",
+    "closing": "Closing",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "...",
+    "empty": "Opening hours not configured."
+  },
+  "shop": {
+    "title": "Shop information",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "logo": {
+      "label": "Print shop logo",
+      "uploading": "Uploading…",
+      "alt": "Print shop logo",
+      "changeCta": "Click to change the logo",
+      "uploadCta": "Click to upload a logo (PNG, JPG)",
+      "none": "No logo"
+    },
+    "fields": {
+      "name": "Print shop name",
+      "vat": "VAT number",
+      "phone": "Phone",
+      "email": "Email",
+      "address": "Address",
+      "city": "City",
+      "country": "Country",
+      "description": "Description"
+    },
+    "deleteAccount": {
+      "title": "Delete my account",
+      "description": "Your personal data will be permanently erased and your shop will close: it will disappear from the catalog and will no longer receive orders. Your invoices are kept, as required by law.",
+      "button": "Delete my account"
+    }
+  },
+  "promos": {
+    "title": "Promo codes",
+    "subtitle": "Create discount codes for your customers.",
+    "form": {
+      "newCode": "New code",
+      "codeLabel": "Code",
+      "codePlaceholder": "E.G. WELCOME10",
+      "typeLabel": "Discount type",
+      "typePercentage": "Percentage (%)",
+      "typeFixed": "Fixed amount (€)",
+      "valueLabelPercentage": "Value (%)",
+      "valueLabelFixed": "Value (€)",
+      "expiryLabel": "Expiry date (optional)",
+      "maxUsesLabel": "Max uses per person (optional)",
+      "maxUsesPlaceholder": "Unlimited",
+      "minAmountLabel": "Minimum order amount (optional)",
+      "minAmountPlaceholder": "None",
+      "submit": "Create code"
+    },
+    "empty": "No promo codes yet.",
+    "expiresOn": "Expires on {{date}}",
+    "maxUses_one": "Max {{max}}x/person · {{count}} use in total",
+    "maxUses_other": "Max {{max}}x/person · {{count}} uses in total",
+    "minAmount": "Min. €{{amount}}"
+  },
+  "deleteDialog": {
+    "success": {
+      "title": "Your account has been deleted",
+      "description": "Your personal data has been erased and your shop is closed. Thank you for having been a PrintNow partner.",
+      "backHome": "Back to home"
+    },
+    "confirm": {
+      "title": "Delete your account?",
+      "description": "This action is final and cannot be undone.",
+      "point1": "Your name, email and phone number will be erased.",
+      "point2": "Your shop will close: it will disappear from the catalog and will no longer receive any orders.",
+      "point3": "Your invoices are kept for seven years, as required by law, and remain downloadable until then.",
+      "cancel": "Cancel",
+      "deleting": "Deleting...",
+      "confirmButton": "Yes, delete my account"
+    }
+  },
+  "toasts": {
+    "error": { "title": "Error" },
+    "success": { "title": "Success" },
+    "deleteAccountError": { "title": "Could not delete account" },
+    "loadError": { "description": "Unable to load data" },
+    "servicesUpdated": { "description": "Services updated." },
+    "servicesSaveError": { "description": "Unable to save services." },
+    "shopUpdated": { "description": "Information updated." },
+    "genericSaveError": { "description": "Unable to save." },
+    "logoDefaultError": "An error occurred while uploading the logo",
+    "expressPriceUpdated": { "title": "Express price updated" },
+    "deliveryPriceUpdated": { "title": "Delivery price updated" },
+    "studentDiscountUpdated": { "title": "Student discount updated" },
+    "duplexDiscountUpdated": { "title": "Double-sided discount updated" },
+    "promoCreated": { "title": "Promo code created!" },
+    "promoDeleted": { "title": "Code deleted" },
+    "optionUpdated": { "title": "Option updated" },
+    "optionUpdateError": { "description": "Unable to update the option." },
+    "horaireUpdated": { "description": "Hours updated." },
+    "horaireSaveError": { "description": "Unable to save the hours." },
+    "pdfOpenError": { "description": "Unable to open {{filename}}." },
+    "statutUpdated": {
+      "title": "Status updated",
+      "description": "Order set to \"{{status}}\"."
+    },
+    "statutUpdateError": { "description": "Unable to update the status." },
+    "suiviSaved": {
+      "title": "Tracking number saved",
+      "description": "The customer can now track their bpost parcel."
+    },
+    "suiviSaveError": { "description": "Unable to save the tracking number." }
+  }
+}

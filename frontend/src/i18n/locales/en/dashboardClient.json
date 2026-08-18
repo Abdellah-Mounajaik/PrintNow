@@ -1,0 +1,169 @@
+{
+  "greeting": "Hello, {{name}} 👋",
+  "subtitle": "Manage your orders and your profile from your customer area",
+  "stats": {
+    "totalBadge": "Total",
+    "activeBadge": "Active",
+    "thisMonthBadge": "This month",
+    "ordersLabel": "Orders",
+    "inProgressLabel": "In progress",
+    "spentLabel": "Spent"
+  },
+  "tabs": {
+    "orders": "My orders",
+    "invoices": "Invoices",
+    "student": "Student verification",
+    "profile": "Profile"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "orders": {
+    "title": "My orders",
+    "delivery": "Delivery",
+    "filters": {
+      "all": "All",
+      "inProgress": "In progress"
+    },
+    "empty": {
+      "title": "No orders",
+      "description": "You haven't placed an order yet.",
+      "cta": "Find a print shop"
+    },
+    "emptyFiltered": {
+      "title": "No results",
+      "description": "No orders in \"{{filter}}\"."
+    },
+    "status": {
+      "retrait": {
+        "enAttentePaiement": "Awaiting payment",
+        "payee": "Confirmed",
+        "enCoursImpression": "Printing in progress",
+        "prete": "Ready for pickup",
+        "livree": "Picked up",
+        "annulee": "Cancelled"
+      },
+      "livraison": {
+        "enAttentePaiement": "Awaiting payment",
+        "payee": "Confirmed",
+        "enCoursImpression": "Printing in progress",
+        "prete": "Shipped",
+        "livree": "Delivered",
+        "annulee": "Cancelled"
+      }
+    },
+    "tracking": {
+      "numberLabel": "bpost tracking number",
+      "statusLabel": "Status: {{status}}",
+      "trackButton": "Track on bpost",
+      "notShippedYet": "Your parcel has not yet been dropped off at bpost."
+    }
+  },
+  "invoices": {
+    "title": "My invoices",
+    "searchPlaceholder": "Search by order number or print shop...",
+    "empty": {
+      "title": "No invoices",
+      "description": "An invoice becomes available as soon as an order is paid."
+    },
+    "emptyFiltered": {
+      "title": "No results",
+      "description": "No invoice matches \"{{query}}\"."
+    },
+    "download": "Download"
+  },
+  "student": {
+    "title": "Student verification",
+    "description": "Upload your student card and ID card to benefit from the reduced rate. Verification is valid until June 30 and must be renewed every year.",
+    "status": {
+      "accepted": {
+        "label": "Verification accepted ✓",
+        "validUntil": "Valid until {{date}}"
+      },
+      "pending": {
+        "label": "Request under review",
+        "submittedOn": "Submitted on {{date}} · an admin will review your documents."
+      },
+      "refused": {
+        "label": "Request rejected — you can submit again.",
+        "reason": "Reason: {{motif}}"
+      },
+      "expired": {
+        "label": "Verification expired — please renew your request."
+      }
+    },
+    "form": {
+      "studentCardLabel": "Student card",
+      "idCardLabel": "ID card",
+      "submit": "Send my documents",
+      "submitting": "Sending…"
+    }
+  },
+  "profile": {
+    "firstNameLabel": "First name",
+    "lastNameLabel": "Last name",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "phonePlaceholder": "+32 ...",
+    "saveButton": "Update profile",
+    "saving": "Saving...",
+    "password": {
+      "title": "Change password",
+      "currentLabel": "Current password",
+      "newLabel": "New password",
+      "confirmLabel": "Confirm new password",
+      "changeButton": "Change password",
+      "saving": "Saving..."
+    },
+    "deleteAccount": {
+      "title": "Delete my account",
+      "description": "Your personal data will be permanently erased and you will no longer be able to log in. Your invoices are kept, as required by law, but will no longer bear your name.",
+      "button": "Delete my account"
+    }
+  },
+  "newOrderCta": "Place a new order",
+  "deleteDialog": {
+    "success": {
+      "title": "Your account has been deleted",
+      "description": "Your personal data has been erased. Thank you for using PrintNow.",
+      "backHome": "Back to home"
+    },
+    "confirm": {
+      "title": "Delete your account?",
+      "description": "This action is permanent and cannot be undone.",
+      "point1": "Your name, email and phone number will be erased.",
+      "point2": "Your invoices are kept for seven years, as required by law, but will no longer bear your name.",
+      "point3": "You will be logged out immediately.",
+      "cancel": "Cancel",
+      "deleting": "Deleting...",
+      "confirmButton": "Yes, delete my account"
+    }
+  },
+  "toasts": {
+    "profileUpdated": {
+      "title": "Profile updated",
+      "emailChangedDescription": "Your email has changed, please log in again."
+    },
+    "passwordMismatch": "Passwords do not match.",
+    "passwordChanged": {
+      "title": "Password changed"
+    },
+    "error": {
+      "title": "Error"
+    },
+    "deleteError": {
+      "title": "Deletion failed"
+    },
+    "trackingError": {
+      "description": "Unable to retrieve tracking information."
+    },
+    "selectDocuments": {
+      "title": "Select both documents"
+    },
+    "verificationSent": {
+      "title": "Request sent",
+      "description": "An admin will review your documents."
+    }
+  }
+}

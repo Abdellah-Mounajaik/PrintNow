@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { Mail, ArrowRight, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react
 import { authService } from "../services/auth.service";
 
 const MotDePasseOublie = () => {
+  const { t } = useTranslation("auth");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -20,8 +22,8 @@ const MotDePasseOublie = () => {
     const adresse = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adresse)) {
       toast({
-        title: "Email invalide",
-        description: "Merci de saisir une adresse email valide.",
+        title: t("forgotPassword.errors.invalidEmailTitle"),
+        description: t("forgotPassword.errors.invalidEmailDescription"),
         variant: "destructive",
       });
       return;
@@ -36,8 +38,8 @@ const MotDePasseOublie = () => {
       setSent(true);
     } catch (err) {
       toast({
-        title: "Envoi impossible",
-        description: err instanceof Error ? err.message : "Réessayez dans un instant.",
+        title: t("forgotPassword.errors.sendFailedTitle"),
+        description: err instanceof Error ? err.message : t("forgotPassword.errors.retryLater"),
         variant: "destructive",
       });
     } finally {
@@ -53,22 +55,22 @@ const MotDePasseOublie = () => {
             {!sent ? (
               <>
                 <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-xl">Mot de passe oublié</CardTitle>
+                  <CardTitle className="text-xl">{t("forgotPassword.title")}</CardTitle>
                   <CardDescription>
-                    Saisissez votre email pour recevoir un lien de réinitialisation
+                    {t("forgotPassword.subtitle")}
                   </CardDescription>
                 </CardHeader>
 
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="reset-email">Email</Label>
+                      <Label htmlFor="reset-email">{t("forgotPassword.emailLabel")}</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="reset-email"
                           type="email"
-                          placeholder="votre@email.com"
+                          placeholder={t("forgotPassword.emailPlaceholder")}
                           className="pl-10"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
@@ -81,11 +83,11 @@ const MotDePasseOublie = () => {
                       {isLoading ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Envoi...
+                          {t("forgotPassword.submitButtonLoading")}
                         </>
                       ) : (
                         <>
-                          Envoyer le lien
+                          {t("forgotPassword.submitButton")}
                           <ArrowRight className="h-4 w-4 ml-2" />
                         </>
                       )}
@@ -98,7 +100,7 @@ const MotDePasseOublie = () => {
                       className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                     >
                       <ArrowLeft className="h-3.5 w-3.5" />
-                      Retour à la connexion
+                      {t("forgotPassword.backToLogin")}
                     </Link>
                   </div>
                 </CardContent>
@@ -110,21 +112,21 @@ const MotDePasseOublie = () => {
                     <CheckCircle2 className="h-7 w-7 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl mb-2">Vérifiez votre boîte mail</CardTitle>
+                    <CardTitle className="text-xl mb-2">{t("forgotPassword.sent.title")}</CardTitle>
                     <CardDescription className="leading-relaxed">
-                      Si un compte PrintNow est associé à
+                      {t("forgotPassword.sent.descriptionBefore")}
                       <br />
                       <span className="font-medium text-foreground">{email.trim()}</span>
                       <br />
-                      vous y recevrez un lien de réinitialisation.
+                      {t("forgotPassword.sent.descriptionAfter")}
                     </CardDescription>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Pensez à vérifier vos courriers indésirables. Le lien expire dans 30 minutes.
+                    {t("forgotPassword.sent.hint")}
                   </p>
                   <Button asChild className="w-full">
                     <Link to="/login">
-                      Retour à la connexion
+                      {t("forgotPassword.sent.backToLogin")}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Link>
                   </Button>
@@ -135,9 +137,9 @@ const MotDePasseOublie = () => {
 
           <div className="mt-8 text-center">
             <p className="text-muted-foreground text-sm">
-              Pas encore de compte ?{" "}
+              {t("forgotPassword.noAccountText")}{" "}
               <Link to="/login?tab=inscription" className="text-primary font-medium hover:underline">
-                Créer un compte
+                {t("forgotPassword.noAccountLink")}
               </Link>
             </p>
           </div>

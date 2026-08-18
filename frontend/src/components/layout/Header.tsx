@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
-import { Button } from "../ui/button"; 
+import { Button } from "../ui/button";
 import {
   Menu,
   X,
@@ -21,9 +22,15 @@ import {
 // 👇 IMPORT DE NOTRE CONTEXTE D'AUTHENTIFICATION
 import { useAuth } from "../../modules/auth/context/AuthContext";
 
+const languages = [
+  { code: "fr", label: "Français" },
+  { code: "en", label: "English" },
+  { code: "nl", label: "Nederlands" },
+];
+
 const Header = () => {
+  const { t, i18n } = useTranslation("common");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState("FR");
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -36,11 +43,7 @@ const Header = () => {
     ? "/dashboard-admin"
     : "/dashboard";
 
-  const languages = [
-    { code: "FR", label: "Français" },
-    { code: "EN", label: "English" },
-    { code: "NL", label: "Nederlands" },
-  ];
+  const currentLangCode = i18n.resolvedLanguage ?? i18n.language;
 
   const isHome = location.pathname === "/";
 
@@ -93,7 +96,7 @@ const Header = () => {
                 useLight ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Imprimeries
+              {t("nav.imprimeries")}
             </Link>
             <Link
               to="/devenir-partenaire"
@@ -101,7 +104,7 @@ const Header = () => {
                 useLight ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Devenir partenaire
+              {t("nav.partner")}
             </Link>
             <Link
               to="/faq"
@@ -109,7 +112,7 @@ const Header = () => {
                 useLight ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              FAQ
+              {t("nav.faq")}
             </Link>
           </nav>
 
@@ -118,21 +121,21 @@ const Header = () => {
             {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   className={useLight ? "text-primary-foreground hover:bg-primary-foreground/10" : ""}
                 >
                   <Globe className="h-4 w-4" />
-                  <span className="hidden sm:inline ml-2">{currentLang}</span>
+                  <span className="hidden sm:inline ml-2">{currentLangCode.toUpperCase()}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {languages.map((lang) => (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     key={lang.code}
-                    onClick={() => setCurrentLang(lang.code)}
-                    className={currentLang === lang.code ? "bg-accent" : ""}
+                    onClick={() => i18n.changeLanguage(lang.code)}
+                    className={currentLangCode === lang.code ? "bg-accent" : ""}
                   >
                     {lang.label}
                   </DropdownMenuItem>
@@ -148,12 +151,12 @@ const Header = () => {
                   <Button variant="outline" size="sm" asChild>
                     <Link to={dashboardPath}>
                       <LayoutDashboard className="h-4 w-4 mr-2" />
-                      Mon espace
+                      {t("auth.mySpace")}
                     </Link>
                   </Button>
                   <Button variant="destructive" size="sm" onClick={handleLogout}>
                     <LogOut className="h-4 w-4 mr-2" />
-                    Déconnexion
+                    {t("auth.logout")}
                   </Button>
                 </>
               ) : (
@@ -162,14 +165,14 @@ const Header = () => {
                     {/* 👇 Redirige vers /login avec paramètre */}
                     <Link to="/login?tab=connexion">
                       <LogIn className="h-4 w-4 mr-2" />
-                      Connexion
+                      {t("auth.login")}
                     </Link>
                   </Button>
                   <Button variant={useLight ? "secondary" : "default"} size="sm" asChild>
                     {/* 👇 Redirige vers /login avec paramètre inscription */}
                     <Link to="/login?tab=inscription">
                       <User className="h-4 w-4 mr-2" />
-                      Inscription
+                      {t("auth.register")}
                     </Link>
                   </Button>
                 </>
@@ -193,34 +196,34 @@ const Header = () => {
           <div className="md:hidden absolute top-full left-0 right-0 bg-card border-b border-border shadow-lg animate-fade-in">
             <nav className="container mx-auto px-4 py-4 flex flex-col gap-3">
               <Link to="/imprimeries" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
-                Imprimeries
+                {t("nav.imprimeries")}
               </Link>
               <Link to="/devenir-partenaire" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
-                Devenir partenaire
+                {t("nav.partner")}
               </Link>
               <Link to="/faq" className="py-2 text-foreground font-medium" onClick={() => setIsMenuOpen(false)}>
-                FAQ
+                {t("nav.faq")}
               </Link>
               <hr className="border-border" />
-              
+
               <div className="flex gap-2">
                 {/* 👇 AFFICHAGE CONDITIONNEL MOBILE */}
                 {isAuthenticated ? (
                   <>
                     <Button variant="outline" className="flex-1" asChild>
-                      <Link to={dashboardPath} onClick={() => setIsMenuOpen(false)}>Mon espace</Link>
+                      <Link to={dashboardPath} onClick={() => setIsMenuOpen(false)}>{t("auth.mySpace")}</Link>
                     </Button>
                     <Button variant="destructive" className="flex-1" onClick={handleLogout}>
-                      Déconnexion
+                      {t("auth.logout")}
                     </Button>
                   </>
                 ) : (
                   <>
                     <Button variant="outline" className="flex-1" asChild>
-                      <Link to="/login?tab=connexion" onClick={() => setIsMenuOpen(false)}>Connexion</Link>
+                      <Link to="/login?tab=connexion" onClick={() => setIsMenuOpen(false)}>{t("auth.login")}</Link>
                     </Button>
                     <Button className="flex-1" asChild>
-                      <Link to="/login?tab=inscription" onClick={() => setIsMenuOpen(false)}>Inscription</Link>
+                      <Link to="/login?tab=inscription" onClick={() => setIsMenuOpen(false)}>{t("auth.register")}</Link>
                     </Button>
                   </>
                 )}

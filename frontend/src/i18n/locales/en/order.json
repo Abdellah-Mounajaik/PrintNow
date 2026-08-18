@@ -1,0 +1,258 @@
+{
+  "page": {
+    "backToShop": "Back to print shop",
+    "title": "New order",
+    "loadErrorTitle": "Error",
+    "loadErrorDescription": "Print shop not found.",
+    "notFoundTitle": "Print shop not found.",
+    "notFoundBackHome": "Back to home"
+  },
+  "upload": {
+    "title": "Upload your files",
+    "dropzoneCta": "Click to upload",
+    "dropzoneHint": "PDF format only (multiple files allowed)",
+    "or": "or",
+    "pdfOnlyHint": "Your files must be in PDF format"
+  },
+  "fileCard": {
+    "pageCount_one": "{{count}} page",
+    "pageCount_other": "{{count}} pages",
+    "product": {
+      "label": "What would you like to print?",
+      "placeholder": "Select a product...",
+      "pricePerPage": "({{price}}€/page)",
+      "incompatible": "Format incompatible with your file",
+      "color": "Color",
+      "bw": "B&W",
+      "businessCards": "Business cards",
+      "flyers": "Flyers / Leaflets",
+      "posters": "Large-format posters"
+    },
+    "formatNotOffered": "This print shop doesn't offer any format matching your file ({{width}}×{{height}} mm). Remove it, or choose another print shop.",
+    "formatMismatch": "This product's format doesn't match your file's dimensions ({{width}}×{{height}} mm).",
+    "layout": {
+      "label": "Layout",
+      "simplex": "Single-sided",
+      "duplex": "Double-sided (-{{percent}}%)"
+    },
+    "copiesLabel": "Copies of this file",
+    "binding": {
+      "label": "Binding",
+      "none": "No binding"
+    },
+    "lamination": {
+      "label": "Lamination",
+      "none": "No lamination"
+    },
+    "priceSuffix": "(+{{price}}€)",
+    "subtotal": "File subtotal"
+  },
+  "fulfillment": {
+    "title": "Delivery method",
+    "pickup": {
+      "label": "In-store pickup",
+      "description": "Free. Directly at the print shop."
+    },
+    "delivery": {
+      "label": "Delivery",
+      "priceBadge": "+{{price}}€",
+      "description": "Home delivery within 24-48h."
+    }
+  },
+  "deliveryAddress": {
+    "title": "Delivery address",
+    "recipientName": { "label": "Recipient name", "placeholder": "Jean Dupont" },
+    "street": { "label": "Street", "placeholder": "Rue de la Loi" },
+    "number": { "label": "Number", "placeholder": "12B" },
+    "postalCode": { "label": "Postal code", "placeholder": "1000" },
+    "city": { "label": "City", "placeholder": "Brussels" },
+    "country": { "label": "Country", "belgium": "Belgium", "france": "France" },
+    "phone": { "label": "Phone", "placeholder": "+32 4 ..." }
+  },
+  "extraOptions": {
+    "title": "Additional options",
+    "express": {
+      "label": "Express 2h",
+      "priceBadge": "+{{price}}€",
+      "available": "Ready within 2 hours.",
+      "unavailable": "Unavailable — the print shop closes in less than 2h or is closed today."
+    },
+    "student": {
+      "label": "Student rate",
+      "discountBadge": "-{{percent}}%",
+      "verificationRequired": "Student verification required — upload your documents in your customer account."
+    }
+  },
+  "promo": {
+    "title": "PrintNow promo code",
+    "appliedPercent": "{{percent}}% discount applied",
+    "appliedAmount": "{{amount}}€ discount applied",
+    "remove": "Remove",
+    "inputPlaceholder": "Enter your code",
+    "apply": "Apply",
+    "errorFallback": "Unable to verify the code.",
+    "toast": {
+      "removedTitle": "Promo code removed",
+      "removedDescription": "Minimum amount of {{amount}}€ required.",
+      "appliedTitle": "Code applied!",
+      "appliedDescriptionPercent": "{{percent}}% discount",
+      "appliedDescriptionAmount": "{{amount}}€ discount"
+    }
+  },
+  "payment": {
+    "title": "Payment"
+  },
+  "checkoutForm": {
+    "toast": {
+      "stripeNotLoadedTitle": "Error",
+      "stripeNotLoadedDescription": "Stripe hasn't loaded. Check your public key.",
+      "sessionExpiredTitle": "Session expired",
+      "sessionExpiredDescription": "Please log in again to complete your order.",
+      "incompleteOrderTitle": "Incomplete order",
+      "incompleteOrderDescription": "Add at least one PDF, and make sure its format matches a product offered by this print shop.",
+      "incompleteAddressTitle": "Incomplete address",
+      "incompleteAddressDescription": "Please enter your delivery address.",
+      "invalidCardTitle": "Invalid card",
+      "invalidCardFallback": "Please enter a valid card number.",
+      "paymentErrorTitle": "Payment error",
+      "orderNotSavedTitle": "Order not saved"
+    },
+    "errors": {
+      "cardElementNotFound": "Card element not found.",
+      "paymentError": "Payment error.",
+      "paymentNotConfirmed": "Payment not confirmed.",
+      "generic": "Something went wrong.",
+      "orderNotSavedRefunded": "Your order could not be saved. Your payment has been refunded, you won't be charged.",
+      "orderNotSavedContactUs": "Your order could not be saved. Please contact us: your payment will be refunded."
+    },
+    "securePayment": "Secure Stripe payment (256-bit encryption).",
+    "processing": "Processing…",
+    "payButton": "Pay {{total}}€"
+  },
+  "summary": {
+    "title": "Summary",
+    "notSelected": "Not selected",
+    "totalPages_one": "Total: {{count}} page in the order",
+    "totalPages_other": "Total: {{count}} pages in the order",
+    "noFiles": "No file added.",
+    "subtotal": "Subtotal",
+    "pickupLabel": "In-store pickup",
+    "deliveryLabel": "Delivery",
+    "free": "Free",
+    "plusPrice": "+{{price}}€",
+    "minusPrice": "-{{price}}€",
+    "studentDiscountLabel": "Student discount",
+    "promoLabel": "Promo code",
+    "totalExclVat": "Total excl. VAT",
+    "vat": "VAT (21%)",
+    "spellCheckLabel": "Spell check",
+    "aiDesignLabel": "AI design ({{count}} × {{price}}€)",
+    "totalToPay": "Total to pay",
+    "cardFormHint": "Fill in your card details in the payment form to the side."
+  },
+  "confirmation": {
+    "fileNotSentTitle": "Payment received, file not delivered",
+    "fileNotSentDescription_one": "Your payment has been recorded, but your file could not be sent to the print shop. Contact us with the order number below: we'll take it from there.",
+    "fileNotSentDescription_other": "Your payment has been recorded, but some files could not be sent to the print shop. Contact us with the order number below: we'll take it from there.",
+    "successTitle": "Order confirmed!",
+    "successDescription": "Thank you for your order. A confirmation email has been sent to you.",
+    "orderNumber": "Order number",
+    "paymentLabel": "Payment",
+    "paidBadge": "Paid",
+    "filesNotSentLabel_one": "File not delivered",
+    "filesNotSentLabel_other": "Files not delivered",
+    "deliveryModeLabel": "Delivery method",
+    "pickupMode": "In-store pickup",
+    "deliveryMode": "bpost delivery",
+    "trackingNumber": "Tracking number",
+    "printingLabel": "Printing",
+    "spellCheckLabel": "Spell check",
+    "aiDesignLabel": "AI design",
+    "totalPaid": "Total paid",
+    "close": "Close"
+  },
+  "spellCheck": {
+    "toast": {
+      "errorTitle": "Error",
+      "noErrorsTitle": "No errors found",
+      "noErrorsDescription": "Your document looks correct."
+    },
+    "progress": {
+      "sendingDocument": "Sending document"
+    },
+    "title": "Check spelling before printing",
+    "freeHint": "Analysis and correction preview are free.",
+    "analyzing": "Analyzing…",
+    "analyzeButton": "Analyze",
+    "noErrorsInDocument": "No errors found in this document.",
+    "errorsFound_one": "{{count}} error found",
+    "errorsFound_other": "{{count}} errors found",
+    "pagesAnalyzed_one": "{{count}} page analyzed",
+    "pagesAnalyzed_other": "{{count}} pages analyzed",
+    "languageSuffix": " in {{lang}}",
+    "chooseSuggestionHint": "· choose another suggestion, or keep the original word",
+    "pageAbbrev": "p.{{page}}",
+    "fixYourself": "fix it yourself",
+    "restoreCorrection": "Restore this correction",
+    "keepOriginalWord": "Keep the original word",
+    "printCorrectedVersion": "Print the corrected version",
+    "priceSuffix": " +{{price}}€",
+    "correctionsApplied_one": "{{count}} correction applied · charged with your order",
+    "correctionsApplied_other": "{{count}} corrections applied · charged with your order",
+    "previewButton": "Preview",
+    "previewDialog": {
+      "title": "Preview of the corrected document",
+      "description": "Corrected words are highlighted in green. The PDF file, without highlighting or watermark, is delivered once your order is paid.",
+      "pageXOfY": "Page {{page}} of {{total}}",
+      "pageAlt": "Page {{page}} of the corrected document",
+      "generating": "Generating preview…",
+      "loadingPage": "Page {{page}} of {{total}}…",
+      "imageOnlyHint": "Preview as image, not downloadable."
+    }
+  },
+  "designGenerator": {
+    "types": {
+      "cv": {
+        "label": "Resume",
+        "example": "My name is …, a developer based in Brussels. Email …, phone …. Bachelor's degree in computer science (school, year). 1 year of experience at … in Java/React. Skills: … . Languages: …"
+      },
+      "flyer": {
+        "label": "Flyer",
+        "example": "A flyer for the reopening of my restaurant Chez Marco on Saturday. Lunch menu at €15. Warm atmosphere. Address: rue de la Loi 12, Brussels. Phone 02 345 67 89."
+      },
+      "carteVisite": {
+        "label": "Business card",
+        "example": "Card for Sarah Lemaire, UX/UI designer at Studio Web. Phone 0475 98 76 54, email sarah@studioweb.be, website sarahlemaire.be, Brussels."
+      }
+    },
+    "progress": {
+      "writingContent": "Writing the content…",
+      "choosingColors": "Choosing colors…",
+      "layout": "Laying out the 3 versions…"
+    },
+    "errors": {
+      "noResult": "No design was produced.",
+      "generic": "Something went wrong.",
+      "pdfRetrievalFailed": "Unable to retrieve the PDF."
+    },
+    "triggerButton": "I don't have a file — generate one with AI",
+    "dialog": {
+      "title": "Generate a design",
+      "description": "Choose a type, describe what you want: the AI produces 3 versions, and you pick your favorite."
+    },
+    "charCountHint": "{{length}}/4000 — the more detail you give, the better.",
+    "generatingButton": "Generating… {{percent}}%",
+    "generateButton": "Generate 3 versions",
+    "generatingHint": "The AI is crafting your 3 versions…",
+    "chooseVersionPrompt": "Choose your favorite version:",
+    "zoomButton": "Zoom in",
+    "versionLabel": "Version {{index}}",
+    "useThisVersion": "Use this version",
+    "zoomDialog": {
+      "title": "Enlarged preview",
+      "description": "Watermarked preview — the version without a watermark joins your order once chosen.",
+      "imageAlt": "Enlarged preview"
+    },
+    "chooseThisVersion": "Choose this version"
+  }
+}

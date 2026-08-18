@@ -14,6 +14,7 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "resolveJsonModule": true,
 
     /* Alias « @/ » vers src, comme dans vite.config.ts. Cette clé était placée à
        la racine du fichier, hors de compilerOptions, où TypeScript l'ignore :

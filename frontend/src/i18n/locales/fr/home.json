@@ -1,0 +1,115 @@
+{
+  "hero": {
+    "title": {
+      "line1": "Vos impressions,",
+      "highlight": "livrées ou retirées",
+      "line2": "en un clic"
+    },
+    "subtitle": "Trouvez l'imprimerie idéale près de chez vous. Documents, flyers, affiches, cartes de visite : comparez les prix réels et passez commande en quelques minutes.",
+    "cta": "Voir les imprimeries",
+    "categories": [
+      {
+        "title": "Documents",
+        "description": "Dossiers, rapports, mémoires"
+      },
+      {
+        "title": "Flyers & Affiches",
+        "description": "Événements et marketing"
+      },
+      {
+        "title": "Cartes de visite",
+        "description": "Standard, luxe, texturé"
+      }
+    ],
+    "stats": [
+      {
+        "value": "150+",
+        "label": "Imprimeries"
+      },
+      {
+        "value": "50k+",
+        "label": "Commandes"
+      },
+      {
+        "value": "4.8",
+        "label": "Avis clients"
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "Comment ça marche ?",
+    "subtitle": "Commander vos impressions n'a jamais été aussi simple",
+    "steps": [
+      {
+        "title": "Trouvez",
+        "description": "Recherchez une imprimerie près de vous et comparez les services et tarifs."
+      },
+      {
+        "title": "Téléversez",
+        "description": "Envoyez votre fichier PDF et configurez vos options d'impression."
+      },
+      {
+        "title": "Payez",
+        "description": "Réglez en ligne de manière sécurisée via Stripe."
+      },
+      {
+        "title": "Récupérez",
+        "description": "Retirez votre commande ou faites-vous livrer à domicile."
+      }
+    ]
+  },
+  "features": {
+    "title": "Pourquoi choisir PrintNow ?",
+    "subtitle": "Une plateforme pensée pour simplifier vos impressions au quotidien",
+    "items": [
+      {
+        "title": "Express 2h",
+        "description": "Besoin urgent ? Certaines imprimeries proposent l'impression express en 2 heures."
+      },
+      {
+        "title": "Correction orthographique",
+        "description": "Faites relire vos documents avant impression : les fautes sont corrigées directement dans le PDF, sans rien changer à votre mise en page."
+      },
+      {
+        "title": "Générer un design",
+        "description": "Pas de visuel prêt ? Décrivez votre idée et l'IA crée votre CV, flyer ou carte de visite, prêt à imprimer."
+      },
+      {
+        "title": "Tarif étudiant",
+        "description": "Bénéficiez de réductions exclusives sur présentation de votre carte étudiante."
+      },
+      {
+        "title": "Livraison",
+        "description": "Faites-vous livrer directement à domicile ou au bureau."
+      },
+      {
+        "title": "Suivi en temps réel",
+        "description": "Suivez l'état de votre commande étape par étape."
+      }
+    ]
+  },
+  "cta": {
+    "badge": "Pour les professionnels",
+    "title": {
+      "line1": "Vous êtes imprimeur ?",
+      "line2": "Rejoignez notre réseau"
+    },
+    "subtitle": "Développez votre activité en rejoignant PrintNow. Accédez à de nouveaux clients et gérez vos commandes simplement.",
+    "primaryCta": "Devenir partenaire",
+    "secondaryCta": "Nous contacter",
+    "benefits": [
+      {
+        "value": "100€",
+        "label": "Frais d'inscription unique"
+      },
+      {
+        "value": "10%",
+        "label": "Commission unique"
+      },
+      {
+        "value": "24/7",
+        "label": "Support dédié"
+      }
+    ]
+  }
+}

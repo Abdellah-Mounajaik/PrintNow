@@ -1,0 +1,115 @@
+{
+  "hero": {
+    "title": {
+      "line1": "Your print jobs,",
+      "highlight": "delivered or picked up",
+      "line2": "in one click"
+    },
+    "subtitle": "Find the ideal print shop near you. Documents, flyers, posters, business cards: compare real prices and place your order in minutes.",
+    "cta": "Browse print shops",
+    "categories": [
+      {
+        "title": "Documents",
+        "description": "Reports, files, theses"
+      },
+      {
+        "title": "Flyers & Posters",
+        "description": "Events and marketing"
+      },
+      {
+        "title": "Business cards",
+        "description": "Standard, premium, textured"
+      }
+    ],
+    "stats": [
+      {
+        "value": "150+",
+        "label": "Print shops"
+      },
+      {
+        "value": "50k+",
+        "label": "Orders"
+      },
+      {
+        "value": "4.8",
+        "label": "Customer reviews"
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "How does it work?",
+    "subtitle": "Ordering your prints has never been this simple",
+    "steps": [
+      {
+        "title": "Find",
+        "description": "Search for a print shop near you and compare services and prices."
+      },
+      {
+        "title": "Upload",
+        "description": "Send your PDF file and set your printing options."
+      },
+      {
+        "title": "Pay",
+        "description": "Pay securely online via Stripe."
+      },
+      {
+        "title": "Collect",
+        "description": "Pick up your order or have it delivered to your door."
+      }
+    ]
+  },
+  "features": {
+    "title": "Why choose PrintNow?",
+    "subtitle": "A platform designed to simplify your printing, every day",
+    "items": [
+      {
+        "title": "Express 2h",
+        "description": "Need it fast? Some print shops offer express printing within 2 hours."
+      },
+      {
+        "title": "Spelling correction",
+        "description": "Have your documents proofread before printing: mistakes are fixed directly in the PDF, without changing your layout."
+      },
+      {
+        "title": "Generate a design",
+        "description": "No artwork ready? Describe your idea and our AI creates your resume, flyer or business card, ready to print."
+      },
+      {
+        "title": "Student rate",
+        "description": "Enjoy exclusive discounts by showing your student card."
+      },
+      {
+        "title": "Delivery",
+        "description": "Get your order delivered straight to your home or office."
+      },
+      {
+        "title": "Real-time tracking",
+        "description": "Track the status of your order every step of the way."
+      }
+    ]
+  },
+  "cta": {
+    "badge": "For professionals",
+    "title": {
+      "line1": "Are you a print shop?",
+      "line2": "Join our network"
+    },
+    "subtitle": "Grow your business by joining PrintNow. Reach new customers and manage your orders with ease.",
+    "primaryCta": "Become a partner",
+    "secondaryCta": "Contact us",
+    "benefits": [
+      {
+        "value": "100€",
+        "label": "One-time registration fee"
+      },
+      {
+        "value": "10%",
+        "label": "Flat commission"
+      },
+      {
+        "value": "24/7",
+        "label": "Dedicated support"
+      }
+    ]
+  }
+}

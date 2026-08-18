@@ -1,0 +1,20 @@
+{
+  "tagline": "The platform that connects your printing needs to the best professionals near you.",
+  "services": {
+    "title": "Services",
+    "documents": "Documents & Resumes",
+    "flyers": "Flyers & Posters",
+    "businessCards": "Business cards"
+  },
+  "company": {
+    "title": "Company"
+  },
+  "contact": {
+    "title": "Contact",
+    "phone": "+32 2 123 45 67"
+  },
+  "languages": {
+    "title": "Languages"
+  },
+  "copyright": "© 2026 PrintNow. All rights reserved."
+}

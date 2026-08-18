@@ -1,0 +1,35 @@
+{
+  "hero": {
+    "badge": "Foire aux questions",
+    "title": "Posez votre question, l'assistant répond",
+    "subtitle": "Commandes, prix, délais, livraison, factures ou partenariat : réponse immédiate."
+  },
+  "chat": {
+    "assistantName": "Assistant PrintNow",
+    "online": "En ligne",
+    "reset": "Réinitialiser",
+    "welcomeMessage": "Bonjour 👋 Je suis l'assistant PrintNow. Posez-moi votre question sur les commandes, les prix, la livraison, les factures ou le partenariat imprimeur.",
+    "inputPlaceholder": "Écrivez votre question…",
+    "errorFallback": "L'assistant est momentanément indisponible."
+  },
+  "questions": [
+    "Comment passer une commande ?",
+    "Comment le prix est-il calculé ?",
+    "Pouvez-vous corriger les fautes de mon document ?",
+    "Quels formats de fichiers acceptez-vous ?",
+    "Livraison ou retrait en magasin ?",
+    "Puis-je modifier ou annuler ma commande ?",
+    "Quels sont les délais d'impression ?",
+    "Y a-t-il un tarif étudiant ?",
+    "Comment utiliser un code promo ?",
+    "Comment suivre ma commande ?",
+    "Comment devenir imprimeur partenaire ?",
+    "Quelle commission prend PrintNow ?"
+  ],
+  "sidebar": {
+    "questionsTitle": "Questions fréquentes",
+    "noAnswerTitle": "Pas de réponse ?",
+    "noAnswerText": "Notre équipe vous répond sous 24h ouvrées par email.",
+    "contactButton": "Contacter le support"
+  }
+}

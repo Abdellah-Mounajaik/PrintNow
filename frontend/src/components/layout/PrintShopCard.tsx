@@ -12,6 +12,7 @@ import {
   Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { formatDuration } from "../../lib/utils";
 import type { PrintShop, TravelTimeState } from "../../models/catalogue.model";
 
@@ -28,6 +29,8 @@ interface PrintShopCardProps {
 }
 
 const PrintShopCard = ({ shop, index = 0, walkTime, driveTime, estimatedPrice }: PrintShopCardProps) => {
+  const { t } = useTranslation("imprimeries");
+
   return (
     <Card
       className="group overflow-hidden hover-lift cursor-pointer border-border/50"
@@ -50,7 +53,7 @@ const PrintShopCard = ({ shop, index = 0, walkTime, driveTime, estimatedPrice }:
               className={shop.isOpen ? "status-open" : "status-closed"}
             >
               <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${shop.isOpen ? "bg-success" : "bg-destructive"}`} />
-              {shop.isOpen ? "Ouvert" : "Fermé"}
+              {shop.isOpen ? t("status.open") : t("status.closed")}
             </Badge>
           </div>
 
@@ -59,7 +62,7 @@ const PrintShopCard = ({ shop, index = 0, walkTime, driveTime, estimatedPrice }:
             {shop.hasExpressOption && (
               <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
                 <Zap className="h-3 w-3 mr-1" />
-                Express
+                {t("card.express")}
               </Badge>
             )}
           </div>
@@ -132,18 +135,20 @@ const PrintShopCard = ({ shop, index = 0, walkTime, driveTime, estimatedPrice }:
               {shop.hasStudentDiscount && (
                 <div className="flex items-center gap-1 text-xs text-info">
                   <GraduationCap className="h-3.5 w-3.5" />
-                  -10%
+                  {t("card.studentDiscount")}
                 </div>
               )}
               {shop.hasDelivery && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Truck className="h-3.5 w-3.5" />
-                  Livraison
+                  {t("card.delivery")}
                 </div>
               )}
             </div>
             <span className="text-sm font-medium text-foreground">
-              {estimatedPrice != null ? `à partir de ${estimatedPrice.toFixed(2)} €` : "Prix indisponible"}
+              {estimatedPrice != null
+                ? t("card.priceFrom", { price: estimatedPrice.toFixed(2) })
+                : t("card.priceUnavailable")}
             </span>
           </div>
         </CardContent>

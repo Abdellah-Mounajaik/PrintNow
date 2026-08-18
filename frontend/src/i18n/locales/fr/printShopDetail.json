@@ -1,0 +1,86 @@
+{
+  "loading": "Chargement...",
+  "error": {
+    "generic": "Erreur : {{message}}"
+  },
+  "actions": {
+    "back": "Retour",
+    "reservedForClients": "Réservé aux clients",
+    "loginToOrder": "Se connecter pour commander",
+    "orderNow": "Commander maintenant"
+  },
+  "reviews": {
+    "count_one": "({{count}} avis)",
+    "count_other": "({{count}} avis)"
+  },
+  "badges": {
+    "express": "Express 2h disponible",
+    "studentDiscount": "-{{percent}}% étudiants",
+    "delivery": "Livraison disponible"
+  },
+  "services": {
+    "title": "Services & Tarifs",
+    "empty": "Aucun tarif disponible.",
+    "documents": {
+      "name": "Documents",
+      "description": "Impression de documents A4/A3"
+    },
+    "flyers": {
+      "name": "Flyers & Affiches",
+      "description": "Flyers, affiches et posters"
+    },
+    "cartes": {
+      "name": "Cartes de visite",
+      "description": "Cartes de visite professionnelles"
+    },
+    "reliure": {
+      "name": "Reliure & Finitions",
+      "description": "Options de reliure et plastification"
+    }
+  },
+  "items": {
+    "documentBwA4": "N&B A4",
+    "documentColorA4": "Couleur A4",
+    "documentBwA3": "N&B A3",
+    "documentColorA3": "Couleur A3",
+    "flyers": "Flyers / Dépliants",
+    "posters": "Affiches grand format",
+    "businessCards": "Cartes de visite",
+    "standardFormat": "Standard",
+    "perDocument": "Par document",
+    "perPage": "Par page",
+    "binding": "Reliure {{type}}",
+    "lamination": "Plastification {{type}}"
+  },
+  "pricing": {
+    "perUnit": "/ unité"
+  },
+  "contact": {
+    "title": "Contact"
+  },
+  "hours": {
+    "title": "Horaires",
+    "closed": "Fermé",
+    "empty": "Horaires non renseignés."
+  },
+  "avis": {
+    "title": "Avis clients",
+    "formTitle": "Laissez votre avis",
+    "commentPlaceholder": "Partagez votre expérience (optionnel)…",
+    "submit": "Publier mon avis",
+    "alreadyReviewed": "Vous avez déjà laissé un avis pour cette imprimerie.",
+    "empty": "Aucun avis pour le moment. Soyez le premier à donner votre avis après une commande !",
+    "sort": {
+      "recent": "Plus récents",
+      "best": "Notes les plus élevées",
+      "worst": "Notes les plus basses"
+    },
+    "toast": {
+      "ratingRequiredTitle": "Note requise",
+      "ratingRequiredDescription": "Sélectionnez une note de 1 à 5 étoiles.",
+      "successTitle": "Merci pour votre avis !",
+      "errorTitle": "Avis non publié",
+      "genericError": "Une erreur est survenue. Réessayez."
+    }
+  }
+}

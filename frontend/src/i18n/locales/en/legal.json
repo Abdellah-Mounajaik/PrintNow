@@ -1,0 +1,275 @@
+{
+  "mentions": {
+    "hero": {
+      "badge": "Legal information",
+      "title": "Legal Notice"
+    },
+    "sections": [
+      {
+        "title": "Website publisher",
+        "content": [
+          "PrintNow",
+          "Registered office: Rue de l'Imprimerie 42, 1000 Brussels, Belgium",
+          "Company number: BE 0123.456.789",
+          "VAT: BE0123456789",
+          "Publication director: Abdellah",
+          "Email: contact@printnow.be",
+          "Phone: +32 2 123 45 67"
+        ]
+      },
+      {
+        "title": "Hosting",
+        "content": [
+          "Hosted on secure servers.",
+          "For any technical question regarding the availability of the platform, please contact our support team."
+        ]
+      },
+      {
+        "title": "Purpose of the platform",
+        "content": [
+          "PrintNow is an online marketplace that connects customers (individuals and businesses) with partner print shops. PrintNow is not a print shop: it facilitates the connection, ordering and payment process, but does not take part in the physical production of the documents."
+        ]
+      },
+      {
+        "title": "Intellectual property",
+        "content": [
+          "All elements of the site (logos, text, graphics, interfaces, source code) are protected by copyright and intellectual property law. Any reproduction, distribution or use without written authorisation is strictly prohibited."
+        ]
+      },
+      {
+        "title": "Liability",
+        "content": [
+          "PrintNow strives to ensure the accuracy of the information published. However, print quality, production times and product compliance are the responsibility of the partner print shop selected by the customer. PrintNow acts as a technical and payment intermediary."
+        ]
+      },
+      {
+        "title": "Contact details",
+        "content": [
+          "For any question relating to this legal notice, you may contact us at contact@printnow.be or by post at the registered office address indicated above."
+        ]
+      }
+    ],
+    "cta": {
+      "question": "A question about our terms or our privacy policy?",
+      "cgv": "Terms & Conditions",
+      "confidentiality": "Privacy & GDPR",
+      "contact": "Contact us"
+    }
+  },
+  "cgv": {
+    "hero": {
+      "badge": "Terms of use",
+      "title": "Terms and Conditions of Sale and Use"
+    },
+    "sections": [
+      {
+        "title": "Preamble",
+        "content": [
+          "These Terms and Conditions of Sale and Use (\"Terms\") govern access to and use of the PrintNow platform, as well as the relationship between PrintNow, customers and partner print shops. By using the site, you accept these Terms without reservation."
+        ]
+      },
+      {
+        "title": "Definitions",
+        "content": [
+          "\"Customer\": any individual or legal entity placing an order via PrintNow.",
+          "\"Partner print shop\": a printing professional registered on the platform who has accepted the partnership terms.",
+          "\"Order\": a request for the production of one or more documents, submitted by a customer to a partner print shop via PrintNow.",
+          "\"Service\": all the features offered by PrintNow to facilitate connection, ordering and payment."
+        ]
+      },
+      {
+        "title": "Registration and user account",
+        "content": [
+          "The use of certain features requires the creation of an account. The user undertakes to provide accurate and up-to-date information. The account is personal and its password must be kept confidential."
+        ]
+      },
+      {
+        "title": "Placing an order",
+        "content": [
+          "The customer chooses a partner print shop, uploads their PDF files, selects the printing options and the collection or delivery method, then proceeds to payment. The order is confirmed once payment has been validated.",
+          "The customer is responsible for the quality and compliance of the files submitted. PrintNow does not review the content of documents prior to printing."
+        ]
+      },
+      {
+        "title": "Price and payment",
+        "content": [
+          "Prices are set by the partner print shop and may vary depending on the options chosen. Payment is secure and made online at the time of ordering.",
+          "PrintNow charges a 10% commission on orders placed through the platform, deducted from the amount collected by the partner print shop.",
+          "Print shops wishing to join the catalogue are required to pay a registration fee of €100. This amount is charged upon registration and grants access to automatic activation of the partner account."
+        ]
+      },
+      {
+        "title": "Options, discounts and promo codes",
+        "content": [
+          "Depending on the partner print shop, paid options may be offered, such as express printing (shortened turnaround) for a supplement shown before payment.",
+          "A student discount may be applied after verification of your status. This verification requires submitting a student card and a proof of identity, processed in accordance with our privacy policy.",
+          "A partner print shop may issue promotional codes. A code is valid only at the print shop that issued it and under the conditions it has set (period, minimum amount, number of uses)."
+        ]
+      },
+      {
+        "title": "Spelling and grammar correction",
+        "content": [
+          "PrintNow offers an optional, paid spelling and grammar correction service for your documents, billed together with the order. The analysis and preview of errors are free of charge; only the application of corrections is billed.",
+          "This service relies on artificial intelligence: the content of the document is transmitted to a specialised provider for the duration of processing. The correction fee goes to PrintNow and is not part of the amount paid to the print shop."
+        ]
+      },
+      {
+        "title": "AI design generation",
+        "content": [
+          "PrintNow offers an optional, paid service for generating print materials (resumes, flyers, business cards) using artificial intelligence: based on the description you provide, several proposals are presented to you and you keep the one of your choice, which is then added to your order. Generating and previewing the proposals is free; only the design kept and attached to an order is billed, at the rate shown before payment. This service is only offered for the types of materials the selected print shop is able to print.",
+          "This service relies on artificial intelligence: the description you enter is transmitted to a specialised provider for the time needed to produce the content. The proposals are provided for preview purposes and may contain inaccuracies; it is your responsibility to check their content before printing. The generation fee goes to PrintNow and is not part of the amount paid to the print shop."
+        ]
+      },
+      {
+        "title": "Delivery and collection",
+        "content": [
+          "The customer may choose between in-store collection and delivery. Delivery times and terms are set by the partner print shop. Any delivery costs are borne by the customer, unless a specific promotional offer applies."
+        ]
+      },
+      {
+        "title": "Right of withdrawal",
+        "content": [
+          "In accordance with Belgian legislation, orders for personalised or custom-printed goods are not eligible for the right of withdrawal once production has started. Any cancellation must be requested promptly and remains subject to acceptance by the partner print shop."
+        ]
+      },
+      {
+        "title": "Liability",
+        "content": [
+          "PrintNow acts as a technical intermediary. Responsibility for print quality, turnaround times and delivered products lies with the partner print shop. PrintNow cannot be held liable for delays or defects attributable to the print shop or to events of force majeure."
+        ]
+      },
+      {
+        "title": "Intellectual property",
+        "content": [
+          "The customer warrants that they hold all necessary rights over the files and content submitted. PrintNow and the partner print shop cannot be held liable for any infringement of intellectual property rights by the customer."
+        ]
+      },
+      {
+        "title": "Customer reviews",
+        "content": [
+          "A customer who has received an order may leave a review of the print shop concerned, limited to one review per print shop. Reviews are subject to automatic moderation: any abusive or inappropriate content is rejected. PrintNow may remove a review that is manifestly abusive."
+        ]
+      },
+      {
+        "title": "Amendment of the terms",
+        "content": [
+          "PrintNow reserves the right to amend these Terms at any time. The applicable terms are those in force at the time of the order or registration."
+        ]
+      },
+      {
+        "title": "Governing law and jurisdiction",
+        "content": [
+          "These Terms are governed by Belgian law. In the event of a dispute, the parties undertake to seek an amicable solution before referring the matter to the competent courts of Brussels."
+        ]
+      }
+    ],
+    "cta": {
+      "question": "Questions about our terms? Our team remains available to help.",
+      "mentions": "Legal Notice",
+      "confidentiality": "Privacy & GDPR",
+      "contact": "Contact us"
+    }
+  },
+  "confidentiality": {
+    "hero": {
+      "badge": "Data protection",
+      "title": "Privacy & GDPR",
+      "lastUpdate": "Last updated: 17 August 2026"
+    },
+    "sections": [
+      {
+        "title": "Who is the data controller?",
+        "content": [
+          "The controller of personal data is PrintNow, whose registered office is located at Rue de l'Imprimerie 42, 1000 Brussels, Belgium. For any question relating to the protection of your data, you can contact our privacy team at contact@printnow.be."
+        ]
+      },
+      {
+        "title": "What data do we collect?",
+        "content": [
+          "Depending on the features you use: your identity (first name, last name), your email address, your phone number, your postal address, your payment data (processed by our provider Stripe — PrintNow never has access to it), your order history, the PDF files you upload for printing, the documents you submit for spelling and grammar correction, the descriptions you enter and the designs produced when you use AI generation, and, if you apply for the student rate, your student card and your identity card (only for the duration of the verification, see below).",
+          "With your permission, we also use your location to show you nearby print shops and estimate travel times. This location is not retained."
+        ]
+      },
+      {
+        "title": "Why do we use your data?",
+        "content": [
+          "Your data is used to: create and manage your account, process your orders, arrange delivery or collection, correct your documents and generate designs when you request it, verify your student status, communicate with you, prevent fraud, improve our services and comply with our legal obligations."
+        ]
+      },
+      {
+        "title": "Who has access to your data? Our processors",
+        "content": [
+          "Your data is accessible to PrintNow and, for the fulfilment of your order, to the partner print shop you have chosen.",
+          "We use specialised processors, strictly for what is necessary for the service: Stripe (payments), Mistral AI (spelling and grammar correction, design generation, FAQ assistant and review moderation), bpost and AfterShip (delivery tracking), our email delivery provider, and a route-calculation service (travel times). We never sell your data."
+        ]
+      },
+      {
+        "title": "Use of artificial intelligence",
+        "content": [
+          "Four features rely on artificial intelligence provided by Mistral: spelling and grammar correction, design generation, the FAQ assistant and review moderation. For correction, the content of the document you submit is transmitted to this provider for the duration of the analysis; for generation, it is the description you enter that is transmitted to it for the time needed to produce the material. These processing operations are used solely to provide the service you have requested."
+        ]
+      },
+      {
+        "title": "Verification of student status",
+        "content": [
+          "To grant you the student rate, we ask for your student card and your identity card, in order to verify that the student card is indeed yours. These images are used only for this verification: they are deleted as soon as our team has made its decision. We then retain only the outcome — accepted or refused status and its period of validity."
+        ]
+      },
+      {
+        "title": "Data security",
+        "content": [
+          "We implement technical and organisational measures to protect your data against loss, unauthorised access or disclosure. Access to your documents is restricted to you, the print shop concerned and, where applicable, our administration. Payments are processed by a certified provider and exchanges are secured."
+        ]
+      },
+      {
+        "title": "Cookies and similar technologies",
+        "content": [
+          "PrintNow only uses cookies and local storage that are strictly necessary for the site to function — for example, to keep you signed in. We do not use advertising cookies or third-party trackers for profiling purposes."
+        ]
+      },
+      {
+        "title": "Your rights as a user",
+        "content": [
+          "In accordance with the GDPR, you have the following rights: the right of access, rectification, erasure, restriction of processing, objection, data portability and withdrawal of consent. To exercise these rights, send us a request at contact@printnow.be together with proof of identity."
+        ]
+      },
+      {
+        "title": "Retention period",
+        "content": [
+          "We only retain your data for as long as necessary for each purpose:",
+          "• Account data: for as long as your account is active.",
+          "• Files you upload for printing: deleted 7 days after the order is completed.",
+          "• Documents submitted for spelling and grammar correction: deleted 7 days afterwards.",
+          "• Descriptions and designs from AI generation: deleted 7 days after your last related activity.",
+          "• Identity and student cards: deleted as soon as the verification decision is made.",
+          "• Invoices: kept for 7 years, as required by Belgian accounting law; after this period, they are destroyed."
+        ]
+      },
+      {
+        "title": "Changes to this policy",
+        "content": [
+          "This privacy policy may be updated. We encourage you to review it regularly."
+        ]
+      }
+    ],
+    "rights": {
+      "title": "Your GDPR rights",
+      "items": [
+        "Right of access to your data",
+        "Right to rectification",
+        "Right to erasure",
+        "Right to restriction of processing",
+        "Right to object",
+        "Right to data portability",
+        "Right to withdraw your consent"
+      ],
+      "cta": "Exercise a right"
+    },
+    "cta": {
+      "question": "For any question, our team is available to help you.",
+      "mentions": "Legal Notice",
+      "cgv": "Terms & Conditions",
+      "contact": "Contact us"
+    }
+  }
+}

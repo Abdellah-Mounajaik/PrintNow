@@ -1,0 +1,201 @@
+{
+  "header": {
+    "title": "Administration",
+    "subtitle": "PrintNow back office · Platform-wide management",
+    "badge": "Admin"
+  },
+  "kpis": {
+    "users": {
+      "label": "Users",
+      "deletedCount": "{{count}} account(s) deleted"
+    },
+    "shops": {
+      "label": "Active print shops",
+      "totalCount": "{{count}} total"
+    },
+    "revenue": {
+      "label": "Total revenue",
+      "commission": "Commission: {{amount}}€",
+      "corrections": "Corrections: {{amount}}€",
+      "designs": "AI designs: {{amount}}€"
+    },
+    "orders": {
+      "label": "Total orders"
+    }
+  },
+  "tabs": {
+    "signups": "Recent sign-ups",
+    "shops": "Print shops",
+    "users": "Users",
+    "orders": "Orders",
+    "verifications": "Student verifications"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "signups": {
+    "title": "Recent sign-ups",
+    "subtitle": "Latest print shops registered on the platform.",
+    "empty": "No print shops yet.",
+    "viewButton": "View"
+  },
+  "shops": {
+    "title": "Partner print shops",
+    "searchPlaceholder": "Search by name, city or email...",
+    "empty": "No print shops.",
+    "emptyFiltered": {
+      "title": "No results",
+      "description": "No print shop matches \"{{query}}\"."
+    },
+    "columns": {
+      "name": "Print shop",
+      "city": "City",
+      "email": "Email",
+      "status": "Status",
+      "action": "Action"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "closeAriaLabel": "Close print shop {{name}}"
+  },
+  "users": {
+    "title": "User management",
+    "searchPlaceholder": "Search by name or email...",
+    "filters": {
+      "all": "All",
+      "clients": "Customers",
+      "shops": "Print shops"
+    },
+    "empty": "No users.",
+    "emptyFiltered": {
+      "title": "No results",
+      "descriptionSearch": "No user matches \"{{query}}\".",
+      "descriptionRole": "No users for this role."
+    },
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "action": "Action"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "deletedOn": "Deleted on {{date}}"
+    },
+    "deleteAriaLabel": "Delete the account of {{name}}",
+    "deletedPlaceholder": {
+      "firstName": "Deleted",
+      "lastName": "account"
+    }
+  },
+  "orders": {
+    "title": "All orders",
+    "searchPlaceholder": "Search by order no., customer or print shop...",
+    "totalCommissionLabel": "Total commission:",
+    "empty": "No orders.",
+    "emptyFiltered": {
+      "title": "No results",
+      "description": "No order matches \"{{query}}\"."
+    },
+    "columns": {
+      "number": "Order no.",
+      "client": "Customer",
+      "shop": "Print shop",
+      "totalTtc": "Total (incl. VAT)",
+      "commission": "Commission (10%)",
+      "correction": "Proofreading",
+      "aiDesign": "AI design",
+      "statement": "Statement"
+    },
+    "statementAriaLabel": "Revenue statement for order {{number}}",
+    "statementTitle": "PrintNow revenue statement",
+    "summary": {
+      "totalRevenue": "Total platform revenue",
+      "platformRevenue": "PrintNow revenue",
+      "totalCommissions": "Total commissions",
+      "includingCorrections": "including {{amount}}€ from proofreading",
+      "includingAiDesigns": "including {{amount}}€ from AI designs"
+    }
+  },
+  "verifications": {
+    "title": "Student verifications",
+    "subtitle": "Valid until June 30 · must be renewed every year",
+    "pendingBadge": "{{count}} pending",
+    "empty": "No requests received.",
+    "columns": {
+      "student": "Student",
+      "email": "Email",
+      "submittedOn": "Submitted on",
+      "validUntil": "Valid until",
+      "status": "Status",
+      "file": "File"
+    },
+    "viewButton": "View",
+    "status": {
+      "enAttente": "Pending",
+      "accepte": "Accepted",
+      "refuse": "Rejected",
+      "expire": "Expired"
+    },
+    "studentCardLabel": "Student card",
+    "idCardLabel": "ID card",
+    "imageNotFound": "{{alt}} not found",
+    "loadingImage": "Loading {{alt}}…",
+    "previousRefusalReason": "Previous rejection reason",
+    "refusalPlaceholder": "Rejection reason (optional) — visible to the student",
+    "acceptButton": "Accept",
+    "refuseButton": "Reject"
+  },
+  "deleteUserDialog": {
+    "title": "Delete this account?",
+    "point1": "Their name, email and phone number will be permanently erased.",
+    "point2": "Their orders and invoices are kept, as required by law, but will no longer bear their name. If they run a print shop, it will be closed.",
+    "irreversible": "This action is irreversible.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "confirmButton": "Delete permanently"
+  },
+  "closeShopDialog": {
+    "title": "Close this print shop?",
+    "point1": "It will disappear from the catalog and will no longer receive orders.",
+    "point2": "Its current orders and invoices remain intact, and its manager keeps access to their dashboard to fulfill them.",
+    "point3": "You can reopen it by reactivating it.",
+    "cancel": "Cancel",
+    "closing": "Closing...",
+    "confirmButton": "Close print shop"
+  },
+  "toasts": {
+    "shopClosed": {
+      "title": "Print shop closed",
+      "description": "It no longer appears in the catalog and will not receive any more orders."
+    },
+    "shopCloseError": {
+      "title": "Could not close print shop",
+      "defaultDescription": "Please try again in a moment."
+    },
+    "verificationAccepted": {
+      "title": "Verification accepted"
+    },
+    "verificationRefused": {
+      "title": "Verification rejected"
+    },
+    "userDeleted": {
+      "title": "Account deleted",
+      "description": "Their personal data has been erased; their orders remain on record."
+    },
+    "userDeleteError": {
+      "title": "Could not delete account",
+      "defaultDescription": "Please try again in a moment."
+    },
+    "error": {
+      "title": "Error",
+      "validationFailed": "Could not accept the verification.",
+      "refusalFailed": "Could not reject the verification."
+    }
+  }
+}

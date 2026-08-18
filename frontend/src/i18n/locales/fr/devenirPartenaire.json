@@ -1,0 +1,165 @@
+{
+  "feeAmount": "{{fee}}€",
+  "hero": {
+    "title": "Devenez imprimerie partenaire",
+    "subtitleBeforeFee": "Inscription unique de ",
+    "subtitleBetween": ", ensuite seulement ",
+    "commissionAmount": "{{commission}}% de commission",
+    "subtitleAfter": " par commande. Votre boutique est activée immédiatement après paiement."
+  },
+  "stepper": {
+    "steps": ["Informations", "Services & horaires", "Paiement {{fee}}€"]
+  },
+  "step1": {
+    "title": "Informations de l'imprimerie",
+    "shopName": {
+      "label": "Nom de l'imprimerie *",
+      "placeholder": "Ex: Imprimerie du Centre"
+    },
+    "email": {
+      "label": "Email professionnel *",
+      "placeholder": "contact@monimprimerie.be"
+    },
+    "phone": {
+      "label": "Téléphone *",
+      "placeholder": "+32 2 123 45 67"
+    },
+    "address": {
+      "label": "Adresse (rue et numéro) *",
+      "placeholder": "Rue et numéro"
+    },
+    "city": {
+      "label": "Ville *",
+      "placeholder": "Bruxelles"
+    },
+    "country": {
+      "label": "Pays *",
+      "placeholder": "Belgique"
+    },
+    "vat": {
+      "label": "N° TVA *",
+      "placeholder": "BE0123456789"
+    },
+    "password": {
+      "label": "Mot de passe *",
+      "placeholder": "Min. 8 caractères, lettres et chiffres"
+    },
+    "confirmPassword": {
+      "label": "Confirmer le mot de passe *",
+      "placeholder": "Répétez le mot de passe"
+    },
+    "description": {
+      "label": "Description de votre imprimerie *",
+      "placeholder": "Présentez votre boutique, spécialités, équipements..."
+    },
+    "logo": {
+      "label": "Logo de l'imprimerie *",
+      "uploading": "Envoi en cours…",
+      "alt": "Logo de l'imprimerie",
+      "uploaded": "Logo envoyé — cliquez pour changer",
+      "cta": "Cliquez pour téléverser (PNG, JPG)",
+      "defaultError": "Erreur lors de l'envoi du logo"
+    },
+    "continue": "Continuer",
+    "errors": {
+      "shopName": "nom de l'imprimerie",
+      "email": "email",
+      "emailInvalid": "email invalide",
+      "phone": "téléphone",
+      "phoneInvalid": "téléphone invalide",
+      "address": "adresse",
+      "city": "ville",
+      "vat": "N° TVA",
+      "password": "mot de passe (min. 8 caractères, lettres et chiffres)",
+      "passwordMismatch": "les mots de passe ne correspondent pas",
+      "description": "description de l'imprimerie",
+      "logo": "logo de l'imprimerie"
+    },
+    "invalidFormTitle": "Formulaire invalide",
+    "invalidFormDescription": "Merci de corriger : {{error}}"
+  },
+  "step2": {
+    "services": {
+      "title": "Services proposés",
+      "selectedCount_one": "{{count}} sélectionné",
+      "selectedCount_other": "{{count}} sélectionnés",
+      "hint": "Cochez les services que vous proposez et configurez vos options de finition.",
+      "basePrice": "Prix base",
+      "offerLamination": "Proposer Plastification",
+      "offerBinding": "Proposer Reliure",
+      "laminationTypes": {
+        "MAT": "Mat",
+        "BRILLANT": "Brillant",
+        "SOFT_TOUCH": "Soft touch"
+      },
+      "bindingTypes": {
+        "SPIRALE_PLASTIQUE": "Spirale plastique",
+        "SPIRALE_METALLIQUE": "Spirale métallique",
+        "DOS_CARRE_COLLE": "Dos carré collé",
+        "AGRAFE_DEUX_POINTS": "Agrafe deux points",
+        "THERMIQUE": "Thermique"
+      }
+    },
+    "extraOptions": {
+      "title": "Options supplémentaires",
+      "express": {
+        "label": "Express 2h",
+        "description": "Besoin urgent ? Proposez l'impression en 2 heures.",
+        "feePlaceholder": "Frais"
+      },
+      "delivery": {
+        "label": "Livraison",
+        "feePlaceholder": "Frais"
+      },
+      "studentDiscount": {
+        "label": "Tarif étudiant"
+      },
+      "duplexDiscount": {
+        "label": "Remise recto-verso",
+        "description": "Réduction appliquée au coût d'impression quand le client choisit le recto-verso."
+      }
+    },
+    "hours": {
+      "title": "Horaires d'ouverture",
+      "closed": "Fermé"
+    },
+    "back": "Retour",
+    "continueToPayment": "Continuer vers le paiement"
+  },
+  "step3": {
+    "title": "Paiement sécurisé",
+    "summary": {
+      "title": "Récapitulatif",
+      "shop": "Imprimerie",
+      "servicesActive": "Services activés",
+      "total": "Total"
+    }
+  },
+  "payment": {
+    "back": "Retour",
+    "processing": "Traitement sécurisé...",
+    "payButton": "Payer {{amount}}€ et activer",
+    "errors": {
+      "paymentFailed": "Le paiement a échoué.",
+      "paymentNotConfirmed": "Le paiement n'a pas pu être confirmé.",
+      "communicationError": "Une erreur de communication est survenue."
+    }
+  },
+  "success": {
+    "title": "Bienvenue sur PrintNow ! 🎉",
+    "paymentConfirmedBefore": "Paiement de ",
+    "paymentConfirmedAfter": " confirmé.",
+    "descriptionBefore": "Votre imprimerie ",
+    "descriptionAfter": " est maintenant visible dans le catalogue et prête à recevoir des commandes.",
+    "stats": {
+      "services": "Services",
+      "openDays": "Jours ouverts",
+      "status": "Statut",
+      "statusActive": "● Actif"
+    },
+    "goToSpace": "Accéder à mon espace",
+    "backHome": "Retour à l'accueil",
+    "toastTitle": "Paiement validé ✅",
+    "toastDescription": "Votre imprimerie est désormais activée avec succès !"
+  }
+}

@@ -1,5 +1,6 @@
 import { type JSX } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom'; // On enlève BrowserRouter d'ici
+import { useTranslation } from 'react-i18next';
 
 import { AuthProvider, useAuth } from './modules/auth/context/AuthContext';
 import Auth from './modules/auth/pages/Auth';
@@ -41,6 +42,7 @@ const ProtectedRoute = ({ children, roles }: { children: JSX.Element; roles?: st
 };
 
 function App() {
+  const { t } = useTranslation("common");
   return (
     <AuthProvider>
       <ScrollToTop />
@@ -97,7 +99,7 @@ function App() {
             }
           />
           <Route path="/imprimeur" element={<Navigate to="/dashboard-imprimeur" replace />} />
-          <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404 - Page introuvable</h1>} />
+          <Route path="*" element={<h1 className="text-center mt-20 text-2xl">{t("notFound.title")}</h1>} />
         </Routes>
       </div>
       <Footer />

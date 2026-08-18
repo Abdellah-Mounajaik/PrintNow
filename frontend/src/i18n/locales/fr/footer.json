@@ -1,0 +1,20 @@
+{
+  "tagline": "La plateforme qui connecte vos besoins d'impression aux meilleurs professionnels près de chez vous.",
+  "services": {
+    "title": "Services",
+    "documents": "Documents & CV",
+    "flyers": "Flyers & Affiches",
+    "businessCards": "Cartes de visite"
+  },
+  "company": {
+    "title": "Entreprise"
+  },
+  "contact": {
+    "title": "Contact",
+    "phone": "+32 2 123 45 67"
+  },
+  "languages": {
+    "title": "Langues"
+  },
+  "copyright": "© 2026 PrintNow. Tous droits réservés."
+}

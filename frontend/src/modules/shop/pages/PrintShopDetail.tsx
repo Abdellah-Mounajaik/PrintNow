@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../auth/context/AuthContext";
 import { imprimerieService } from "../services/imprimerieService.service";
 import type { ImprimerieDetail } from "../models/Imprimerie.model";
@@ -24,7 +25,7 @@ interface TabItem {
 }
 
 const PrintShopDetail = () => {
-    
+  const { t } = useTranslation("printShopDetail");
   const { slug } = useParams<{ slug: string }>();
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -54,8 +55,8 @@ const PrintShopDetail = () => {
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   };
 
-  if (isLoading) return <div className="p-20 text-center">Chargement...</div>;
-  if (error || !shop) return <div className="p-20 text-center text-red-500">Erreur : {error}</div>;
+  if (isLoading) return <div className="p-20 text-center">{t("loading")}</div>;
+  if (error || !shop) return <div className="p-20 text-center text-red-500">{t("error.generic", { message: error })}</div>;
 
   const produitsActifs = shop.produits?.filter(p => p.actif) ?? [];
 
@@ -66,22 +67,22 @@ const PrintShopDetail = () => {
   const nbA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && !p.couleur);
   const coulA3 = produitsActifs.find(p => p.typeProduit === "DOCUMENT" && p.formatImpression === "A3" && p.couleur);
 
-  if (nbA4) documentsItems.push({ label: "N&B A4", format: "", prixBase: nbA4.prixBase });
-  if (coulA4) documentsItems.push({ label: "Couleur A4", format: "", prixBase: coulA4.prixBase });
-  if (nbA3) documentsItems.push({ label: "N&B A3", format: "", prixBase: nbA3.prixBase });
-  if (coulA3) documentsItems.push({ label: "Couleur A3", format: "", prixBase: coulA3.prixBase });
+  if (nbA4) documentsItems.push({ label: t("items.documentBwA4"), format: "", prixBase: nbA4.prixBase });
+  if (coulA4) documentsItems.push({ label: t("items.documentColorA4"), format: "", prixBase: coulA4.prixBase });
+  if (nbA3) documentsItems.push({ label: t("items.documentBwA3"), format: "", prixBase: nbA3.prixBase });
+  if (coulA3) documentsItems.push({ label: t("items.documentColorA3"), format: "", prixBase: coulA3.prixBase });
 
   // 2. FLYERS & AFFICHES
   const flyersItems: TabItem[] = [];
   const flyer = produitsActifs.find(p => p.typeProduit === "FLYER");
   const poster = produitsActifs.find(p => p.typeProduit === "POSTER");
-  if (flyer) flyersItems.push({ label: "Flyers / Dépliants", format: flyer.formatImpression, prixBase: flyer.prixBase });
-  if (poster) flyersItems.push({ label: "Affiches grand format", format: poster.formatImpression, prixBase: poster.prixBase });
+  if (flyer) flyersItems.push({ label: t("items.flyers"), format: flyer.formatImpression, prixBase: flyer.prixBase });
+  if (poster) flyersItems.push({ label: t("items.posters"), format: poster.formatImpression, prixBase: poster.prixBase });
 
   // 3. CARTES DE VISITE
   const cartesItems: TabItem[] = [];
   const carte = produitsActifs.find(p => p.typeProduit === "CARTE_VISITE");
-  if (carte) cartesItems.push({ label: "Cartes de visite", format: "Standard", prixBase: carte.prixBase });
+  if (carte) cartesItems.push({ label: t("items.businessCards"), format: t("items.standardFormat"), prixBase: carte.prixBase });
 
   // 4. RELIURE ET PLASTIFICATION (ANTI-DOUBLONS)
   const reliureItems: TabItem[] = [];
@@ -89,9 +90,9 @@ const PrintShopDetail = () => {
     if (p.proposeReliure && p.prixParTypeReliure) {
       Object.entries(p.prixParTypeReliure).forEach(([type, prix]) => {
         if (type !== "AUCUNE" && prix != null) {
-          const labelStr = "Reliure " + formatEnumName(type);
+          const labelStr = t("items.binding", { type: formatEnumName(type) });
           if (!reliureItems.some(item => item.label === labelStr)) {
-            reliureItems.push({ label: labelStr, format: "Par document", prixBase: Number(prix) });
+            reliureItems.push({ label: labelStr, format: t("items.perDocument"), prixBase: Number(prix) });
           }
         }
       });
@@ -99,9 +100,9 @@ const PrintShopDetail = () => {
     if (p.proposePlastification && p.prixParTypePlastification) {
       Object.entries(p.prixParTypePlastification).forEach(([type, prix]) => {
         if (type !== "AUCUNE" && prix != null) {
-          const labelStr = "Plastification " + formatEnumName(type);
+          const labelStr = t("items.lamination", { type: formatEnumName(type) });
           if (!reliureItems.some(item => item.label === labelStr)) {
-            reliureItems.push({ label: labelStr, format: "Par page", prixBase: Number(prix) });
+            reliureItems.push({ label: labelStr, format: t("items.perPage"), prixBase: Number(prix) });
           }
         }
       });
@@ -109,10 +110,10 @@ const PrintShopDetail = () => {
   });
 
   const servicesStructure = [
-    { id: "documents", name: "Documents", icon: FileText, description: "Impression de documents A4/A3", items: documentsItems },
-    { id: "flyers", name: "Flyers & Affiches", icon: ImageIcon, description: "Flyers, affiches et posters", items: flyersItems },
-    { id: "cartes", name: "Cartes de visite", icon: CreditCard, description: "Cartes de visite professionnelles", items: cartesItems },
-    { id: "reliure", name: "Reliure & Finitions", icon: Printer, description: "Options de reliure et plastification", items: reliureItems }
+    { id: "documents", name: t("services.documents.name"), icon: FileText, description: t("services.documents.description"), items: documentsItems },
+    { id: "flyers", name: t("services.flyers.name"), icon: ImageIcon, description: t("services.flyers.description"), items: flyersItems },
+    { id: "cartes", name: t("services.cartes.name"), icon: CreditCard, description: t("services.cartes.description"), items: cartesItems },
+    { id: "reliure", name: t("services.reliure.name"), icon: Printer, description: t("services.reliure.description"), items: reliureItems }
   ];
 
   const activeServices = servicesStructure.filter(service => service.items.length > 0);
@@ -130,7 +131,7 @@ const PrintShopDetail = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute top-4 left-4">
             <Button variant="secondary" size="sm" onClick={() => navigate(-1)}>
-              <ChevronLeft className="h-4 w-4 mr-1" /> Retour
+              <ChevronLeft className="h-4 w-4 mr-1" /> {t("actions.back")}
             </Button>
           </div>
         </div>
@@ -146,7 +147,7 @@ const PrintShopDetail = () => {
                       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                       <span className="font-semibold">{shop.noteMoyenne.toFixed(1)}</span>
                       <span className="text-sm text-muted-foreground">
-                        ({shop.nombreAvis} avis)
+                        {t("reviews.count", { count: shop.nombreAvis })}
                       </span>
                     </div>
                   )}
@@ -159,20 +160,20 @@ const PrintShopDetail = () => {
                   <div className="flex flex-wrap gap-3">
                     {shop.proposeExpress2h && (
                       <Badge variant="outline" className="rounded-full px-3 py-1.5 font-normal text-slate-700 border-slate-200 shadow-sm">
-                        <Zap className="w-4 h-4 mr-2 text-amber-500 fill-amber-500/20" /> 
-                        Express 2h disponible
+                        <Zap className="w-4 h-4 mr-2 text-amber-500 fill-amber-500/20" />
+                        {t("badges.express")}
                       </Badge>
                     )}
                     {shop.proposeTarifEtudiant && shop.pourcentageRemiseEtudiant && shop.pourcentageRemiseEtudiant > 0 && (
                       <Badge variant="outline" className="rounded-full px-3 py-1.5 font-normal text-slate-700 border-slate-200 shadow-sm">
-                        <GraduationCap className="w-4 h-4 mr-2 text-blue-500" /> 
-                        -{shop.pourcentageRemiseEtudiant}% étudiants
+                        <GraduationCap className="w-4 h-4 mr-2 text-blue-500" />
+                        {t("badges.studentDiscount", { percent: shop.pourcentageRemiseEtudiant })}
                       </Badge>
                     )}
                     {shop.livraisonActive && (
                       <Badge variant="outline" className="rounded-full px-3 py-1.5 font-normal text-slate-700 border-slate-200 shadow-sm">
-                        <Truck className="w-4 h-4 mr-2 text-green-500" /> 
-                        Livraison disponible
+                        <Truck className="w-4 h-4 mr-2 text-green-500" />
+                        {t("badges.delivery")}
                       </Badge>
                     )}
                   </div>
@@ -181,7 +182,7 @@ const PrintShopDetail = () => {
 
               <Card className="shadow-card">
                 <CardHeader>
-                  <CardTitle className="font-display text-xl">Services & Tarifs</CardTitle>
+                  <CardTitle className="font-display text-xl">{t("services.title")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {activeServices.length > 0 ? (
@@ -208,7 +209,7 @@ const PrintShopDetail = () => {
                                 </div>
                                 <div className="text-right font-bold text-primary whitespace-nowrap ml-2">
                                   {item.prixBase.toFixed(2)}€
-                                  <span className="text-[10px] font-normal text-muted-foreground block">/ unité</span>
+                                  <span className="text-[10px] font-normal text-muted-foreground block">{t("pricing.perUnit")}</span>
                                 </div>
                               </div>
                             ))}
@@ -219,7 +220,7 @@ const PrintShopDetail = () => {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
                       <Printer className="h-10 w-10 mb-3 text-muted" />
-                      Aucun tarif disponible.
+                      {t("services.empty")}
                     </div>
                   )}
                 </CardContent>
@@ -231,19 +232,19 @@ const PrintShopDetail = () => {
             <div className="space-y-6">
               {user?.role === "ROLE_IMPRIMERIE" ? (
                 <Button size="lg" className="w-full text-lg h-14" disabled>
-                  Réservé aux clients
+                  {t("actions.reservedForClients")}
                 </Button>
               ) : !token ? (
                 <Button size="lg" className="w-full text-lg h-14" onClick={() => navigate("/login")}>
-                  Se connecter pour commander
+                  {t("actions.loginToOrder")}
                 </Button>
               ) : (
                 <Button size="lg" className="w-full text-lg h-14" asChild>
-                  <Link to={`/commander/${shop.slug ?? shop.id}`}>Commander maintenant</Link>
+                  <Link to={`/commander/${shop.slug ?? shop.id}`}>{t("actions.orderNow")}</Link>
                 </Button>
               )}
               <Card>
-                <CardHeader><CardTitle className="text-lg">Contact</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-lg">{t("contact.title")}</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
                   {shop.telephoneContact && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -258,19 +259,19 @@ const PrintShopDetail = () => {
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Clock className="w-4 h-4" /> Horaires</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Clock className="w-4 h-4" /> {t("hours.title")}</CardTitle></CardHeader>
                 <CardContent>
                   {shop.horaires && shop.horaires.length > 0 ? (
                     <ul className="text-sm space-y-2">
                       {shop.horaires.map((h, i) => (
                         <li key={i} className={`flex justify-between ${h.jourSemaine === todayStr ? "font-bold text-primary" : "text-muted-foreground"}`}>
                           <span className="capitalize">{h.jourSemaine.toLowerCase()}</span>
-                          <span>{h.ferme ? "Fermé" : `${h.heureOuverture.slice(0,5)} - ${h.heureFermeture.slice(0,5)}`}</span>
+                          <span>{h.ferme ? t("hours.closed") : `${h.heureOuverture.slice(0,5)} - ${h.heureFermeture.slice(0,5)}`}</span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-muted-foreground italic">Horaires non renseignés.</p>
+                    <p className="text-sm text-muted-foreground italic">{t("hours.empty")}</p>
                   )}
                 </CardContent>
               </Card>

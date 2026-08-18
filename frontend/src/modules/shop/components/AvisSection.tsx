@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Star, Loader2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
@@ -52,6 +53,7 @@ interface Props {
 }
 
 const AvisSection = ({ imprimerieId, token }: Props) => {
+  const { t } = useTranslation("printShopDetail");
   const [data, setData] = useState<AvisImprimerie | null>(null);
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState(0);
@@ -74,7 +76,7 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
 
   const handleSubmit = async () => {
     if (note < 1) {
-      toast({ title: "Note requise", description: "Sélectionnez une note de 1 à 5 étoiles.", variant: "destructive" });
+      toast({ title: t("avis.toast.ratingRequiredTitle"), description: t("avis.toast.ratingRequiredDescription"), variant: "destructive" });
       return;
     }
     if (!token) return;
@@ -82,14 +84,14 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
     setErreur(null);
     try {
       await avisService.creerAvis({ imprimerieId, note, commentaire }, token);
-      toast({ title: "Merci pour votre avis !" });
+      toast({ title: t("avis.toast.successTitle") });
       setNote(0);
       setCommentaire("");
       charger();
     } catch (e) {
-      const message = (e as Error).message || "Une erreur est survenue. Réessayez.";
+      const message = (e as Error).message || t("avis.toast.genericError");
       setErreur(message);
-      toast({ title: "Avis non publié", description: message, variant: "destructive" });
+      toast({ title: t("avis.toast.errorTitle"), description: message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -99,7 +101,7 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
     <Card className="shadow-card">
       <CardHeader>
         <CardTitle className="font-display text-xl flex items-center justify-between">
-          <span>Avis clients</span>
+          <span>{t("avis.title")}</span>
           {data && data.nombreAvis > 0 && data.noteMoyenne != null && (
             <span className="flex items-center gap-2 text-base font-normal">
               <StarDisplay note={data.noteMoyenne} size={18} />
@@ -117,10 +119,10 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
             {/* Formulaire — visible seulement si le client peut noter */}
             {data?.peutNoter && (
               <div className="p-4 rounded-lg border bg-muted/30 space-y-3">
-                <p className="font-medium text-sm">Laissez votre avis</p>
+                <p className="font-medium text-sm">{t("avis.formTitle")}</p>
                 <StarInput value={note} onChange={setNote} />
                 <Textarea
-                  placeholder="Partagez votre expérience (optionnel)…"
+                  placeholder={t("avis.commentPlaceholder")}
                   value={commentaire}
                   onChange={(e) => { setCommentaire(e.target.value); setErreur(null); }}
                   rows={3}
@@ -133,19 +135,19 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
                 )}
                 <Button onClick={handleSubmit} disabled={submitting}>
                   {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                  Publier mon avis
+                  {t("avis.submit")}
                 </Button>
               </div>
             )}
 
             {data?.dejaNote && (
-              <p className="text-sm text-muted-foreground italic">Vous avez déjà laissé un avis pour cette imprimerie.</p>
+              <p className="text-sm text-muted-foreground italic">{t("avis.alreadyReviewed")}</p>
             )}
 
             {/* Liste des avis */}
             {!data || data.avis.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">
-                Aucun avis pour le moment. Soyez le premier à donner votre avis après une commande !
+                {t("avis.empty")}
               </p>
             ) : (
               <>
@@ -156,9 +158,9 @@ const AvisSection = ({ imprimerieId, token }: Props) => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="recent">Plus récents</SelectItem>
-                      <SelectItem value="meilleur">Notes les plus élevées</SelectItem>
-                      <SelectItem value="pire">Notes les plus basses</SelectItem>
+                      <SelectItem value="recent">{t("avis.sort.recent")}</SelectItem>
+                      <SelectItem value="meilleur">{t("avis.sort.best")}</SelectItem>
+                      <SelectItem value="pire">{t("avis.sort.worst")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

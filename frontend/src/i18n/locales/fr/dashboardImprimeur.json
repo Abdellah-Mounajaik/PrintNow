@@ -1,0 +1,262 @@
+{
+  "loading": "Chargement de votre espace pro...",
+  "notFound": {
+    "title": "Imprimerie introuvable",
+    "description": "Aucune imprimerie n'est associée à votre compte."
+  },
+  "header": {
+    "subtitle": "Espace professionnel imprimeur",
+    "statusOnline": "● Boutique visible en ligne",
+    "statusOffline": "● Boutique hors ligne"
+  },
+  "kpi": {
+    "totalOrders": "Commandes totales",
+    "pending": "À traiter",
+    "revenue": "Revenus (CA)",
+    "ratingLabel": "Note moyenne",
+    "reviewsCount_one": "({{count}} avis)",
+    "reviewsCount_other": "({{count}} avis)"
+  },
+  "tabs": {
+    "orders": "Commandes",
+    "services": "Services & Tarifs",
+    "options": "Options",
+    "hours": "Horaires",
+    "shop": "Ma boutique",
+    "promos": "Codes Promo"
+  },
+  "orders": {
+    "title": "Commandes reçues",
+    "searchPlaceholder": "Rechercher par n° de commande ou client...",
+    "filters": {
+      "all": "Toutes",
+      "toProcess": "À traiter"
+    },
+    "delivery": "Livraison",
+    "express": "Express",
+    "empty": {
+      "title": "Aucune commande",
+      "description": "Vos commandes apparaîtront ici dès qu'un client passera commande."
+    },
+    "emptyFiltered": {
+      "title": "Aucun résultat",
+      "searchDescription": "Aucune commande ne correspond à \"{{query}}\".",
+      "filterDescription": "Aucune commande dans \"{{filter}}\"."
+    },
+    "status": {
+      "retrait": {
+        "enAttente": "En attente",
+        "prete": "Prêt à être retiré",
+        "livree": "Récupérée",
+        "annulee": "Annulée"
+      },
+      "livraison": {
+        "enAttente": "En attente",
+        "enCoursImpression": "En cours d'impression",
+        "prete": "Expédiée",
+        "livree": "Livrée",
+        "annulee": "Annulée"
+      }
+    },
+    "nextAction": {
+      "markReady": "Marquer comme prêt à retirer",
+      "markPrinting": "Marquer en cours d'impression",
+      "markShipped": "Marquer comme expédié",
+      "markDelivered": "Marquer comme livré"
+    },
+    "details": {
+      "filesTitle": "Fichiers à imprimer",
+      "pages_one": "{{count}} page",
+      "pages_other": "{{count}} pages",
+      "copies_one": "{{count}} copie",
+      "copies_other": "{{count}} copies",
+      "duplex": "Recto-Verso",
+      "binding": "Reliure : {{type}}",
+      "lamination": "Plastification : {{type}}",
+      "filePagesAbbrev": "({{count}}p)",
+      "totalTTC": "Total TTC",
+      "salesReport": "Relevé de vente",
+      "clientInvoice": "Facture client",
+      "deliveryAddressTitle": "Adresse de livraison",
+      "phone": "Tél : {{phone}}",
+      "trackingTitle": "Numéro de suivi bpost",
+      "trackingPlaceholder": "ex: 010123456789",
+      "save": "Enregistrer",
+      "completed": "Commande terminée.",
+      "cancelled": "Commande annulée."
+    },
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant"
+    }
+  },
+  "services": {
+    "title": "Services proposés",
+    "activeCount_one": "{{count}} actif",
+    "activeCount_other": "{{count}} actifs",
+    "hint": "Cochez les services que vous proposez et configurez vos options de finition.",
+    "basePrice": "Prix base",
+    "offerLamination": "Proposer Plastification",
+    "offerBinding": "Proposer Reliure",
+    "laminationTypes": {
+      "MAT": "Mat",
+      "BRILLANT": "Brillant",
+      "SOFT_TOUCH": "Soft touch"
+    },
+    "bindingTypes": {
+      "SPIRALE_PLASTIQUE": "Spirale plastique",
+      "SPIRALE_METALLIQUE": "Spirale métallique",
+      "DOS_CARRE_COLLE": "Dos carré collé",
+      "AGRAFE_DEUX_POINTS": "Agrafe deux points",
+      "THERMIQUE": "Thermique"
+    },
+    "saving": "Enregistrement...",
+    "save": "Enregistrer les modifications"
+  },
+  "options": {
+    "title": "Options proposées aux clients",
+    "discountLabel": "Remise :",
+    "studentDiscount": {
+      "label": "Tarif étudiant",
+      "description": "Remise accordée aux étudiants sur présentation de carte."
+    },
+    "express": {
+      "label": "Impression express 2h",
+      "description": "Besoin urgent ? Proposez l'impression en 2 heures.",
+      "feeLabel": "Frais express :"
+    },
+    "delivery": {
+      "label": "Livraison à domicile",
+      "description": "Activez la livraison autour de votre boutique.",
+      "feeLabel": "Frais de livraison :"
+    },
+    "duplexDiscount": {
+      "label": "Remise recto-verso",
+      "description": "Réduction appliquée au coût d'impression quand le client choisit le recto-verso."
+    }
+  },
+  "hours": {
+    "title": "Horaires d'ouverture",
+    "days": {
+      "LUNDI": "Lundi",
+      "MARDI": "Mardi",
+      "MERCREDI": "Mercredi",
+      "JEUDI": "Jeudi",
+      "VENDREDI": "Vendredi",
+      "SAMEDI": "Samedi",
+      "DIMANCHE": "Dimanche"
+    },
+    "closed": "Fermé",
+    "opening": "Ouverture",
+    "closing": "Fermeture",
+    "edit": "Modifier",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "...",
+    "empty": "Horaires non configurés."
+  },
+  "shop": {
+    "title": "Informations de la boutique",
+    "edit": "Modifier",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "logo": {
+      "label": "Logo de l'imprimerie",
+      "uploading": "Envoi en cours…",
+      "alt": "Logo de l'imprimerie",
+      "changeCta": "Cliquez pour changer le logo",
+      "uploadCta": "Cliquez pour téléverser un logo (PNG, JPG)",
+      "none": "Aucun logo"
+    },
+    "fields": {
+      "name": "Nom de l'imprimerie",
+      "vat": "N° de TVA",
+      "phone": "Téléphone",
+      "email": "Email",
+      "address": "Adresse",
+      "city": "Ville",
+      "country": "Pays",
+      "description": "Description"
+    },
+    "deleteAccount": {
+      "title": "Supprimer mon compte",
+      "description": "Vos données personnelles seront définitivement effacées et votre boutique fermera : elle disparaîtra du catalogue et ne recevra plus de commandes. Vos factures sont conservées, comme la loi l'impose.",
+      "button": "Supprimer mon compte"
+    }
+  },
+  "promos": {
+    "title": "Codes promo",
+    "subtitle": "Créez des codes de réduction pour vos clients.",
+    "form": {
+      "newCode": "Nouveau code",
+      "codeLabel": "Code",
+      "codePlaceholder": "EX: BIENVENUE10",
+      "typeLabel": "Type de réduction",
+      "typePercentage": "Pourcentage (%)",
+      "typeFixed": "Montant fixe (€)",
+      "valueLabelPercentage": "Valeur (%)",
+      "valueLabelFixed": "Valeur (€)",
+      "expiryLabel": "Date d'expiration (optionnel)",
+      "maxUsesLabel": "Utilisations max par personne (optionnel)",
+      "maxUsesPlaceholder": "Illimité",
+      "minAmountLabel": "Montant minimum commande (optionnel)",
+      "minAmountPlaceholder": "Aucun",
+      "submit": "Créer le code"
+    },
+    "empty": "Aucun code promo pour l'instant.",
+    "expiresOn": "Expire le {{date}}",
+    "maxUses_one": "Max {{max}}x/personne · {{count}} utilisation au total",
+    "maxUses_other": "Max {{max}}x/personne · {{count}} utilisations au total",
+    "minAmount": "Min. {{amount}}€"
+  },
+  "deleteDialog": {
+    "success": {
+      "title": "Votre compte a été supprimé",
+      "description": "Vos données personnelles ont été effacées et votre boutique est fermée. Merci d'avoir été partenaire PrintNow.",
+      "backHome": "Retour à l'accueil"
+    },
+    "confirm": {
+      "title": "Supprimer votre compte ?",
+      "description": "Cette action est définitive et ne peut pas être annulée.",
+      "point1": "Votre nom, votre email et votre téléphone seront effacés.",
+      "point2": "Votre boutique fermera : elle disparaîtra du catalogue et ne recevra plus aucune commande.",
+      "point3": "Vos factures sont conservées sept ans, comme la loi l'impose, et restent téléchargeables jusque-là.",
+      "cancel": "Annuler",
+      "deleting": "Suppression...",
+      "confirmButton": "Oui, supprimer mon compte"
+    }
+  },
+  "toasts": {
+    "error": { "title": "Erreur" },
+    "success": { "title": "Succès" },
+    "deleteAccountError": { "title": "Suppression impossible" },
+    "loadError": { "description": "Impossible de charger les données" },
+    "servicesUpdated": { "description": "Services mis à jour." },
+    "servicesSaveError": { "description": "Impossible de sauvegarder les services." },
+    "shopUpdated": { "description": "Informations mises à jour." },
+    "genericSaveError": { "description": "Impossible de sauvegarder." },
+    "logoDefaultError": "Erreur lors de l'envoi du logo",
+    "expressPriceUpdated": { "title": "Prix express mis à jour" },
+    "deliveryPriceUpdated": { "title": "Prix de livraison mis à jour" },
+    "studentDiscountUpdated": { "title": "Remise étudiant mise à jour" },
+    "duplexDiscountUpdated": { "title": "Remise recto-verso mise à jour" },
+    "promoCreated": { "title": "Code promo créé !" },
+    "promoDeleted": { "title": "Code supprimé" },
+    "optionUpdated": { "title": "Option mise à jour" },
+    "optionUpdateError": { "description": "Impossible de modifier l'option." },
+    "horaireUpdated": { "description": "Horaire mis à jour." },
+    "horaireSaveError": { "description": "Impossible de sauvegarder l'horaire." },
+    "pdfOpenError": { "description": "Impossible d'ouvrir {{filename}}." },
+    "statutUpdated": {
+      "title": "Statut mis à jour",
+      "description": "Commande passée à \"{{status}}\"."
+    },
+    "statutUpdateError": { "description": "Impossible de mettre à jour le statut." },
+    "suiviSaved": {
+      "title": "Numéro de suivi enregistré",
+      "description": "Le client peut maintenant suivre son colis bpost."
+    },
+    "suiviSaveError": { "description": "Impossible d'enregistrer le numéro de suivi." }
+  }
+}

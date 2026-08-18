@@ -1,0 +1,99 @@
+{
+  "section": {
+    "title": "Imprimeries près de vous",
+    "searching": "Recherche en cours...",
+    "resultsCount": "{{count}} imprimeries trouvées dans le catalogue"
+  },
+  "search": {
+    "placeholder": "Rechercher une imprimerie..."
+  },
+  "sort": {
+    "placeholder": "Trier par",
+    "distance": "Distance",
+    "rating": "Note",
+    "priceAsc": "Prix croissant",
+    "priceDesc": "Prix décroissant"
+  },
+  "priceType": {
+    "placeholder": "Type de produit",
+    "any": "Prix de départ (tous produits)",
+    "types": [
+      { "id": "DOCUMENT", "label": "Documents" },
+      { "id": "FLYER", "label": "Flyers" },
+      { "id": "CARTE_VISITE", "label": "Cartes de visite" },
+      { "id": "POSTER", "label": "Affiches" }
+    ]
+  },
+  "geo": {
+    "locationRequired": "Activez la localisation pour trier par distance."
+  },
+  "filters": {
+    "button": "Filtres",
+    "title": "Filtrer les imprimeries",
+    "openNow": "Ouvert maintenant",
+    "servicesTitle": "Services",
+    "optionsTitle": "Options",
+    "services": {
+      "documents": "Documents",
+      "flyers": "Flyers & Affiches",
+      "cartes": "Cartes de visite"
+    },
+    "options": {
+      "express": "Express 2h",
+      "student": "Tarif étudiant",
+      "delivery": "Livraison"
+    },
+    "clear": "Effacer les filtres"
+  },
+  "status": {
+    "open": "Ouvert",
+    "closed": "Fermé",
+    "closedToday": "Fermé aujourd'hui",
+    "seeHours": "Voir horaires",
+    "closedWithHours": "Fermé (Horaires : {{hours}})"
+  },
+  "toast": {
+    "errorTitle": "Erreur",
+    "loadError": "Impossible de charger les imprimeries."
+  },
+  "loading": "Chargement des imprimeries partenaires...",
+  "emptyStates": {
+    "noPartners": {
+      "title": "Aucun partenaire pour le moment",
+      "description": "Soyez le premier à inscrire votre imprimerie !"
+    },
+    "noResults": {
+      "title": "Aucun résultat",
+      "withQuery": "Aucune imprimerie ne correspond à \"{{query}}\".",
+      "withoutQuery": "Aucune imprimerie ne correspond à ces filtres."
+    }
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant"
+  },
+  "card": {
+    "express": "Express",
+    "studentDiscount": "-10%",
+    "delivery": "Livraison",
+    "priceFrom": "à partir de {{price}} €",
+    "priceUnavailable": "Prix indisponible",
+    "distanceUnknown": "À proximité"
+  },
+  "map": {
+    "trigger": "Voir sur la carte",
+    "title": "Imprimeries sur la carte",
+    "empty": "Aucune imprimerie localisée pour le moment.",
+    "legend": {
+      "yourPosition": "Votre position"
+    },
+    "travel": {
+      "positionRequired": "Position requise pour l'itinéraire",
+      "calculating": "Calcul...",
+      "unavailable": "Itinéraire indisponible",
+      "walking": "à pied",
+      "driving": "en voiture"
+    },
+    "viewDetails": "Voir la fiche"
+  }
+}

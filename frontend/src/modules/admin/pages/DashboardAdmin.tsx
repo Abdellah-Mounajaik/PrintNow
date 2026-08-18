@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Header from "../../../components/layout/Header";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -48,14 +49,8 @@ import type {
   VerificationDTO,
 } from "../models/admin.model";
 
-const STATUT_VERIF_CONFIG: Record<string, { label: string; className: string }> = {
-  EN_ATTENTE: { label: "En attente", className: "bg-warning/10 text-warning border-warning/30" },
-  ACCEPTE:    { label: "Acceptée",   className: "status-open" },
-  REFUSE:     { label: "Refusée",    className: "status-closed" },
-  EXPIRE:     { label: "Expirée",    className: "bg-muted text-muted-foreground" },
-};
-
 const AuthImage = ({ url, alt, token }: { url: string; alt: string; token: string }) => {
+  const { t } = useTranslation("dashboardAdmin");
   const [src, setSrc] = useState<string | null>(null);
   const [error, setError] = useState(false);
 
@@ -65,10 +60,10 @@ const AuthImage = ({ url, alt, token }: { url: string; alt: string; token: strin
       .catch(() => setError(true));
   }, [url, token]);
 
-  if (error) return <p className="text-xs text-destructive">{alt} introuvable</p>;
+  if (error) return <p className="text-xs text-destructive">{t("verifications.imageNotFound", { alt })}</p>;
   if (!src) return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <Loader2 className="h-4 w-4 animate-spin" /> Chargement {alt}…
+      <Loader2 className="h-4 w-4 animate-spin" /> {t("verifications.loadingImage", { alt })}
     </div>
   );
   return (
@@ -93,7 +88,16 @@ const USERS_PER_PAGE = 9;
 const COMMANDES_PER_PAGE = 9;
 
 const DashboardAdmin = () => {
+  const { t } = useTranslation("dashboardAdmin");
   const { token } = useAuth();
+
+  const STATUT_VERIF_CONFIG: Record<string, { label: string; className: string }> = {
+    EN_ATTENTE: { label: t("verifications.status.enAttente"), className: "bg-warning/10 text-warning border-warning/30" },
+    ACCEPTE:    { label: t("verifications.status.accepte"),   className: "status-open" },
+    REFUSE:     { label: t("verifications.status.refuse"),    className: "status-closed" },
+    EXPIRE:     { label: t("verifications.status.expire"),    className: "bg-muted text-muted-foreground" },
+  };
+
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [imprimeries, setImprimeries] = useState<ImprimerieDTO[]>([]);
   const [shopSearchQuery, setShopSearchQuery] = useState("");
@@ -117,14 +121,14 @@ const DashboardAdmin = () => {
       await adminService.fermerImprimerie(imprimerieAFermer.id, token);
       setImprimeries((prev) => prev.map((i) => (i.id === imprimerieAFermer.id ? { ...i, actif: false } : i)));
       toast({
-        title: "Imprimerie fermée",
-        description: "Elle ne figure plus au catalogue et ne recevra plus de commandes.",
+        title: t("toasts.shopClosed.title"),
+        description: t("toasts.shopClosed.description"),
       });
       setImprimerieAFermer(null);
     } catch (err) {
       toast({
-        title: "Fermeture impossible",
-        description: err instanceof Error ? err.message : "Réessayez dans un instant.",
+        title: t("toasts.shopCloseError.title"),
+        description: err instanceof Error ? err.message : t("toasts.shopCloseError.defaultDescription"),
         variant: "destructive",
       });
     } finally {
@@ -162,9 +166,9 @@ const DashboardAdmin = () => {
     try {
       const updated = await adminService.validerVerification(id, token);
       setVerifications((prev) => prev.map((v) => (v.id === id ? updated : v)));
-      toast({ title: "Vérification acceptée" });
+      toast({ title: t("toasts.verificationAccepted.title") });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de valider.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.error.validationFailed"), variant: "destructive" });
     }
   };
 
@@ -176,20 +180,20 @@ const DashboardAdmin = () => {
       // La ligne reste affichée, marquée comme supprimée : c'est ce qui permet
       // de comprendre à qui renvoient les commandes « Compte supprimé ».
       setUsers((prev) => prev.map((u) => (u.id === userASupprimer.id
-        ? { ...u, prenom: "Compte", nom: "supprimé", email: `supprime-${u.id}@printnow.invalid`,
+        ? { ...u, prenom: t("users.deletedPlaceholder.firstName"), nom: t("users.deletedPlaceholder.lastName"), email: `supprime-${u.id}@printnow.invalid`,
             telephone: "", actif: false, dateSuppression: new Date().toISOString() }
         : u)));
       toast({
-        title: "Compte supprimé",
-        description: "Ses données personnelles ont été effacées ; ses commandes restent enregistrées.",
+        title: t("toasts.userDeleted.title"),
+        description: t("toasts.userDeleted.description"),
       });
       setUserASupprimer(null);
     } catch (err) {
       // Le serveur explique pourquoi il refuse (commandes en cours, dernier
       // administrateur) : c'est cette phrase-là qui aide, pas un message générique.
       toast({
-        title: "Suppression impossible",
-        description: err instanceof Error ? err.message : "Réessayez dans un instant.",
+        title: t("toasts.userDeleteError.title"),
+        description: err instanceof Error ? err.message : t("toasts.userDeleteError.defaultDescription"),
         variant: "destructive",
       });
     } finally {
@@ -202,9 +206,9 @@ const DashboardAdmin = () => {
     try {
       const updated = await adminService.refuserVerification(id, motif, token);
       setVerifications((prev) => prev.map((v) => (v.id === id ? updated : v)));
-      toast({ title: "Vérification refusée", variant: "destructive" });
+      toast({ title: t("toasts.verificationRefused.title"), variant: "destructive" });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de refuser.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.error.refusalFailed"), variant: "destructive" });
     }
   };
 
@@ -214,7 +218,7 @@ const DashboardAdmin = () => {
     try {
       await adminService.telechargerFactureCommission(commandeId, numeroCommande, token);
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setDownloadingCommissionId(null);
     }
@@ -306,14 +310,14 @@ const DashboardAdmin = () => {
             <div>
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2 flex items-center gap-3">
                 <Shield className="h-8 w-8 text-primary" />
-                Administration
+                {t("header.title")}
               </h1>
               <p className="text-muted-foreground">
-                Back-office PrintNow · Gestion globale de la plateforme
+                {t("header.subtitle")}
               </p>
             </div>
             <Badge variant="outline" className="w-fit">
-              Admin
+              {t("header.badge")}
             </Badge>
           </div>
 
@@ -330,10 +334,10 @@ const DashboardAdmin = () => {
               <div className="font-display text-3xl font-bold">
                 {users.filter((u) => !u.dateSuppression).length}
               </div>
-              <div className="text-sm text-muted-foreground">Utilisateurs</div>
+              <div className="text-sm text-muted-foreground">{t("kpis.users.label")}</div>
               {users.some((u) => u.dateSuppression) && (
                 <div className="text-xs text-muted-foreground mt-1">
-                  {users.filter((u) => u.dateSuppression).length} compte(s) supprimé(s)
+                  {t("kpis.users.deletedCount", { count: users.filter((u) => u.dateSuppression).length })}
                 </div>
               )}
             </Card>
@@ -343,9 +347,9 @@ const DashboardAdmin = () => {
                 <TrendingUp className="h-4 w-4 text-success" />
               </div>
               <div className="font-display text-3xl font-bold">{imprimeriesActives.length}</div>
-              <div className="text-sm text-muted-foreground">Imprimeries actives</div>
+              <div className="text-sm text-muted-foreground">{t("kpis.shops.label")}</div>
               <div className="text-xs text-muted-foreground mt-1">
-                {imprimeries.length} au total
+                {t("kpis.shops.totalCount", { count: imprimeries.length })}
               </div>
             </Card>
             <Card className="p-6">
@@ -356,18 +360,18 @@ const DashboardAdmin = () => {
               <div className="font-display text-3xl font-bold">
                 {caTotal.toFixed(2)}€
               </div>
-              <div className="text-sm text-muted-foreground">CA total</div>
+              <div className="text-sm text-muted-foreground">{t("kpis.revenue.label")}</div>
               <div className="text-xs text-success mt-1">
-                Commission : {commissionTotale.toFixed(2)}€
+                {t("kpis.revenue.commission", { amount: commissionTotale.toFixed(2) })}
               </div>
               {correctionsTotal > 0 && (
                 <div className="text-xs text-success">
-                  Corrections : {correctionsTotal.toFixed(2)}€
+                  {t("kpis.revenue.corrections", { amount: correctionsTotal.toFixed(2) })}
                 </div>
               )}
               {generationsTotal > 0 && (
                 <div className="text-xs text-success">
-                  Designs IA : {generationsTotal.toFixed(2)}€
+                  {t("kpis.revenue.designs", { amount: generationsTotal.toFixed(2) })}
                 </div>
               )}
             </Card>
@@ -377,18 +381,18 @@ const DashboardAdmin = () => {
                 <TrendingUp className="h-4 w-4 text-success" />
               </div>
               <div className="font-display text-3xl font-bold">{commandes.length}</div>
-              <div className="text-sm text-muted-foreground">Commandes totales</div>
+              <div className="text-sm text-muted-foreground">{t("kpis.orders.label")}</div>
             </Card>
           </div>
 
           <Tabs defaultValue="signups" className="space-y-6">
             <TabsList>
-              <TabsTrigger value="signups">Inscriptions récentes</TabsTrigger>
-              <TabsTrigger value="shops">Imprimeries</TabsTrigger>
-              <TabsTrigger value="users">Utilisateurs</TabsTrigger>
-              <TabsTrigger value="commandes">Commandes</TabsTrigger>
+              <TabsTrigger value="signups">{t("tabs.signups")}</TabsTrigger>
+              <TabsTrigger value="shops">{t("tabs.shops")}</TabsTrigger>
+              <TabsTrigger value="users">{t("tabs.users")}</TabsTrigger>
+              <TabsTrigger value="commandes">{t("tabs.orders")}</TabsTrigger>
               <TabsTrigger value="verifications">
-                Vérifications étudiantes
+                {t("tabs.verifications")}
                 {verifications.filter((v) => v.statut === "EN_ATTENTE").length > 0 && (
                   <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-warning text-warning-foreground">
                     {verifications.filter((v) => v.statut === "EN_ATTENTE").length}
@@ -402,14 +406,14 @@ const DashboardAdmin = () => {
               <Card className="p-6">
                 <div className="mb-4">
                   <h3 className="font-display font-semibold text-lg">
-                    Inscriptions récentes
+                    {t("signups.title")}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Dernières imprimeries inscrites sur la plateforme.
+                    {t("signups.subtitle")}
                   </p>
                 </div>
                 {recentesImprimeries.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Aucune imprimerie pour l'instant.</p>
+                  <p className="text-sm text-muted-foreground">{t("signups.empty")}</p>
                 ) : (
                   <div className="space-y-3">
                     {recentesImprimeries.map((shop) => (
@@ -431,11 +435,11 @@ const DashboardAdmin = () => {
                         </div>
                         <div className="flex items-center gap-3">
                           <Badge className={shop.actif ? "status-open" : "status-closed"}>
-                            {shop.actif ? "Active" : "Inactive"}
+                            {shop.actif ? t("shops.status.active") : t("shops.status.inactive")}
                           </Badge>
                           <Button variant="outline" size="sm">
                             <Eye className="h-4 w-4 mr-1" />
-                            Voir
+                            {t("signups.viewButton")}
                           </Button>
                         </div>
                       </div>
@@ -450,14 +454,14 @@ const DashboardAdmin = () => {
               <Card className="p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <h3 className="font-display font-semibold text-lg">
-                    Imprimeries partenaires
+                    {t("shops.title")}
                   </h3>
                   {imprimeries.length > 0 && (
                     <div className="relative sm:w-80">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="text"
-                        placeholder="Rechercher par nom, ville ou email..."
+                        placeholder={t("shops.searchPlaceholder")}
                         value={shopSearchQuery}
                         onChange={(e) => { setShopSearchQuery(e.target.value); setShopsPage(1); }}
                         className="pl-9"
@@ -466,22 +470,22 @@ const DashboardAdmin = () => {
                   )}
                 </div>
                 {imprimeries.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Aucune imprimerie.</p>
+                  <p className="text-sm text-muted-foreground">{t("shops.empty")}</p>
                 ) : filteredImprimeries.length === 0 ? (
                   <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                     <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                    <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
-                    <p className="text-muted-foreground text-sm">Aucune imprimerie ne correspond à "{shopSearchQuery}".</p>
+                    <h4 className="text-lg font-semibold mb-1">{t("shops.emptyFiltered.title")}</h4>
+                    <p className="text-muted-foreground text-sm">{t("shops.emptyFiltered.description", { query: shopSearchQuery })}</p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Imprimerie</TableHead>
-                        <TableHead>Ville</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead>Action</TableHead>
+                        <TableHead>{t("shops.columns.name")}</TableHead>
+                        <TableHead>{t("shops.columns.city")}</TableHead>
+                        <TableHead>{t("shops.columns.email")}</TableHead>
+                        <TableHead>{t("shops.columns.status")}</TableHead>
+                        <TableHead>{t("shops.columns.action")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -494,9 +498,9 @@ const DashboardAdmin = () => {
                           </TableCell>
                           <TableCell>
                             {shop.actif ? (
-                              <Badge className="status-open">Active</Badge>
+                              <Badge className="status-open">{t("shops.status.active")}</Badge>
                             ) : (
-                              <Badge className="status-closed">Inactive</Badge>
+                              <Badge className="status-closed">{t("shops.status.inactive")}</Badge>
                             )}
                           </TableCell>
                           <TableCell>
@@ -506,7 +510,7 @@ const DashboardAdmin = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  aria-label={`Fermer l'imprimerie ${shop.nom}`}
+                                  aria-label={t("shops.closeAriaLabel", { name: shop.nom })}
                                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                   onClick={() => setImprimerieAFermer(shop)}
                                 >
@@ -529,7 +533,7 @@ const DashboardAdmin = () => {
                       disabled={shopsCurrentPage === 1}
                       onClick={() => setShopsPage(shopsCurrentPage - 1)}
                     >
-                      Précédent
+                      {t("pagination.previous")}
                     </Button>
                     {Array.from({ length: shopsTotalPages }, (_, i) => i + 1).map((n) => (
                       <Button
@@ -548,7 +552,7 @@ const DashboardAdmin = () => {
                       disabled={shopsCurrentPage === shopsTotalPages}
                       onClick={() => setShopsPage(shopsCurrentPage + 1)}
                     >
-                      Suivant
+                      {t("pagination.next")}
                     </Button>
                   </div>
                 )}
@@ -560,14 +564,14 @@ const DashboardAdmin = () => {
               <Card className="p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <h3 className="font-display font-semibold text-lg">
-                    Gestion des utilisateurs
+                    {t("users.title")}
                   </h3>
                   {users.length > 0 && (
                     <div className="relative sm:w-80">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="text"
-                        placeholder="Rechercher par nom ou email..."
+                        placeholder={t("users.searchPlaceholder")}
                         value={userSearchQuery}
                         onChange={(e) => { setUserSearchQuery(e.target.value); setUsersPage(1); }}
                         className="pl-9"
@@ -578,9 +582,9 @@ const DashboardAdmin = () => {
                 {users.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {([
-                      { value: "TOUS", label: "Tous" },
-                      { value: "CLIENT", label: "Clients" },
-                      { value: "IMPRIMERIE", label: "Imprimeurs" },
+                      { value: "TOUS", label: t("users.filters.all") },
+                      { value: "CLIENT", label: t("users.filters.clients") },
+                      { value: "IMPRIMERIE", label: t("users.filters.shops") },
                     ] as const).map((filtre) => (
                       <Button
                         key={filtre.value}
@@ -594,26 +598,26 @@ const DashboardAdmin = () => {
                   </div>
                 )}
                 {users.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Aucun utilisateur.</p>
+                  <p className="text-sm text-muted-foreground">{t("users.empty")}</p>
                 ) : filteredUsers.length === 0 ? (
                   <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                     <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                    <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
+                    <h4 className="text-lg font-semibold mb-1">{t("users.emptyFiltered.title")}</h4>
                     <p className="text-muted-foreground text-sm">
                       {userSearchNormalized
-                        ? `Aucun utilisateur ne correspond à "${userSearchQuery}".`
-                        : "Aucun utilisateur pour ce rôle."}
+                        ? t("users.emptyFiltered.descriptionSearch", { query: userSearchQuery })
+                        : t("users.emptyFiltered.descriptionRole")}
                     </p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Nom</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Rôle</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead>Action</TableHead>
+                        <TableHead>{t("users.columns.name")}</TableHead>
+                        <TableHead>{t("users.columns.email")}</TableHead>
+                        <TableHead>{t("users.columns.role")}</TableHead>
+                        <TableHead>{t("users.columns.status")}</TableHead>
+                        <TableHead>{t("users.columns.action")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -633,11 +637,11 @@ const DashboardAdmin = () => {
                                 explique pourquoi le compte ne sert plus à rien. */}
                             {user.dateSuppression ? (
                               <Badge variant="outline" className="text-destructive border-destructive/30">
-                                Supprimé le {new Date(user.dateSuppression).toLocaleDateString("fr-BE")}
+                                {t("users.status.deletedOn", { date: new Date(user.dateSuppression).toLocaleDateString("fr-BE") })}
                               </Badge>
                             ) : (
                               <Badge className={user.actif ? "status-open" : "status-closed"}>
-                                {user.actif ? "Actif" : "Inactif"}
+                                {user.actif ? t("users.status.active") : t("users.status.inactive")}
                               </Badge>
                             )}
                           </TableCell>
@@ -647,7 +651,7 @@ const DashboardAdmin = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  aria-label={`Supprimer le compte de ${user.prenom} ${user.nom}`}
+                                  aria-label={t("users.deleteAriaLabel", { name: `${user.prenom} ${user.nom}` })}
                                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                   onClick={() => setUserASupprimer(user)}
                                 >
@@ -670,7 +674,7 @@ const DashboardAdmin = () => {
                       disabled={usersCurrentPage === 1}
                       onClick={() => setUsersPage(usersCurrentPage - 1)}
                     >
-                      Précédent
+                      {t("pagination.previous")}
                     </Button>
                     {Array.from({ length: usersTotalPages }, (_, i) => i + 1).map((n) => (
                       <Button
@@ -689,7 +693,7 @@ const DashboardAdmin = () => {
                       disabled={usersCurrentPage === usersTotalPages}
                       onClick={() => setUsersPage(usersCurrentPage + 1)}
                     >
-                      Suivant
+                      {t("pagination.next")}
                     </Button>
                   </div>
                 )}
@@ -701,7 +705,7 @@ const DashboardAdmin = () => {
               <Card className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
                   <h3 className="font-display font-semibold text-lg">
-                    Toutes les commandes
+                    {t("orders.title")}
                   </h3>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     {commandes.length > 0 && (
@@ -709,7 +713,7 @@ const DashboardAdmin = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           type="text"
-                          placeholder="Rechercher par n°, client ou imprimerie..."
+                          placeholder={t("orders.searchPlaceholder")}
                           value={commandeSearchQuery}
                           onChange={(e) => { setCommandeSearchQuery(e.target.value); setCommandesPage(1); }}
                           className="pl-9"
@@ -717,7 +721,7 @@ const DashboardAdmin = () => {
                       </div>
                     )}
                     <div className="text-sm text-muted-foreground whitespace-nowrap">
-                      Commission totale :{" "}
+                      {t("orders.totalCommissionLabel")}{" "}
                       <span className="font-semibold text-success">
                         {commissionTotale.toFixed(2)}€
                       </span>
@@ -725,25 +729,25 @@ const DashboardAdmin = () => {
                   </div>
                 </div>
                 {commandes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Aucune commande.</p>
+                  <p className="text-sm text-muted-foreground">{t("orders.empty")}</p>
                 ) : filteredCommandes.length === 0 ? (
                   <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                     <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                    <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
-                    <p className="text-muted-foreground text-sm">Aucune commande ne correspond à "{commandeSearchQuery}".</p>
+                    <h4 className="text-lg font-semibold mb-1">{t("orders.emptyFiltered.title")}</h4>
+                    <p className="text-muted-foreground text-sm">{t("orders.emptyFiltered.description", { query: commandeSearchQuery })}</p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>N° Commande</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Imprimerie</TableHead>
-                        <TableHead>Total TTC</TableHead>
-                        <TableHead>Commission (10%)</TableHead>
-                        <TableHead>Correction</TableHead>
-                        <TableHead>Design IA</TableHead>
-                        <TableHead>Relevé</TableHead>
+                        <TableHead>{t("orders.columns.number")}</TableHead>
+                        <TableHead>{t("orders.columns.client")}</TableHead>
+                        <TableHead>{t("orders.columns.shop")}</TableHead>
+                        <TableHead>{t("orders.columns.totalTtc")}</TableHead>
+                        <TableHead>{t("orders.columns.commission")}</TableHead>
+                        <TableHead>{t("orders.columns.correction")}</TableHead>
+                        <TableHead>{t("orders.columns.aiDesign")}</TableHead>
+                        <TableHead>{t("orders.columns.statement")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -775,8 +779,8 @@ const DashboardAdmin = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                aria-label={`Relevé des revenus de la commande ${c.numeroCommande}`}
-                                title="Relevé des revenus PrintNow"
+                                aria-label={t("orders.statementAriaLabel", { number: c.numeroCommande })}
+                                title={t("orders.statementTitle")}
                                 onClick={() => handleTelechargerCommission(c.id, c.numeroCommande)}
                                 disabled={downloadingCommissionId === c.id}
                               >
@@ -804,7 +808,7 @@ const DashboardAdmin = () => {
                       disabled={commandesCurrentPage === 1}
                       onClick={() => setCommandesPage(commandesCurrentPage - 1)}
                     >
-                      Précédent
+                      {t("pagination.previous")}
                     </Button>
                     {Array.from({ length: commandesTotalPages }, (_, i) => i + 1).map((n) => (
                       <Button
@@ -823,31 +827,31 @@ const DashboardAdmin = () => {
                       disabled={commandesCurrentPage === commandesTotalPages}
                       onClick={() => setCommandesPage(commandesCurrentPage + 1)}
                     >
-                      Suivant
+                      {t("pagination.next")}
                     </Button>
                   </div>
                 )}
                 {commandes.length > 0 && (
                   <div className="mt-6 p-4 rounded-lg bg-success/5 border border-success/20 flex items-center justify-between">
                     <div>
-                      <div className="text-sm text-muted-foreground">CA total plateforme</div>
+                      <div className="text-sm text-muted-foreground">{t("orders.summary.totalRevenue")}</div>
                       <div className="font-display text-2xl font-bold">{caTotal.toFixed(2)}€</div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-muted-foreground">
-                        {(correctionsTotal > 0 || generationsTotal > 0) ? "Revenus PrintNow" : "Commissions totales"}
+                        {(correctionsTotal > 0 || generationsTotal > 0) ? t("orders.summary.platformRevenue") : t("orders.summary.totalCommissions")}
                       </div>
                       <div className="font-display text-2xl font-bold text-success">
                         {revenuPlateforme.toFixed(2)}€
                       </div>
                       {correctionsTotal > 0 && (
                         <div className="text-xs text-muted-foreground">
-                          dont {correctionsTotal.toFixed(2)}€ de corrections
+                          {t("orders.summary.includingCorrections", { amount: correctionsTotal.toFixed(2) })}
                         </div>
                       )}
                       {generationsTotal > 0 && (
                         <div className="text-xs text-muted-foreground">
-                          dont {generationsTotal.toFixed(2)}€ de designs IA
+                          {t("orders.summary.includingAiDesigns", { amount: generationsTotal.toFixed(2) })}
                         </div>
                       )}
                     </div>
@@ -862,29 +866,29 @@ const DashboardAdmin = () => {
                   <div>
                     <h3 className="font-display font-semibold text-lg flex items-center gap-2">
                       <GraduationCap className="h-5 w-5 text-primary" />
-                      Vérifications étudiantes
+                      {t("verifications.title")}
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Validité jusqu'au 30 juin · renouvellement annuel obligatoire
+                      {t("verifications.subtitle")}
                     </p>
                   </div>
                   <Badge variant="outline">
-                    {verifications.filter((v) => v.statut === "EN_ATTENTE").length} en attente
+                    {t("verifications.pendingBadge", { count: verifications.filter((v) => v.statut === "EN_ATTENTE").length })}
                   </Badge>
                 </div>
 
                 {verifications.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Aucune demande reçue.</p>
+                  <p className="text-sm text-muted-foreground">{t("verifications.empty")}</p>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Étudiant</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Soumis le</TableHead>
-                        <TableHead>Valable jusqu'au</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead>Dossier</TableHead>
+                        <TableHead>{t("verifications.columns.student")}</TableHead>
+                        <TableHead>{t("verifications.columns.email")}</TableHead>
+                        <TableHead>{t("verifications.columns.submittedOn")}</TableHead>
+                        <TableHead>{t("verifications.columns.validUntil")}</TableHead>
+                        <TableHead>{t("verifications.columns.status")}</TableHead>
+                        <TableHead>{t("verifications.columns.file")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -907,7 +911,7 @@ const DashboardAdmin = () => {
                               </TableCell>
                               <TableCell>
                                 <Button variant="outline" size="sm" onClick={() => setSelectedVerif(v)}>
-                                  <Eye className="h-4 w-4 mr-1" /> Voir
+                                  <Eye className="h-4 w-4 mr-1" /> {t("verifications.viewButton")}
                                 </Button>
                               </TableCell>
                             </TableRow>
@@ -940,19 +944,19 @@ const DashboardAdmin = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <AuthImage
                           url={adminService.getImageUrl(selectedVerif.id, "etudiante")}
-                          alt="Carte étudiant"
+                          alt={t("verifications.studentCardLabel")}
                           token={token!}
                         />
                         <AuthImage
                           url={adminService.getImageUrl(selectedVerif.id, "identite")}
-                          alt="Carte d'identité"
+                          alt={t("verifications.idCardLabel")}
                           token={token!}
                         />
                       </div>
 
                       {selectedVerif.motifRefus && selectedVerif.statut !== "EN_ATTENTE" && (
                         <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm">
-                          <p className="font-medium text-destructive mb-1">Motif du refus précédent</p>
+                          <p className="font-medium text-destructive mb-1">{t("verifications.previousRefusalReason")}</p>
                           <p className="text-muted-foreground">{selectedVerif.motifRefus}</p>
                         </div>
                       )}
@@ -962,7 +966,7 @@ const DashboardAdmin = () => {
                           <textarea
                             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
                             rows={3}
-                            placeholder="Motif du refus (optionnel) — visible par l'étudiant"
+                            placeholder={t("verifications.refusalPlaceholder")}
                             value={motifRefus}
                             onChange={(e) => setMotifRefus(e.target.value)}
                           />
@@ -975,7 +979,7 @@ const DashboardAdmin = () => {
                                 setMotifRefus("");
                               }}
                             >
-                              <CheckCircle2 className="h-4 w-4 mr-1" /> Accepter
+                              <CheckCircle2 className="h-4 w-4 mr-1" /> {t("verifications.acceptButton")}
                             </Button>
                             <Button
                               className="flex-1"
@@ -987,7 +991,7 @@ const DashboardAdmin = () => {
                                 setMotifRefus("");
                               }}
                             >
-                              <XCircle className="h-4 w-4 mr-1" /> Refuser
+                              <XCircle className="h-4 w-4 mr-1" /> {t("verifications.refuseButton")}
                             </Button>
                           </div>
                         </div>
@@ -1009,35 +1013,34 @@ const DashboardAdmin = () => {
             <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
               <AlertTriangle className="h-7 w-7 text-destructive" />
             </div>
-            <DialogTitle className="text-center">Supprimer ce compte ?</DialogTitle>
+            <DialogTitle className="text-center">{t("deleteUserDialog.title")}</DialogTitle>
             <DialogDescription className="text-center">
               {userASupprimer?.prenom} {userASupprimer?.nom} — {userASupprimer?.email}
             </DialogDescription>
           </DialogHeader>
 
           <div className="text-sm text-muted-foreground space-y-2">
-            <p>Son nom, son email et son téléphone seront définitivement effacés.</p>
+            <p>{t("deleteUserDialog.point1")}</p>
             <p>
-              Ses commandes et factures sont conservées, comme la loi l'impose, mais ne
-              porteront plus son nom. S'il gère une imprimerie, celle-ci sera fermée.
+              {t("deleteUserDialog.point2")}
             </p>
-            <p className="font-medium text-foreground">Cette action est irréversible.</p>
+            <p className="font-medium text-foreground">{t("deleteUserDialog.irreversible")}</p>
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setUserASupprimer(null)} disabled={suppressionEnCours}>
-              Annuler
+              {t("deleteUserDialog.cancel")}
             </Button>
             <Button variant="destructive" onClick={handleSupprimerUtilisateur} disabled={suppressionEnCours}>
               {suppressionEnCours ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Suppression...
+                  {t("deleteUserDialog.deleting")}
                 </>
               ) : (
                 <>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer définitivement
+                  {t("deleteUserDialog.confirmButton")}
                 </>
               )}
             </Button>
@@ -1053,35 +1056,34 @@ const DashboardAdmin = () => {
             <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
               <AlertTriangle className="h-7 w-7 text-destructive" />
             </div>
-            <DialogTitle className="text-center">Fermer cette imprimerie ?</DialogTitle>
+            <DialogTitle className="text-center">{t("closeShopDialog.title")}</DialogTitle>
             <DialogDescription className="text-center">
               {imprimerieAFermer?.nom}{imprimerieAFermer?.ville ? ` — ${imprimerieAFermer.ville}` : ""}
             </DialogDescription>
           </DialogHeader>
 
           <div className="text-sm text-muted-foreground space-y-2">
-            <p>Elle disparaîtra du catalogue et ne recevra plus aucune commande.</p>
+            <p>{t("closeShopDialog.point1")}</p>
             <p>
-              Ses commandes en cours et ses factures restent intactes, et son gérant
-              conserve l'accès à son espace pour les honorer.
+              {t("closeShopDialog.point2")}
             </p>
-            <p>Vous pourrez la rouvrir en la réactivant.</p>
+            <p>{t("closeShopDialog.point3")}</p>
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setImprimerieAFermer(null)} disabled={fermetureEnCours}>
-              Annuler
+              {t("closeShopDialog.cancel")}
             </Button>
             <Button variant="destructive" onClick={handleFermerImprimerie} disabled={fermetureEnCours}>
               {fermetureEnCours ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Fermeture...
+                  {t("closeShopDialog.closing")}
                 </>
               ) : (
                 <>
                   <Store className="h-4 w-4 mr-2" />
-                  Fermer l'imprimerie
+                  {t("closeShopDialog.confirmButton")}
                 </>
               )}
             </Button>

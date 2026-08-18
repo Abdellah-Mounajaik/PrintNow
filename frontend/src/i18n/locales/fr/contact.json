@@ -1,0 +1,72 @@
+{
+  "hero": {
+    "badge": "Contact",
+    "title": "Une question ? Parlons-en",
+    "subtitle": "Notre équipe accompagne clients et imprimeurs partenaires du lundi au vendredi."
+  },
+  "info": {
+    "email": {
+      "title": "Email",
+      "detail": "Réponse sous 24h ouvrées"
+    },
+    "phone": {
+      "title": "Téléphone",
+      "value": "+32 2 123 45 67",
+      "detail": "Lun – Ven, 9h à 18h"
+    }
+  },
+  "fields": {
+    "name": "Nom",
+    "email": "Email",
+    "subject": "Sujet",
+    "message": "Message"
+  },
+  "toast": {
+    "missingFields": {
+      "title": "Champs manquants",
+      "description": "Merci de compléter : {{fields}}."
+    },
+    "invalidEmail": {
+      "title": "Email invalide",
+      "description": "Merci de saisir une adresse email valide."
+    },
+    "success": {
+      "title": "Message envoyé",
+      "description": "Notre équipe vous répond sous 24h ouvrées."
+    },
+    "error": {
+      "title": "Erreur"
+    }
+  },
+  "sent": {
+    "title": "Message envoyé",
+    "description": "Merci {{firstName}}, nous avons bien reçu votre demande « {{subject}} ». Une réponse sera envoyée à {{email}}.",
+    "resetButton": "Envoyer un autre message"
+  },
+  "form": {
+    "title": "Nous écrire",
+    "requiredNote": "Tous les champs marqués d'un * sont obligatoires.",
+    "name": {
+      "label": "Nom complet *",
+      "placeholder": "Marie Dupont"
+    },
+    "email": {
+      "label": "Email *",
+      "placeholder": "marie@exemple.be"
+    },
+    "subject": {
+      "label": "Sujet *",
+      "placeholder": "Ex. : Problème de livraison, partenariat, question technique…"
+    },
+    "message": {
+      "label": "Message *",
+      "placeholder": "Décrivez votre demande…"
+    },
+    "submitButton": "Envoyer le message"
+  },
+  "printerCta": {
+    "title": "Vous êtes imprimeur ?",
+    "description": "Rejoignez le catalogue PrintNow : inscription en ligne, services et horaires configurables, activation immédiate après paiement.",
+    "button": "Devenir partenaire"
+  }
+}

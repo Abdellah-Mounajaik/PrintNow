@@ -1,0 +1,201 @@
+{
+  "header": {
+    "title": "Administration",
+    "subtitle": "Back-office PrintNow · Gestion globale de la plateforme",
+    "badge": "Admin"
+  },
+  "kpis": {
+    "users": {
+      "label": "Utilisateurs",
+      "deletedCount": "{{count}} compte(s) supprimé(s)"
+    },
+    "shops": {
+      "label": "Imprimeries actives",
+      "totalCount": "{{count}} au total"
+    },
+    "revenue": {
+      "label": "CA total",
+      "commission": "Commission : {{amount}}€",
+      "corrections": "Corrections : {{amount}}€",
+      "designs": "Designs IA : {{amount}}€"
+    },
+    "orders": {
+      "label": "Commandes totales"
+    }
+  },
+  "tabs": {
+    "signups": "Inscriptions récentes",
+    "shops": "Imprimeries",
+    "users": "Utilisateurs",
+    "orders": "Commandes",
+    "verifications": "Vérifications étudiantes"
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant"
+  },
+  "signups": {
+    "title": "Inscriptions récentes",
+    "subtitle": "Dernières imprimeries inscrites sur la plateforme.",
+    "empty": "Aucune imprimerie pour l'instant.",
+    "viewButton": "Voir"
+  },
+  "shops": {
+    "title": "Imprimeries partenaires",
+    "searchPlaceholder": "Rechercher par nom, ville ou email...",
+    "empty": "Aucune imprimerie.",
+    "emptyFiltered": {
+      "title": "Aucun résultat",
+      "description": "Aucune imprimerie ne correspond à \"{{query}}\"."
+    },
+    "columns": {
+      "name": "Imprimerie",
+      "city": "Ville",
+      "email": "Email",
+      "status": "Statut",
+      "action": "Action"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "closeAriaLabel": "Fermer l'imprimerie {{name}}"
+  },
+  "users": {
+    "title": "Gestion des utilisateurs",
+    "searchPlaceholder": "Rechercher par nom ou email...",
+    "filters": {
+      "all": "Tous",
+      "clients": "Clients",
+      "shops": "Imprimeurs"
+    },
+    "empty": "Aucun utilisateur.",
+    "emptyFiltered": {
+      "title": "Aucun résultat",
+      "descriptionSearch": "Aucun utilisateur ne correspond à \"{{query}}\".",
+      "descriptionRole": "Aucun utilisateur pour ce rôle."
+    },
+    "columns": {
+      "name": "Nom",
+      "email": "Email",
+      "role": "Rôle",
+      "status": "Statut",
+      "action": "Action"
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "deletedOn": "Supprimé le {{date}}"
+    },
+    "deleteAriaLabel": "Supprimer le compte de {{name}}",
+    "deletedPlaceholder": {
+      "firstName": "Compte",
+      "lastName": "supprimé"
+    }
+  },
+  "orders": {
+    "title": "Toutes les commandes",
+    "searchPlaceholder": "Rechercher par n°, client ou imprimerie...",
+    "totalCommissionLabel": "Commission totale :",
+    "empty": "Aucune commande.",
+    "emptyFiltered": {
+      "title": "Aucun résultat",
+      "description": "Aucune commande ne correspond à \"{{query}}\"."
+    },
+    "columns": {
+      "number": "N° Commande",
+      "client": "Client",
+      "shop": "Imprimerie",
+      "totalTtc": "Total TTC",
+      "commission": "Commission (10%)",
+      "correction": "Correction",
+      "aiDesign": "Design IA",
+      "statement": "Relevé"
+    },
+    "statementAriaLabel": "Relevé des revenus de la commande {{number}}",
+    "statementTitle": "Relevé des revenus PrintNow",
+    "summary": {
+      "totalRevenue": "CA total plateforme",
+      "platformRevenue": "Revenus PrintNow",
+      "totalCommissions": "Commissions totales",
+      "includingCorrections": "dont {{amount}}€ de corrections",
+      "includingAiDesigns": "dont {{amount}}€ de designs IA"
+    }
+  },
+  "verifications": {
+    "title": "Vérifications étudiantes",
+    "subtitle": "Validité jusqu'au 30 juin · renouvellement annuel obligatoire",
+    "pendingBadge": "{{count}} en attente",
+    "empty": "Aucune demande reçue.",
+    "columns": {
+      "student": "Étudiant",
+      "email": "Email",
+      "submittedOn": "Soumis le",
+      "validUntil": "Valable jusqu'au",
+      "status": "Statut",
+      "file": "Dossier"
+    },
+    "viewButton": "Voir",
+    "status": {
+      "enAttente": "En attente",
+      "accepte": "Acceptée",
+      "refuse": "Refusée",
+      "expire": "Expirée"
+    },
+    "studentCardLabel": "Carte étudiant",
+    "idCardLabel": "Carte d'identité",
+    "imageNotFound": "{{alt}} introuvable",
+    "loadingImage": "Chargement {{alt}}…",
+    "previousRefusalReason": "Motif du refus précédent",
+    "refusalPlaceholder": "Motif du refus (optionnel) — visible par l'étudiant",
+    "acceptButton": "Accepter",
+    "refuseButton": "Refuser"
+  },
+  "deleteUserDialog": {
+    "title": "Supprimer ce compte ?",
+    "point1": "Son nom, son email et son téléphone seront définitivement effacés.",
+    "point2": "Ses commandes et factures sont conservées, comme la loi l'impose, mais ne porteront plus son nom. S'il gère une imprimerie, celle-ci sera fermée.",
+    "irreversible": "Cette action est irréversible.",
+    "cancel": "Annuler",
+    "deleting": "Suppression...",
+    "confirmButton": "Supprimer définitivement"
+  },
+  "closeShopDialog": {
+    "title": "Fermer cette imprimerie ?",
+    "point1": "Elle disparaîtra du catalogue et ne recevra plus aucune commande.",
+    "point2": "Ses commandes en cours et ses factures restent intactes, et son gérant conserve l'accès à son espace pour les honorer.",
+    "point3": "Vous pourrez la rouvrir en la réactivant.",
+    "cancel": "Annuler",
+    "closing": "Fermeture...",
+    "confirmButton": "Fermer l'imprimerie"
+  },
+  "toasts": {
+    "shopClosed": {
+      "title": "Imprimerie fermée",
+      "description": "Elle ne figure plus au catalogue et ne recevra plus de commandes."
+    },
+    "shopCloseError": {
+      "title": "Fermeture impossible",
+      "defaultDescription": "Réessayez dans un instant."
+    },
+    "verificationAccepted": {
+      "title": "Vérification acceptée"
+    },
+    "verificationRefused": {
+      "title": "Vérification refusée"
+    },
+    "userDeleted": {
+      "title": "Compte supprimé",
+      "description": "Ses données personnelles ont été effacées ; ses commandes restent enregistrées."
+    },
+    "userDeleteError": {
+      "title": "Suppression impossible",
+      "defaultDescription": "Réessayez dans un instant."
+    },
+    "error": {
+      "title": "Erreur",
+      "validationFailed": "Impossible de valider.",
+      "refusalFailed": "Impossible de refuser."
+    }
+  }
+}

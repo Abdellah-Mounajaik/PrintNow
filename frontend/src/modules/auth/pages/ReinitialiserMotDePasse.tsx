@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import { authService } from "../services/auth.service";
 const MOT_DE_PASSE_VALIDE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 
 const ReinitialiserMotDePasse = () => {
+  const { t } = useTranslation("auth");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const jeton = searchParams.get("jeton") ?? "";
@@ -41,8 +43,8 @@ const ReinitialiserMotDePasse = () => {
 
     if (!MOT_DE_PASSE_VALIDE.test(motDePasse)) {
       toast({
-        title: "Mot de passe trop faible",
-        description: "Le mot de passe doit contenir au moins 8 caractères, avec des lettres et des chiffres.",
+        title: t("resetPassword.errors.weakPasswordTitle"),
+        description: t("resetPassword.errors.weakPasswordDescription"),
         variant: "destructive",
       });
       return;
@@ -50,8 +52,8 @@ const ReinitialiserMotDePasse = () => {
 
     if (motDePasse !== confirmation) {
       toast({
-        title: "Les mots de passe ne correspondent pas",
-        description: "Saisissez deux fois le même mot de passe.",
+        title: t("resetPassword.errors.mismatchTitle"),
+        description: t("resetPassword.errors.mismatchDescription"),
         variant: "destructive",
       });
       return;
@@ -61,14 +63,14 @@ const ReinitialiserMotDePasse = () => {
     try {
       await authService.reinitialiserMotDePasse(jeton, motDePasse);
       toast({
-        title: "Mot de passe modifié",
-        description: "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+        title: t("resetPassword.success.title"),
+        description: t("resetPassword.success.description"),
       });
       navigate("/login");
     } catch (err) {
       toast({
-        title: "Réinitialisation impossible",
-        description: err instanceof Error ? err.message : "Réessayez dans un instant.",
+        title: t("resetPassword.errors.resetFailedTitle"),
+        description: err instanceof Error ? err.message : t("resetPassword.errors.retryLater"),
         variant: "destructive",
       });
       setIsLoading(false);
@@ -84,28 +86,28 @@ const ReinitialiserMotDePasse = () => {
               <CardContent className="pt-6">
                 <div className="text-center py-8 text-muted-foreground">
                   <Loader2 className="h-6 w-6 mx-auto mb-3 animate-spin" />
-                  Vérification du lien...
+                  {t("resetPassword.verifying")}
                 </div>
               </CardContent>
             ) : lienValide ? (
               <>
                 <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-xl">Nouveau mot de passe</CardTitle>
+                  <CardTitle className="text-xl">{t("resetPassword.title")}</CardTitle>
                   <CardDescription>
-                    Choisissez le mot de passe qui protégera votre compte PrintNow
+                    {t("resetPassword.subtitle")}
                   </CardDescription>
                 </CardHeader>
 
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="nouveau-mdp">Nouveau mot de passe</Label>
+                      <Label htmlFor="nouveau-mdp">{t("resetPassword.newPasswordLabel")}</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="nouveau-mdp"
                           type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
+                          placeholder={t("resetPassword.passwordPlaceholder")}
                           className="pl-10 pr-10"
                           value={motDePasse}
                           onChange={(e) => setMotDePasse(e.target.value)}
@@ -114,25 +116,25 @@ const ReinitialiserMotDePasse = () => {
                         <button
                           type="button"
                           onClick={() => setShowPassword((v) => !v)}
-                          aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                          aria-label={showPassword ? t("resetPassword.hidePassword") : t("resetPassword.showPassword")}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Minimum 8 caractères avec lettres et chiffres
+                        {t("resetPassword.passwordHint")}
                       </p>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirmation-mdp">Confirmer le mot de passe</Label>
+                      <Label htmlFor="confirmation-mdp">{t("resetPassword.confirmPasswordLabel")}</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="confirmation-mdp"
                           type={showConfirmation ? "text" : "password"}
-                          placeholder="••••••••"
+                          placeholder={t("resetPassword.passwordPlaceholder")}
                           className="pl-10 pr-10"
                           value={confirmation}
                           onChange={(e) => setConfirmation(e.target.value)}
@@ -141,7 +143,7 @@ const ReinitialiserMotDePasse = () => {
                         <button
                           type="button"
                           onClick={() => setShowConfirmation((v) => !v)}
-                          aria-label={showConfirmation ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                          aria-label={showConfirmation ? t("resetPassword.hidePassword") : t("resetPassword.showPassword")}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
                           {showConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -153,11 +155,11 @@ const ReinitialiserMotDePasse = () => {
                       {isLoading ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Modification...
+                          {t("resetPassword.submitButtonLoading")}
                         </>
                       ) : (
                         <>
-                          Changer mon mot de passe
+                          {t("resetPassword.submitButton")}
                           <ArrowRight className="h-4 w-4 ml-2" />
                         </>
                       )}
@@ -170,7 +172,7 @@ const ReinitialiserMotDePasse = () => {
                       className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                     >
                       <ArrowLeft className="h-3.5 w-3.5" />
-                      Retour à la connexion
+                      {t("resetPassword.backToLogin")}
                     </Link>
                   </div>
                 </CardContent>
@@ -182,15 +184,14 @@ const ReinitialiserMotDePasse = () => {
                     <AlertCircle className="h-7 w-7 text-destructive" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl mb-2">Lien expiré</CardTitle>
+                    <CardTitle className="text-xl mb-2">{t("resetPassword.expired.title")}</CardTitle>
                     <CardDescription className="leading-relaxed">
-                      Ce lien de réinitialisation n'est plus valable. Les liens expirent
-                      au bout de 30 minutes et ne peuvent servir qu'une seule fois.
+                      {t("resetPassword.expired.description")}
                     </CardDescription>
                   </div>
                   <Button asChild className="w-full">
                     <Link to="/mot-de-passe-oublie">
-                      Demander un nouveau lien
+                      {t("resetPassword.expired.newLinkButton")}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Link>
                   </Button>
@@ -199,7 +200,7 @@ const ReinitialiserMotDePasse = () => {
                     className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
-                    Retour à la connexion
+                    {t("resetPassword.expired.backToLogin")}
                   </Link>
                 </div>
               </CardContent>

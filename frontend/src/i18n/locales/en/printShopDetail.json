@@ -1,0 +1,86 @@
+{
+  "loading": "Loading...",
+  "error": {
+    "generic": "Error: {{message}}"
+  },
+  "actions": {
+    "back": "Back",
+    "reservedForClients": "Customers only",
+    "loginToOrder": "Log in to order",
+    "orderNow": "Order now"
+  },
+  "reviews": {
+    "count_one": "({{count}} review)",
+    "count_other": "({{count}} reviews)"
+  },
+  "badges": {
+    "express": "2h express available",
+    "studentDiscount": "-{{percent}}% for students",
+    "delivery": "Delivery available"
+  },
+  "services": {
+    "title": "Services & Rates",
+    "empty": "No rates available.",
+    "documents": {
+      "name": "Documents",
+      "description": "A4/A3 document printing"
+    },
+    "flyers": {
+      "name": "Flyers & Posters",
+      "description": "Flyers, posters and large-format prints"
+    },
+    "cartes": {
+      "name": "Business cards",
+      "description": "Professional business cards"
+    },
+    "reliure": {
+      "name": "Binding & Finishing",
+      "description": "Binding and lamination options"
+    }
+  },
+  "items": {
+    "documentBwA4": "B&W A4",
+    "documentColorA4": "Color A4",
+    "documentBwA3": "B&W A3",
+    "documentColorA3": "Color A3",
+    "flyers": "Flyers / Leaflets",
+    "posters": "Large-format posters",
+    "businessCards": "Business cards",
+    "standardFormat": "Standard",
+    "perDocument": "Per document",
+    "perPage": "Per page",
+    "binding": "{{type}} binding",
+    "lamination": "{{type}} lamination"
+  },
+  "pricing": {
+    "perUnit": "/ unit"
+  },
+  "contact": {
+    "title": "Contact"
+  },
+  "hours": {
+    "title": "Opening hours",
+    "closed": "Closed",
+    "empty": "Opening hours not provided."
+  },
+  "avis": {
+    "title": "Customer reviews",
+    "formTitle": "Leave your review",
+    "commentPlaceholder": "Share your experience (optional)…",
+    "submit": "Post my review",
+    "alreadyReviewed": "You've already left a review for this print shop.",
+    "empty": "No reviews yet. Be the first to leave one after placing an order!",
+    "sort": {
+      "recent": "Most recent",
+      "best": "Highest rated",
+      "worst": "Lowest rated"
+    },
+    "toast": {
+      "ratingRequiredTitle": "Rating required",
+      "ratingRequiredDescription": "Select a rating from 1 to 5 stars.",
+      "successTitle": "Thank you for your review!",
+      "errorTitle": "Review not published",
+      "genericError": "Something went wrong. Please try again."
+    }
+  }
+}

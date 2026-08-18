@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Header from "../../../components/layout/Header";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -44,33 +45,9 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { userService } from "../services/user.service";
 import type { CommandeDTO, VerifDTO, SuiviDTO, UserProfileDTO } from "../models/user.model";
 
-const STATUS_MAP_RETRAIT: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
-  EN_ATTENTE_PAIEMENT: { label: "En attente de paiement", variant: "outline" },
-  PAYEE: { label: "Confirmée", variant: "secondary" },
-  EN_COURS_IMPRESSION: { label: "En cours d'impression", variant: "default" },
-  PRETE: { label: "Prêt à être retiré", variant: "default" },
-  LIVREE: { label: "Récupérée", variant: "default" },
-  ANNULEE: { label: "Annulée", variant: "destructive" },
-};
-
-const STATUS_MAP_LIVRAISON: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
-  EN_ATTENTE_PAIEMENT: { label: "En attente de paiement", variant: "outline" },
-  PAYEE: { label: "Confirmée", variant: "secondary" },
-  EN_COURS_IMPRESSION: { label: "En cours d'impression", variant: "default" },
-  PRETE: { label: "Expédiée", variant: "default" },
-  LIVREE: { label: "Livrée", variant: "default" },
-  ANNULEE: { label: "Annulée", variant: "destructive" },
-};
-
 // Une facture n'existe que pour une commande dont le paiement a bien été
 // confirmé (même condition que côté backend, FactureService.STATUTS_FACTURABLES).
 const STATUTS_FACTURABLES = new Set(["PAYEE", "EN_COURS_IMPRESSION", "PRETE", "LIVREE"]);
-
-// ─── Filtre par statut de la liste des commandes (même logique que la stat "En cours") ──
-const ORDER_STATUS_FILTERS: { key: string; label: string; statuts: string[] | null }[] = [
-  { key: "ALL", label: "Toutes", statuts: null },
-  { key: "EN_COURS", label: "En cours", statuts: ["PAYEE", "EN_COURS_IMPRESSION"] },
-];
 
 // ─── Pagination de la liste des commandes ────────────────────────────────────
 const ORDERS_PER_PAGE = 6;
@@ -84,8 +61,33 @@ const montantPaye = (commande: CommandeDTO) =>
   Number(commande.totalTTC ?? 0) + Number(commande.montantCorrections ?? 0) + Number(commande.montantGenerations ?? 0);
 
 const DashboardClient = () => {
+  const { t } = useTranslation("dashboardClient");
   const { user, token, logoutGlobal } = useAuth();
   const navigate = useNavigate();
+
+  const STATUS_MAP_RETRAIT: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
+    EN_ATTENTE_PAIEMENT: { label: t("orders.status.retrait.enAttentePaiement"), variant: "outline" },
+    PAYEE: { label: t("orders.status.retrait.payee"), variant: "secondary" },
+    EN_COURS_IMPRESSION: { label: t("orders.status.retrait.enCoursImpression"), variant: "default" },
+    PRETE: { label: t("orders.status.retrait.prete"), variant: "default" },
+    LIVREE: { label: t("orders.status.retrait.livree"), variant: "default" },
+    ANNULEE: { label: t("orders.status.retrait.annulee"), variant: "destructive" },
+  };
+
+  const STATUS_MAP_LIVRAISON: Record<string, { label: string; variant: "default"|"secondary"|"destructive"|"outline" }> = {
+    EN_ATTENTE_PAIEMENT: { label: t("orders.status.livraison.enAttentePaiement"), variant: "outline" },
+    PAYEE: { label: t("orders.status.livraison.payee"), variant: "secondary" },
+    EN_COURS_IMPRESSION: { label: t("orders.status.livraison.enCoursImpression"), variant: "default" },
+    PRETE: { label: t("orders.status.livraison.prete"), variant: "default" },
+    LIVREE: { label: t("orders.status.livraison.livree"), variant: "default" },
+    ANNULEE: { label: t("orders.status.livraison.annulee"), variant: "destructive" },
+  };
+
+  // ─── Filtre par statut de la liste des commandes (même logique que la stat "En cours") ──
+  const ORDER_STATUS_FILTERS: { key: string; label: string; statuts: string[] | null }[] = [
+    { key: "ALL", label: t("orders.filters.all"), statuts: null },
+    { key: "EN_COURS", label: t("orders.filters.inProgress"), statuts: ["PAYEE", "EN_COURS_IMPRESSION"] },
+  ];
   const [orders, setOrders] = useState<CommandeDTO[]>([]);
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("ALL");
   const [ordersPage, setOrdersPage] = useState(1);
@@ -132,14 +134,14 @@ const DashboardClient = () => {
       const updated = await userService.updateMonProfil(profileForm, token);
       setProfil(updated);
       if (emailChanged) {
-        toast({ title: "Profil mis à jour", description: "Votre email a changé, veuillez vous reconnecter." });
+        toast({ title: t("toasts.profileUpdated.title"), description: t("toasts.profileUpdated.emailChangedDescription") });
         logoutGlobal();
         navigate("/login?tab=connexion");
         return;
       }
-      toast({ title: "Profil mis à jour" });
+      toast({ title: t("toasts.profileUpdated.title") });
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setSavingProfile(false);
     }
@@ -148,16 +150,16 @@ const DashboardClient = () => {
   const handleChangePassword = async () => {
     if (!token) return;
     if (passwordForm.nouveau !== passwordForm.confirmation) {
-      toast({ title: "Erreur", description: "Les mots de passe ne correspondent pas.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.passwordMismatch"), variant: "destructive" });
       return;
     }
     setSavingPassword(true);
     try {
       await userService.changerMotDePasse(passwordForm.ancien, passwordForm.nouveau, token);
       setPasswordForm({ ancien: "", nouveau: "", confirmation: "" });
-      toast({ title: "Mot de passe changé" });
+      toast({ title: t("toasts.passwordChanged.title") });
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setSavingPassword(false);
     }
@@ -173,7 +175,7 @@ const DashboardClient = () => {
       // au rechargement.
       setCompteSupprime(true);
     } catch (e) {
-      toast({ title: "Suppression impossible", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.deleteError.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setSuppressionEnCours(false);
     }
@@ -211,7 +213,7 @@ const DashboardClient = () => {
     try {
       await userService.telechargerFacture(commandeId, numeroCommande, token);
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setDownloadingInvoiceId(null);
     }
@@ -224,7 +226,7 @@ const DashboardClient = () => {
       const data = await userService.getSuiviLivraison(orderId, token);
       setSuiviData(prev => ({ ...prev, [orderId]: data }));
     } catch {
-      toast({ title: "Erreur", description: "Impossible de récupérer le suivi.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.trackingError.description"), variant: "destructive" });
     } finally {
       setSuiviLoading(null);
     }
@@ -234,7 +236,7 @@ const DashboardClient = () => {
     const carteEt = carteEtudianteRef.current?.files?.[0];
     const carteId = carteIdentiteRef.current?.files?.[0];
     if (!carteEt || !carteId) {
-      toast({ title: "Sélectionnez les deux documents", variant: "destructive" });
+      toast({ title: t("toasts.selectDocuments.title"), variant: "destructive" });
       return;
     }
     if (!token) return;
@@ -242,9 +244,9 @@ const DashboardClient = () => {
     try {
       const data = await userService.soumettreVerification(carteEt, carteId, token);
       setVerif(data);
-      toast({ title: "Demande envoyée", description: "L'admin examinera vos documents." });
+      toast({ title: t("toasts.verificationSent.title"), description: t("toasts.verificationSent.description") });
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -262,10 +264,10 @@ const DashboardClient = () => {
           {/* Header */}
           <div className="mb-8">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
-              Bonjour, {displayName} 👋
+              {t("greeting", { name: displayName })}
             </h1>
             <p className="text-muted-foreground">
-              Gérez vos commandes et votre profil depuis votre espace client
+              {t("subtitle")}
             </p>
           </div>
 
@@ -283,34 +285,34 @@ const DashboardClient = () => {
                 <Card className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <Package className="h-8 w-8 text-primary" />
-                    <Badge variant="outline">Total</Badge>
+                    <Badge variant="outline">{t("stats.totalBadge")}</Badge>
                   </div>
                   <div className="font-display text-3xl font-bold">{orders.length}</div>
-                  <div className="text-sm text-muted-foreground">Commandes</div>
+                  <div className="text-sm text-muted-foreground">{t("stats.ordersLabel")}</div>
                 </Card>
                 <Card className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <Clock className="h-8 w-8 text-warning" />
-                    <Badge variant="outline">Actives</Badge>
+                    <Badge variant="outline">{t("stats.activeBadge")}</Badge>
                   </div>
                   <div className="font-display text-3xl font-bold">{enCours}</div>
-                  <div className="text-sm text-muted-foreground">En cours</div>
+                  <div className="text-sm text-muted-foreground">{t("stats.inProgressLabel")}</div>
                 </Card>
                 <Card className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <Euro className="h-8 w-8 text-success" />
-                    <Badge variant="outline">Total</Badge>
+                    <Badge variant="outline">{t("stats.totalBadge")}</Badge>
                   </div>
                   <div className="font-display text-3xl font-bold">{totalDepense.toFixed(2)}€</div>
-                  <div className="text-sm text-muted-foreground">Dépensé</div>
+                  <div className="text-sm text-muted-foreground">{t("stats.spentLabel")}</div>
                 </Card>
                 <Card className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <TrendingUp className="h-8 w-8 text-info" />
-                    <Badge variant="outline">Ce mois</Badge>
+                    <Badge variant="outline">{t("stats.thisMonthBadge")}</Badge>
                   </div>
                   <div className="font-display text-3xl font-bold">{cesMois}</div>
-                  <div className="text-sm text-muted-foreground">Commandes</div>
+                  <div className="text-sm text-muted-foreground">{t("stats.ordersLabel")}</div>
                 </Card>
               </div>
             );
@@ -318,16 +320,16 @@ const DashboardClient = () => {
 
           <Tabs defaultValue="orders" className="space-y-6">
             <TabsList>
-              <TabsTrigger value="orders">Mes commandes</TabsTrigger>
-              <TabsTrigger value="invoices">Factures</TabsTrigger>
-              <TabsTrigger value="etudiant">Vérification étudiant</TabsTrigger>
-              <TabsTrigger value="profile">Profil</TabsTrigger>
+              <TabsTrigger value="orders">{t("tabs.orders")}</TabsTrigger>
+              <TabsTrigger value="invoices">{t("tabs.invoices")}</TabsTrigger>
+              <TabsTrigger value="etudiant">{t("tabs.student")}</TabsTrigger>
+              <TabsTrigger value="profile">{t("tabs.profile")}</TabsTrigger>
             </TabsList>
 
             {/* COMMANDES */}
             <TabsContent value="orders">
               <Card className="p-6">
-                <h3 className="font-display font-semibold text-lg mb-4">Mes commandes</h3>
+                <h3 className="font-display font-semibold text-lg mb-4">{t("orders.title")}</h3>
                 {orders.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {ORDER_STATUS_FILTERS.map((f) => (
@@ -361,12 +363,12 @@ const DashboardClient = () => {
                     return (
                       <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                         <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                        <h4 className="text-lg font-semibold mb-1">Aucune commande</h4>
+                        <h4 className="text-lg font-semibold mb-1">{t("orders.empty.title")}</h4>
                         <p className="text-muted-foreground text-sm mb-4">
-                          Vous n'avez pas encore passé de commande.
+                          {t("orders.empty.description")}
                         </p>
                         <Button asChild>
-                          <Link to="/imprimeries">Trouver une imprimerie</Link>
+                          <Link to="/imprimeries">{t("orders.empty.cta")}</Link>
                         </Button>
                       </div>
                     );
@@ -376,8 +378,8 @@ const DashboardClient = () => {
                     return (
                       <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                         <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                        <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
-                        <p className="text-muted-foreground text-sm">Aucune commande dans "{activeStatusFilter.label}".</p>
+                        <h4 className="text-lg font-semibold mb-1">{t("orders.emptyFiltered.title")}</h4>
+                        <p className="text-muted-foreground text-sm">{t("orders.emptyFiltered.description", { filter: activeStatusFilter.label })}</p>
                       </div>
                     );
                   }
@@ -396,7 +398,7 @@ const DashboardClient = () => {
                               <p className="font-mono font-medium text-sm">{order.numeroCommande}</p>
                               <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
                                 {order.nomImprimerie} · {new Date(order.dateCreation).toLocaleDateString("fr-BE")}
-                                {isLivraison && <span className="inline-flex items-center gap-1"><Truck className="h-3 w-3" /> Livraison</span>}
+                                {isLivraison && <span className="inline-flex items-center gap-1"><Truck className="h-3 w-3" /> {t("orders.delivery")}</span>}
                               </p>
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
@@ -422,22 +424,22 @@ const DashboardClient = () => {
                               {suivi.numeroSuivi ? (
                                 <div className="flex items-center justify-between gap-3 pt-3">
                                   <div>
-                                    <p className="text-xs text-muted-foreground">Numéro de suivi bpost</p>
+                                    <p className="text-xs text-muted-foreground">{t("orders.tracking.numberLabel")}</p>
                                     <p className="font-mono text-sm font-medium">{suivi.numeroSuivi}</p>
                                     {suivi.statutAfterShipping && (
-                                      <p className="text-xs text-muted-foreground mt-0.5">Statut : {suivi.statutAfterShipping}</p>
+                                      <p className="text-xs text-muted-foreground mt-0.5">{t("orders.tracking.statusLabel", { status: suivi.statutAfterShipping })}</p>
                                     )}
                                   </div>
                                   {suivi.lienSuiviBpost && (
                                     <Button size="sm" asChild>
                                       <a href={suivi.lienSuiviBpost} target="_blank" rel="noopener noreferrer">
-                                        <ExternalLink className="h-3.5 w-3.5 mr-1" /> Suivre sur bpost
+                                        <ExternalLink className="h-3.5 w-3.5 mr-1" /> {t("orders.tracking.trackButton")}
                                       </a>
                                     </Button>
                                   )}
                                 </div>
                               ) : (
-                                <p className="pt-3 text-sm text-muted-foreground">Votre colis n'a pas encore été déposé chez bpost.</p>
+                                <p className="pt-3 text-sm text-muted-foreground">{t("orders.tracking.notShippedYet")}</p>
                               )}
                             </div>
                           )}
@@ -454,7 +456,7 @@ const DashboardClient = () => {
                         disabled={currentPage === 1}
                         onClick={() => setOrdersPage(currentPage - 1)}
                       >
-                        Précédent
+                        {t("pagination.previous")}
                       </Button>
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                         <Button
@@ -473,7 +475,7 @@ const DashboardClient = () => {
                         disabled={currentPage === totalPages}
                         onClick={() => setOrdersPage(currentPage + 1)}
                       >
-                        Suivant
+                        {t("pagination.next")}
                       </Button>
                     </div>
                   )}
@@ -508,13 +510,13 @@ const DashboardClient = () => {
                   return (
                     <>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                      <h3 className="font-display font-semibold text-lg">Mes factures</h3>
+                      <h3 className="font-display font-semibold text-lg">{t("invoices.title")}</h3>
                       {facturables.length > 0 && (
                         <div className="relative sm:w-[22rem]">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="text"
-                            placeholder="Rechercher par n° de commande ou imprimerie..."
+                            placeholder={t("invoices.searchPlaceholder")}
                             value={invoiceSearchQuery}
                             onChange={(e) => { setInvoiceSearchQuery(e.target.value); setInvoicesPage(1); }}
                             className="pl-9"
@@ -526,16 +528,16 @@ const DashboardClient = () => {
                     {facturables.length === 0 ? (
                       <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                         <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                        <h4 className="text-lg font-semibold mb-1">Aucune facture</h4>
+                        <h4 className="text-lg font-semibold mb-1">{t("invoices.empty.title")}</h4>
                         <p className="text-muted-foreground text-sm">
-                          Une facture est disponible dès qu'une commande est payée.
+                          {t("invoices.empty.description")}
                         </p>
                       </div>
                     ) : filteredFactures.length === 0 ? (
                       <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                         <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                        <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
-                        <p className="text-muted-foreground text-sm">Aucune facture ne correspond à "{invoiceSearchQuery}".</p>
+                        <h4 className="text-lg font-semibold mb-1">{t("invoices.emptyFiltered.title")}</h4>
+                        <p className="text-muted-foreground text-sm">{t("invoices.emptyFiltered.description", { query: invoiceSearchQuery })}</p>
                       </div>
                     ) : (
                     <>
@@ -569,7 +571,7 @@ const DashboardClient = () => {
                               ) : (
                                 <Download className="h-4 w-4 mr-2" />
                               )}
-                              Télécharger
+                              {t("invoices.download")}
                             </Button>
                           </div>
                         </div>
@@ -584,7 +586,7 @@ const DashboardClient = () => {
                           disabled={currentPage === 1}
                           onClick={() => setInvoicesPage(currentPage - 1)}
                         >
-                          Précédent
+                          {t("pagination.previous")}
                         </Button>
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                           <Button
@@ -603,7 +605,7 @@ const DashboardClient = () => {
                           disabled={currentPage === totalPages}
                           onClick={() => setInvoicesPage(currentPage + 1)}
                         >
-                          Suivant
+                          {t("pagination.next")}
                         </Button>
                       </div>
                     )}
@@ -621,10 +623,9 @@ const DashboardClient = () => {
                 <div className="flex items-center gap-3 mb-6">
                   <GraduationCap className="h-6 w-6 text-primary" />
                   <div>
-                    <h3 className="font-display font-semibold text-lg">Vérification étudiant</h3>
+                    <h3 className="font-display font-semibold text-lg">{t("student.title")}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Déposez votre carte étudiant + carte d'identité pour bénéficier du tarif réduit.
-                      La vérification est valable jusqu'au 30 juin et doit être renouvelée chaque année.
+                      {t("student.description")}
                     </p>
                   </div>
                 </div>
@@ -642,32 +643,32 @@ const DashboardClient = () => {
                     <div>
                       {verif.statut === "ACCEPTE" && (
                         <>
-                          <p className="font-semibold text-success">Vérification acceptée ✓</p>
+                          <p className="font-semibold text-success">{t("student.status.accepted.label")}</p>
                           {verif.valableJusquA && (
                             <p className="text-sm text-muted-foreground">
-                              Valable jusqu'au {new Date(verif.valableJusquA).toLocaleDateString("fr-BE")}
+                              {t("student.status.accepted.validUntil", { date: new Date(verif.valableJusquA).toLocaleDateString("fr-BE") })}
                             </p>
                           )}
                         </>
                       )}
                       {verif.statut === "EN_ATTENTE" && (
                         <>
-                          <p className="font-semibold text-warning">Demande en cours d'examen</p>
+                          <p className="font-semibold text-warning">{t("student.status.pending.label")}</p>
                           <p className="text-sm text-muted-foreground">
-                            Soumise le {new Date(verif.dateSoumission).toLocaleDateString("fr-BE")} · l'admin examinera vos documents.
+                            {t("student.status.pending.submittedOn", { date: new Date(verif.dateSoumission).toLocaleDateString("fr-BE") })}
                           </p>
                         </>
                       )}
                       {verif.statut === "REFUSE" && (
                         <>
-                          <p className="font-semibold text-destructive">Demande refusée — vous pouvez soumettre à nouveau.</p>
+                          <p className="font-semibold text-destructive">{t("student.status.refused.label")}</p>
                           {verif.motifRefus && (
-                            <p className="text-sm text-muted-foreground mt-1">Motif : {verif.motifRefus}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{t("student.status.refused.reason", { motif: verif.motifRefus })}</p>
                           )}
                         </>
                       )}
                       {verif.statut === "EXPIRE" && (
-                        <p className="font-semibold text-destructive">Vérification expirée — renouvelez votre demande.</p>
+                        <p className="font-semibold text-destructive">{t("student.status.expired.label")}</p>
                       )}
                     </div>
                   </div>
@@ -677,7 +678,7 @@ const DashboardClient = () => {
                 {verifLoaded && (!verif || verif.statut === "REFUSE" || verif.statut === "EXPIRE") && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Carte étudiant</label>
+                      <label className="text-sm font-medium">{t("student.form.studentCardLabel")}</label>
                       <input
                         ref={carteEtudianteRef}
                         type="file"
@@ -686,7 +687,7 @@ const DashboardClient = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Carte d'identité</label>
+                      <label className="text-sm font-medium">{t("student.form.idCardLabel")}</label>
                       <input
                         ref={carteIdentiteRef}
                         type="file"
@@ -696,7 +697,7 @@ const DashboardClient = () => {
                     </div>
                     <Button onClick={handleSoumettre} disabled={uploading}>
                       {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-                      {uploading ? "Envoi en cours…" : "Envoyer mes documents"}
+                      {uploading ? t("student.form.submitting") : t("student.form.submit")}
                     </Button>
                   </div>
                 )}
@@ -720,7 +721,7 @@ const DashboardClient = () => {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="prenom">Prénom</Label>
+                    <Label htmlFor="prenom">{t("profile.firstNameLabel")}</Label>
                     <Input
                       id="prenom"
                       value={profileForm.prenom}
@@ -728,7 +729,7 @@ const DashboardClient = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="nom">Nom</Label>
+                    <Label htmlFor="nom">{t("profile.lastNameLabel")}</Label>
                     <Input
                       id="nom"
                       value={profileForm.nom}
@@ -737,7 +738,7 @@ const DashboardClient = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email" className="flex items-center gap-1.5">
-                      <Mail className="h-3.5 w-3.5" /> Email
+                      <Mail className="h-3.5 w-3.5" /> {t("profile.emailLabel")}
                     </Label>
                     <Input
                       id="email"
@@ -748,13 +749,13 @@ const DashboardClient = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="telephone" className="flex items-center gap-1.5">
-                      <Phone className="h-3.5 w-3.5" /> Téléphone
+                      <Phone className="h-3.5 w-3.5" /> {t("profile.phoneLabel")}
                     </Label>
                     <Input
                       id="telephone"
                       value={profileForm.telephone}
                       onChange={(e) => setProfileForm((f) => ({ ...f, telephone: e.target.value }))}
-                      placeholder="+32 ..."
+                      placeholder={t("profile.phonePlaceholder")}
                     />
                   </div>
                 </div>
@@ -762,18 +763,18 @@ const DashboardClient = () => {
                 <div className="mt-6 flex gap-3">
                   <Button onClick={handleSaveProfile} disabled={savingProfile}>
                     {savingProfile ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    {savingProfile ? "Enregistrement..." : "Modifier le profil"}
+                    {savingProfile ? t("profile.saving") : t("profile.saveButton")}
                   </Button>
                 </div>
               </Card>
 
               <Card className="p-6">
                 <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
-                  <Lock className="h-5 w-5 text-muted-foreground" /> Changer le mot de passe
+                  <Lock className="h-5 w-5 text-muted-foreground" /> {t("profile.password.title")}
                 </h3>
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="ancien-mdp">Mot de passe actuel</Label>
+                    <Label htmlFor="ancien-mdp">{t("profile.password.currentLabel")}</Label>
                     <Input
                       id="ancien-mdp"
                       type="password"
@@ -783,7 +784,7 @@ const DashboardClient = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="nouveau-mdp">Nouveau mot de passe</Label>
+                    <Label htmlFor="nouveau-mdp">{t("profile.password.newLabel")}</Label>
                     <Input
                       id="nouveau-mdp"
                       type="password"
@@ -793,7 +794,7 @@ const DashboardClient = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmation-mdp">Confirmer le nouveau mot de passe</Label>
+                    <Label htmlFor="confirmation-mdp">{t("profile.password.confirmLabel")}</Label>
                     <Input
                       id="confirmation-mdp"
                       type="password"
@@ -806,23 +807,21 @@ const DashboardClient = () => {
                 <div className="mt-6">
                   <Button variant="outline" onClick={handleChangePassword} disabled={savingPassword}>
                     {savingPassword ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    {savingPassword ? "Enregistrement..." : "Changer le mot de passe"}
+                    {savingPassword ? t("profile.password.saving") : t("profile.password.changeButton")}
                   </Button>
                 </div>
               </Card>
 
               <Card className="p-6 border-destructive/30">
                 <h3 className="font-display font-semibold text-lg mb-2 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-destructive" /> Supprimer mon compte
+                  <AlertTriangle className="h-5 w-5 text-destructive" /> {t("profile.deleteAccount.title")}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Vos données personnelles seront définitivement effacées et vous ne pourrez
-                  plus vous connecter. Vos factures sont conservées, comme la loi l'impose,
-                  mais ne porteront plus votre nom.
+                  {t("profile.deleteAccount.description")}
                 </p>
                 <Button variant="destructive" onClick={() => setConfirmationSuppression(true)}>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer mon compte
+                  {t("profile.deleteAccount.button")}
                 </Button>
               </Card>
             </TabsContent>
@@ -830,7 +829,7 @@ const DashboardClient = () => {
 
           <div className="mt-8 text-center">
             <Button variant="hero" size="lg" asChild>
-              <Link to="/imprimeries">Passer une nouvelle commande</Link>
+              <Link to="/imprimeries">{t("newOrderCta")}</Link>
             </Button>
           </div>
         </div>
@@ -854,14 +853,14 @@ const DashboardClient = () => {
                 <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                   <CheckCircle2 className="h-7 w-7 text-primary" />
                 </div>
-                <DialogTitle className="text-center">Votre compte a été supprimé</DialogTitle>
+                <DialogTitle className="text-center">{t("deleteDialog.success.title")}</DialogTitle>
                 <DialogDescription className="text-center">
-                  Vos données personnelles ont été effacées. Merci d'avoir utilisé PrintNow.
+                  {t("deleteDialog.success.description")}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <Button className="w-full" onClick={quitterApresSuppression}>
-                  Retour à l'accueil
+                  {t("deleteDialog.success.backHome")}
                 </Button>
               </DialogFooter>
             </>
@@ -871,35 +870,34 @@ const DashboardClient = () => {
                 <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
                   <AlertTriangle className="h-7 w-7 text-destructive" />
                 </div>
-                <DialogTitle className="text-center">Supprimer votre compte ?</DialogTitle>
+                <DialogTitle className="text-center">{t("deleteDialog.confirm.title")}</DialogTitle>
                 <DialogDescription className="text-center">
-                  Cette action est définitive et ne peut pas être annulée.
+                  {t("deleteDialog.confirm.description")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="text-sm text-muted-foreground space-y-2">
-                <p>Votre nom, votre email et votre téléphone seront effacés.</p>
+                <p>{t("deleteDialog.confirm.point1")}</p>
                 <p>
-                  Vos factures sont conservées sept ans, comme la loi l'impose, mais ne porteront
-                  plus votre nom.
+                  {t("deleteDialog.confirm.point2")}
                 </p>
-                <p>Vous serez déconnecté immédiatement.</p>
+                <p>{t("deleteDialog.confirm.point3")}</p>
               </div>
 
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button variant="outline" onClick={() => setConfirmationSuppression(false)} disabled={suppressionEnCours}>
-                  Annuler
+                  {t("deleteDialog.confirm.cancel")}
                 </Button>
                 <Button variant="destructive" onClick={handleSupprimerMonCompte} disabled={suppressionEnCours}>
                   {suppressionEnCours ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Suppression...
+                      {t("deleteDialog.confirm.deleting")}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Oui, supprimer mon compte
+                      {t("deleteDialog.confirm.confirmButton")}
                     </>
                   )}
                 </Button>

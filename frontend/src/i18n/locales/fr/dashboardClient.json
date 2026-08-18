@@ -1,0 +1,169 @@
+{
+  "greeting": "Bonjour, {{name}} 👋",
+  "subtitle": "Gérez vos commandes et votre profil depuis votre espace client",
+  "stats": {
+    "totalBadge": "Total",
+    "activeBadge": "Actives",
+    "thisMonthBadge": "Ce mois",
+    "ordersLabel": "Commandes",
+    "inProgressLabel": "En cours",
+    "spentLabel": "Dépensé"
+  },
+  "tabs": {
+    "orders": "Mes commandes",
+    "invoices": "Factures",
+    "student": "Vérification étudiant",
+    "profile": "Profil"
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant"
+  },
+  "orders": {
+    "title": "Mes commandes",
+    "delivery": "Livraison",
+    "filters": {
+      "all": "Toutes",
+      "inProgress": "En cours"
+    },
+    "empty": {
+      "title": "Aucune commande",
+      "description": "Vous n'avez pas encore passé de commande.",
+      "cta": "Trouver une imprimerie"
+    },
+    "emptyFiltered": {
+      "title": "Aucun résultat",
+      "description": "Aucune commande dans \"{{filter}}\"."
+    },
+    "status": {
+      "retrait": {
+        "enAttentePaiement": "En attente de paiement",
+        "payee": "Confirmée",
+        "enCoursImpression": "En cours d'impression",
+        "prete": "Prêt à être retiré",
+        "livree": "Récupérée",
+        "annulee": "Annulée"
+      },
+      "livraison": {
+        "enAttentePaiement": "En attente de paiement",
+        "payee": "Confirmée",
+        "enCoursImpression": "En cours d'impression",
+        "prete": "Expédiée",
+        "livree": "Livrée",
+        "annulee": "Annulée"
+      }
+    },
+    "tracking": {
+      "numberLabel": "Numéro de suivi bpost",
+      "statusLabel": "Statut : {{status}}",
+      "trackButton": "Suivre sur bpost",
+      "notShippedYet": "Votre colis n'a pas encore été déposé chez bpost."
+    }
+  },
+  "invoices": {
+    "title": "Mes factures",
+    "searchPlaceholder": "Rechercher par n° de commande ou imprimerie...",
+    "empty": {
+      "title": "Aucune facture",
+      "description": "Une facture est disponible dès qu'une commande est payée."
+    },
+    "emptyFiltered": {
+      "title": "Aucun résultat",
+      "description": "Aucune facture ne correspond à \"{{query}}\"."
+    },
+    "download": "Télécharger"
+  },
+  "student": {
+    "title": "Vérification étudiant",
+    "description": "Déposez votre carte étudiant + carte d'identité pour bénéficier du tarif réduit. La vérification est valable jusqu'au 30 juin et doit être renouvelée chaque année.",
+    "status": {
+      "accepted": {
+        "label": "Vérification acceptée ✓",
+        "validUntil": "Valable jusqu'au {{date}}"
+      },
+      "pending": {
+        "label": "Demande en cours d'examen",
+        "submittedOn": "Soumise le {{date}} · l'admin examinera vos documents."
+      },
+      "refused": {
+        "label": "Demande refusée — vous pouvez soumettre à nouveau.",
+        "reason": "Motif : {{motif}}"
+      },
+      "expired": {
+        "label": "Vérification expirée — renouvelez votre demande."
+      }
+    },
+    "form": {
+      "studentCardLabel": "Carte étudiant",
+      "idCardLabel": "Carte d'identité",
+      "submit": "Envoyer mes documents",
+      "submitting": "Envoi en cours…"
+    }
+  },
+  "profile": {
+    "firstNameLabel": "Prénom",
+    "lastNameLabel": "Nom",
+    "emailLabel": "Email",
+    "phoneLabel": "Téléphone",
+    "phonePlaceholder": "+32 ...",
+    "saveButton": "Modifier le profil",
+    "saving": "Enregistrement...",
+    "password": {
+      "title": "Changer le mot de passe",
+      "currentLabel": "Mot de passe actuel",
+      "newLabel": "Nouveau mot de passe",
+      "confirmLabel": "Confirmer le nouveau mot de passe",
+      "changeButton": "Changer le mot de passe",
+      "saving": "Enregistrement..."
+    },
+    "deleteAccount": {
+      "title": "Supprimer mon compte",
+      "description": "Vos données personnelles seront définitivement effacées et vous ne pourrez plus vous connecter. Vos factures sont conservées, comme la loi l'impose, mais ne porteront plus votre nom.",
+      "button": "Supprimer mon compte"
+    }
+  },
+  "newOrderCta": "Passer une nouvelle commande",
+  "deleteDialog": {
+    "success": {
+      "title": "Votre compte a été supprimé",
+      "description": "Vos données personnelles ont été effacées. Merci d'avoir utilisé PrintNow.",
+      "backHome": "Retour à l'accueil"
+    },
+    "confirm": {
+      "title": "Supprimer votre compte ?",
+      "description": "Cette action est définitive et ne peut pas être annulée.",
+      "point1": "Votre nom, votre email et votre téléphone seront effacés.",
+      "point2": "Vos factures sont conservées sept ans, comme la loi l'impose, mais ne porteront plus votre nom.",
+      "point3": "Vous serez déconnecté immédiatement.",
+      "cancel": "Annuler",
+      "deleting": "Suppression...",
+      "confirmButton": "Oui, supprimer mon compte"
+    }
+  },
+  "toasts": {
+    "profileUpdated": {
+      "title": "Profil mis à jour",
+      "emailChangedDescription": "Votre email a changé, veuillez vous reconnecter."
+    },
+    "passwordMismatch": "Les mots de passe ne correspondent pas.",
+    "passwordChanged": {
+      "title": "Mot de passe changé"
+    },
+    "error": {
+      "title": "Erreur"
+    },
+    "deleteError": {
+      "title": "Suppression impossible"
+    },
+    "trackingError": {
+      "description": "Impossible de récupérer le suivi."
+    },
+    "selectDocuments": {
+      "title": "Sélectionnez les deux documents"
+    },
+    "verificationSent": {
+      "title": "Demande envoyée",
+      "description": "L'admin examinera vos documents."
+    }
+  }
+}

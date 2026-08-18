@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import Header from "../../../components/layout/Header";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -39,9 +40,9 @@ import type { CommandeImprimeurDTO, PromoDTO } from "../models/imprimeur.model";
 const ORDERS_PER_PAGE = 6;
 
 // ─── Filtre par statut de la liste des commandes ─────────────────────────────
-const ORDER_STATUS_FILTERS: { key: string; label: string; statuts: string[] | null }[] = [
-  { key: "ALL", label: "Toutes", statuts: null },
-  { key: "A_TRAITER", label: "À traiter", statuts: ["PAYEE", "EN_COURS_IMPRESSION"] },
+const ORDER_STATUS_FILTERS: { key: string; labelKey: string; statuts: string[] | null }[] = [
+  { key: "ALL", labelKey: "orders.filters.all", statuts: null },
+  { key: "A_TRAITER", labelKey: "orders.filters.toProcess", statuts: ["PAYEE", "EN_COURS_IMPRESSION"] },
 ];
 
 // ─── Constantes options de finition ──────────────────────────────────────────
@@ -127,6 +128,7 @@ const initServicesFromProduits = (produits: any[]) => {
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 const DashboardImprimeur = () => {
+  const { t } = useTranslation("dashboardImprimeur");
   const { user, token, logoutGlobal } = useAuth();
   const [confirmationSuppression, setConfirmationSuppression] = useState(false);
   const [suppressionEnCours, setSuppressionEnCours] = useState(false);
@@ -141,7 +143,7 @@ const DashboardImprimeur = () => {
       // et une alerte ne survivrait pas au rechargement.
       setCompteSupprime(true);
     } catch (e) {
-      toast({ title: "Suppression impossible", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.deleteAccountError.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setSuppressionEnCours(false);
     }
@@ -182,7 +184,7 @@ const DashboardImprimeur = () => {
     try {
       await imprimeurService.telechargerReleveVente(commandeId, numeroCommande, token);
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setDownloadingCommissionId(null);
     }
@@ -194,7 +196,7 @@ const DashboardImprimeur = () => {
     try {
       await imprimeurService.telechargerFactureClient(commandeId, numeroCommande, token);
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setDownloadingFactureId(null);
     }
@@ -240,7 +242,7 @@ const DashboardImprimeur = () => {
       })
       .then(data => { setOrders(data); setIsLoading(false); })
       .catch(() => {
-        toast({ title: "Erreur", description: "Impossible de charger les données", variant: "destructive" });
+        toast({ title: t("toasts.error.title"), description: t("toasts.loadError.description"), variant: "destructive" });
         setIsLoading(false);
       });
   }, [user]);
@@ -323,9 +325,9 @@ const DashboardImprimeur = () => {
 
       const updated = await reloadShop();
       if (updated) setServicesState(initServicesFromProduits(updated.produits || []));
-      toast({ title: "Succès", description: "Services mis à jour." });
+      toast({ title: t("toasts.success.title"), description: t("toasts.servicesUpdated.description") });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de sauvegarder les services.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.servicesSaveError.description"), variant: "destructive" });
     } finally {
       setIsSavingServices(false);
     }
@@ -360,9 +362,9 @@ const DashboardImprimeur = () => {
       const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto(shopForm));
       setShop(updated);
       setIsEditingShop(false);
-      toast({ title: "Succès", description: "Informations mises à jour." });
+      toast({ title: t("toasts.success.title"), description: t("toasts.shopUpdated.description") });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.genericSaveError.description"), variant: "destructive" });
     } finally {
       setIsSavingShop(false);
     }
@@ -394,7 +396,7 @@ const DashboardImprimeur = () => {
       const url = await partnerService.uploadLogo(fichier);
       setShopForm(f => ({ ...f, logoUrl: url }));
     } catch (err) {
-      setLogoError((err as Error).message || "Erreur lors de l'envoi du logo");
+      setLogoError((err as Error).message || t("toasts.logoDefaultError"));
     } finally {
       setIsUploadingLogo(false);
     }
@@ -406,9 +408,9 @@ const DashboardImprimeur = () => {
     try {
       const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ prixExpress2h: prix }));
       setShop(updated);
-      toast({ title: "Prix express mis à jour" });
+      toast({ title: t("toasts.expressPriceUpdated.title") });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.genericSaveError.description"), variant: "destructive" });
     }
   };
 
@@ -417,9 +419,9 @@ const DashboardImprimeur = () => {
     try {
       const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ prixLivraison: prix }));
       setShop(updated);
-      toast({ title: "Prix de livraison mis à jour" });
+      toast({ title: t("toasts.deliveryPriceUpdated.title") });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.genericSaveError.description"), variant: "destructive" });
     }
   };
 
@@ -428,9 +430,9 @@ const DashboardImprimeur = () => {
     try {
       const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ pourcentageRemiseEtudiant: pourcentage }));
       setShop(updated);
-      toast({ title: "Remise étudiant mise à jour" });
+      toast({ title: t("toasts.studentDiscountUpdated.title") });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.genericSaveError.description"), variant: "destructive" });
     }
   };
 
@@ -439,9 +441,9 @@ const DashboardImprimeur = () => {
     try {
       const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ pourcentageRemiseRectoVerso: pourcentage }));
       setShop(updated);
-      toast({ title: "Remise recto-verso mise à jour" });
+      toast({ title: t("toasts.duplexDiscountUpdated.title") });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de sauvegarder.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.genericSaveError.description"), variant: "destructive" });
     }
   };
 
@@ -512,9 +514,9 @@ const DashboardImprimeur = () => {
       }, token);
       setPromos(prev => [created, ...prev]);
       setPromoForm({ code: "", typeReduction: "POURCENTAGE", valeurReduction: "", dateFin: "", utilisationMax: "", montantMinimumCommande: "" });
-      toast({ title: "Code promo créé !" });
+      toast({ title: t("toasts.promoCreated.title") });
     } catch (e) {
-      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     }
   };
 
@@ -524,7 +526,7 @@ const DashboardImprimeur = () => {
       const updated = await imprimeurService.togglePromo(id, token);
       setPromos(prev => prev.map((p) => p.id === id ? updated : p));
     } catch {
-      toast({ title: "Erreur", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), variant: "destructive" });
     }
   };
 
@@ -533,9 +535,9 @@ const DashboardImprimeur = () => {
     try {
       await imprimeurService.supprimerPromo(id, token);
       setPromos(prev => prev.filter((p) => p.id !== id));
-      toast({ title: "Code supprimé" });
+      toast({ title: t("toasts.promoDeleted.title") });
     } catch {
-      toast({ title: "Erreur", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), variant: "destructive" });
     }
   };
 
@@ -544,9 +546,9 @@ const DashboardImprimeur = () => {
     try {
       const updated = await imprimerieService.updateImprimerie(shop.id.toString(), buildFullDto({ [field]: value }));
       setShop(updated);
-      toast({ title: "Option mise à jour" });
+      toast({ title: t("toasts.optionUpdated.title") });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de modifier l'option.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.optionUpdateError.description"), variant: "destructive" });
     }
   };
 
@@ -571,17 +573,12 @@ const DashboardImprimeur = () => {
       });
       await reloadShop();
       setEditingHoraireId(null);
-      toast({ title: "Succès", description: "Horaire mis à jour." });
+      toast({ title: t("toasts.success.title"), description: t("toasts.horaireUpdated.description") });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de sauvegarder l'horaire.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.horaireSaveError.description"), variant: "destructive" });
     } finally {
       setIsSavingHoraire(false);
     }
-  };
-
-  const formatEnumName = (text: string) => {
-    if (!text) return "";
-    return text.replace(/_/g, ' ').toLowerCase().replace(/^./, c => c.toUpperCase());
   };
 
   const openPDF = async (fichierId: number, nomFichier: string) => {
@@ -595,7 +592,7 @@ const DashboardImprimeur = () => {
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch {
-      toast({ title: "Erreur", description: `Impossible d'ouvrir ${nomFichier}.`, variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.pdfOpenError.description", { filename: nomFichier }), variant: "destructive" });
     }
   };
 
@@ -606,9 +603,9 @@ const DashboardImprimeur = () => {
       const updated = await imprimeurService.updateStatutCommande(orderId, newStatut, token);
       setOrders(prev => prev.map(o => o.id === orderId ? updated : o));
       const labels = updated.modeRetrait === "LIVRAISON" ? STATUT_LABELS_LIVRAISON : STATUT_LABELS_RETRAIT;
-      toast({ title: "Statut mis à jour", description: `Commande passée à "${labels[newStatut]?.label ?? newStatut}".` });
+      toast({ title: t("toasts.statutUpdated.title"), description: t("toasts.statutUpdated.description", { status: labels[newStatut]?.label ?? newStatut }) });
     } catch {
-      toast({ title: "Erreur", description: "Impossible de mettre à jour le statut.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.statutUpdateError.description"), variant: "destructive" });
     } finally {
       setUpdatingStatutId(null);
     }
@@ -620,45 +617,45 @@ const DashboardImprimeur = () => {
     setSuiviSaving(orderId);
     try {
       await imprimeurService.ajouterNumeroSuivi(orderId, numeroSuivi, token);
-      toast({ title: "Numéro de suivi enregistré", description: `Le client peut maintenant suivre son colis bpost.` });
+      toast({ title: t("toasts.suiviSaved.title"), description: t("toasts.suiviSaved.description") });
       setSuiviInputs(prev => ({ ...prev, [orderId]: "" }));
     } catch {
-      toast({ title: "Erreur", description: "Impossible d'enregistrer le numéro de suivi.", variant: "destructive" });
+      toast({ title: t("toasts.error.title"), description: t("toasts.suiviSaveError.description"), variant: "destructive" });
     } finally {
       setSuiviSaving(null);
     }
   };
 
   const STATUT_LABELS_RETRAIT: Record<string, { label: string; color: string }> = {
-    EN_ATTENTE_PAIEMENT: { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-    PAYEE:               { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-    PRETE:               { label: "Prêt à être retiré", color: "bg-green-100 text-green-800 border-green-200" },
-    LIVREE:              { label: "Récupérée", color: "bg-gray-100 text-gray-600 border-gray-200" },
-    ANNULEE:             { label: "Annulée", color: "bg-red-100 text-red-800 border-red-200" },
+    EN_ATTENTE_PAIEMENT: { label: t("orders.status.retrait.enAttente"), color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+    PAYEE:               { label: t("orders.status.retrait.enAttente"), color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+    PRETE:               { label: t("orders.status.retrait.prete"), color: "bg-green-100 text-green-800 border-green-200" },
+    LIVREE:              { label: t("orders.status.retrait.livree"), color: "bg-gray-100 text-gray-600 border-gray-200" },
+    ANNULEE:             { label: t("orders.status.retrait.annulee"), color: "bg-red-100 text-red-800 border-red-200" },
   };
 
   const STATUT_LABELS_LIVRAISON: Record<string, { label: string; color: string }> = {
-    EN_ATTENTE_PAIEMENT: { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-    PAYEE:               { label: "En attente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-    EN_COURS_IMPRESSION: { label: "En cours d'impression", color: "bg-blue-100 text-blue-800 border-blue-200" },
-    PRETE:               { label: "Expédiée", color: "bg-green-100 text-green-800 border-green-200" },
-    LIVREE:              { label: "Livrée", color: "bg-gray-100 text-gray-600 border-gray-200" },
-    ANNULEE:             { label: "Annulée", color: "bg-red-100 text-red-800 border-red-200" },
+    EN_ATTENTE_PAIEMENT: { label: t("orders.status.livraison.enAttente"), color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+    PAYEE:               { label: t("orders.status.livraison.enAttente"), color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+    EN_COURS_IMPRESSION: { label: t("orders.status.livraison.enCoursImpression"), color: "bg-blue-100 text-blue-800 border-blue-200" },
+    PRETE:               { label: t("orders.status.livraison.prete"), color: "bg-green-100 text-green-800 border-green-200" },
+    LIVREE:              { label: t("orders.status.livraison.livree"), color: "bg-gray-100 text-gray-600 border-gray-200" },
+    ANNULEE:             { label: t("orders.status.livraison.annulee"), color: "bg-red-100 text-red-800 border-red-200" },
   };
 
   const NEXT_STATUT_RETRAIT: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {
-    EN_ATTENTE_PAIEMENT: { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
-    PAYEE:               { statut: "PRETE", label: "Marquer comme prêt à retirer", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    EN_ATTENTE_PAIEMENT: { statut: "PRETE", label: t("orders.nextAction.markReady"), icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    PAYEE:               { statut: "PRETE", label: t("orders.nextAction.markReady"), icon: <CheckCircle className="h-4 w-4 mr-2" /> },
     // « Prêt à être retiré » clôt volontairement le parcours en retrait magasin :
     // demander à l'imprimeur de repointer chaque retrait au comptoir produirait
     // surtout des commandes jamais marquées, donc des données trompeuses.
   };
 
   const NEXT_STATUT_LIVRAISON: Record<string, { statut: string; label: string; icon: React.ReactNode }> = {
-    EN_ATTENTE_PAIEMENT: { statut: "EN_COURS_IMPRESSION", label: "Marquer en cours d'impression", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
-    PAYEE:               { statut: "EN_COURS_IMPRESSION", label: "Marquer en cours d'impression", icon: <CheckCircle className="h-4 w-4 mr-2" /> },
-    EN_COURS_IMPRESSION: { statut: "PRETE",               label: "Marquer comme expédié",         icon: <Truck className="h-4 w-4 mr-2" /> },
-    PRETE:               { statut: "LIVREE",               label: "Marquer comme livré",           icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    EN_ATTENTE_PAIEMENT: { statut: "EN_COURS_IMPRESSION", label: t("orders.nextAction.markPrinting"), icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    PAYEE:               { statut: "EN_COURS_IMPRESSION", label: t("orders.nextAction.markPrinting"), icon: <CheckCircle className="h-4 w-4 mr-2" /> },
+    EN_COURS_IMPRESSION: { statut: "PRETE",               label: t("orders.nextAction.markShipped"),  icon: <Truck className="h-4 w-4 mr-2" /> },
+    PRETE:               { statut: "LIVREE",               label: t("orders.nextAction.markDelivered"), icon: <CheckCircle className="h-4 w-4 mr-2" /> },
   };
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
@@ -667,7 +664,7 @@ const DashboardImprimeur = () => {
       <div className="min-h-screen flex flex-col bg-muted/30">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground animate-pulse">Chargement de votre espace pro...</p>
+          <p className="text-muted-foreground animate-pulse">{t("loading")}</p>
         </main>
       </div>
     );
@@ -678,8 +675,8 @@ const DashboardImprimeur = () => {
       <div className="min-h-screen flex flex-col bg-muted/30">
         <Header />
         <main className="flex-1 pt-32 pb-16 flex flex-col items-center">
-          <h2 className="text-2xl font-bold text-destructive mb-4">Imprimerie introuvable</h2>
-          <p className="text-muted-foreground text-center max-w-lg">Aucune imprimerie n'est associée à votre compte.</p>
+          <h2 className="text-2xl font-bold text-destructive mb-4">{t("notFound.title")}</h2>
+          <p className="text-muted-foreground text-center max-w-lg">{t("notFound.description")}</p>
         </main>
       </div>
     );
@@ -722,11 +719,11 @@ const DashboardImprimeur = () => {
             <div>
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">{shop.nom}</h1>
               <p className="text-muted-foreground flex items-center gap-2">
-                <Store className="h-4 w-4" /> Espace professionnel imprimeur
+                <Store className="h-4 w-4" /> {t("header.subtitle")}
               </p>
             </div>
             <Badge className={shop.actif ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"}>
-              ● {shop.actif ? "Boutique visible en ligne" : "Boutique hors ligne"}
+              {shop.actif ? t("header.statusOnline") : t("header.statusOffline")}
             </Badge>
           </div>
 
@@ -735,17 +732,17 @@ const DashboardImprimeur = () => {
             <Card className="p-6">
               <Package className="h-8 w-8 text-primary mb-3" />
               <div className="font-display text-3xl font-bold">{orders.length}</div>
-              <div className="text-sm text-muted-foreground">Commandes totales</div>
+              <div className="text-sm text-muted-foreground">{t("kpi.totalOrders")}</div>
             </Card>
             <Card className="p-6">
               <Clock className="h-8 w-8 text-warning mb-3" />
               <div className="font-display text-3xl font-bold">{pending}</div>
-              <div className="text-sm text-muted-foreground">À traiter</div>
+              <div className="text-sm text-muted-foreground">{t("kpi.pending")}</div>
             </Card>
             <Card className="p-6">
               <Euro className="h-8 w-8 text-success mb-3" />
               <div className="font-display text-3xl font-bold">{revenue.toFixed(0)}€</div>
-              <div className="text-sm text-muted-foreground">Revenus (CA)</div>
+              <div className="text-sm text-muted-foreground">{t("kpi.revenue")}</div>
             </Card>
             <Card className="p-6">
               <Star className="h-8 w-8 text-secondary mb-3" />
@@ -755,8 +752,8 @@ const DashboardImprimeur = () => {
                   : "—"}
               </div>
               <div className="text-sm text-muted-foreground">
-                Note moyenne
-                {shop.nombreAvis && shop.nombreAvis > 0 ? ` (${shop.nombreAvis} avis)` : ""}
+                {t("kpi.ratingLabel")}
+                {shop.nombreAvis && shop.nombreAvis > 0 ? ` ${t("kpi.reviewsCount", { count: shop.nombreAvis })}` : ""}
               </div>
             </Card>
           </div>
@@ -764,25 +761,25 @@ const DashboardImprimeur = () => {
           {/* TABS */}
           <Tabs defaultValue="orders" className="space-y-6">
             <TabsList className="flex flex-wrap h-auto gap-2 bg-transparent p-0">
-              <TabsTrigger value="orders" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Commandes</TabsTrigger>
-              <TabsTrigger value="services" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Services & Tarifs</TabsTrigger>
-              <TabsTrigger value="options" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Options</TabsTrigger>
-              <TabsTrigger value="hours" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Horaires</TabsTrigger>
-              <TabsTrigger value="shop" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Ma boutique</TabsTrigger>
-              <TabsTrigger value="promos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">Codes Promo</TabsTrigger>
+              <TabsTrigger value="orders" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">{t("tabs.orders")}</TabsTrigger>
+              <TabsTrigger value="services" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">{t("tabs.services")}</TabsTrigger>
+              <TabsTrigger value="options" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">{t("tabs.options")}</TabsTrigger>
+              <TabsTrigger value="hours" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">{t("tabs.hours")}</TabsTrigger>
+              <TabsTrigger value="shop" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">{t("tabs.shop")}</TabsTrigger>
+              <TabsTrigger value="promos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-background">{t("tabs.promos")}</TabsTrigger>
             </TabsList>
 
             {/* COMMANDES */}
             <TabsContent value="orders">
               <Card className="p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                  <h3 className="font-display font-semibold text-lg">Commandes reçues</h3>
+                  <h3 className="font-display font-semibold text-lg">{t("orders.title")}</h3>
                   {orders.length > 0 && (
                     <div className="relative sm:w-80">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="text"
-                        placeholder="Rechercher par n° de commande ou client..."
+                        placeholder={t("orders.searchPlaceholder")}
                         value={orderSearchQuery}
                         onChange={(e) => { setOrderSearchQuery(e.target.value); setOrdersPage(1); }}
                         className="pl-9"
@@ -799,7 +796,7 @@ const DashboardImprimeur = () => {
                         size="sm"
                         onClick={() => { setOrderStatusFilter(f.key); setOrdersPage(1); }}
                       >
-                        {f.label}
+                        {t(f.labelKey)}
                       </Button>
                     ))}
                   </div>
@@ -807,17 +804,17 @@ const DashboardImprimeur = () => {
                 {orders.length === 0 ? (
                   <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                     <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                    <h4 className="text-lg font-semibold mb-1">Aucune commande</h4>
-                    <p className="text-muted-foreground text-sm">Vos commandes apparaîtront ici dès qu'un client passera commande.</p>
+                    <h4 className="text-lg font-semibold mb-1">{t("orders.empty.title")}</h4>
+                    <p className="text-muted-foreground text-sm">{t("orders.empty.description")}</p>
                   </div>
                 ) : filteredOrders.length === 0 ? (
                   <div className="text-center py-16 border-2 border-dashed rounded-lg bg-muted/20">
                     <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                    <h4 className="text-lg font-semibold mb-1">Aucun résultat</h4>
+                    <h4 className="text-lg font-semibold mb-1">{t("orders.emptyFiltered.title")}</h4>
                     <p className="text-muted-foreground text-sm">
                       {orderSearchNormalized
-                        ? `Aucune commande ne correspond à "${orderSearchQuery}".`
-                        : `Aucune commande dans "${activeStatusFilter.label}".`}
+                        ? t("orders.emptyFiltered.searchDescription", { query: orderSearchQuery })
+                        : t("orders.emptyFiltered.filterDescription", { filter: t(activeStatusFilter.labelKey) })}
                     </p>
                   </div>
                 ) : (
@@ -842,8 +839,8 @@ const DashboardImprimeur = () => {
                               <p className="font-mono font-semibold text-sm">{order.numeroCommande}</p>
                               <p className="text-xs text-muted-foreground mt-0.5">
                                 {order.nomClient} · {new Date(order.dateCreation).toLocaleDateString("fr-BE")}
-                                {order.modeRetrait === "LIVRAISON" && <span className="ml-2 inline-flex items-center gap-1"><Truck className="h-3 w-3" /> Livraison</span>}
-                                {order.express2h && <span className="ml-2 inline-flex items-center gap-1 text-secondary"><Zap className="h-3 w-3" /> Express</span>}
+                                {order.modeRetrait === "LIVRAISON" && <span className="ml-2 inline-flex items-center gap-1"><Truck className="h-3 w-3" /> {t("orders.delivery")}</span>}
+                                {order.express2h && <span className="ml-2 inline-flex items-center gap-1 text-secondary"><Zap className="h-3 w-3" /> {t("orders.express")}</span>}
                               </p>
                             </div>
                             <div className="flex items-center gap-3 shrink-0 ml-4">
@@ -860,7 +857,7 @@ const DashboardImprimeur = () => {
                             <div className="p-4 border-t bg-background space-y-4">
                               {/* Lignes de commande */}
                               <div>
-                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Fichiers à imprimer</p>
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("orders.details.filesTitle")}</p>
                                 <div className="space-y-2">
                                   {(order.lignes ?? []).map((ligne: any, idx: number) => (
                                     <div key={ligne.id ?? idx} className="p-3 rounded-lg bg-muted/30 space-y-2">
@@ -869,11 +866,11 @@ const DashboardImprimeur = () => {
                                         <div className="flex-1 min-w-0">
                                           <p className="font-medium text-sm">{ligne.nomProduit}</p>
                                           <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-muted-foreground">
-                                            <span>{ligne.nbPages} page{ligne.nbPages > 1 ? "s" : ""}</span>
-                                            <span>{ligne.quantite} copie{ligne.quantite > 1 ? "s" : ""}</span>
-                                            {ligne.rectoVerso && <span>Recto-Verso</span>}
-                                            {ligne.reliure && ligne.reliure !== "AUCUNE" && <span>Reliure : {formatEnumName(ligne.reliure)}</span>}
-                                            {ligne.finition && ligne.finition !== "AUCUNE" && <span>Plastification : {formatEnumName(ligne.finition)}</span>}
+                                            <span>{t("orders.details.pages", { count: ligne.nbPages })}</span>
+                                            <span>{t("orders.details.copies", { count: ligne.quantite })}</span>
+                                            {ligne.rectoVerso && <span>{t("orders.details.duplex")}</span>}
+                                            {ligne.reliure && ligne.reliure !== "AUCUNE" && <span>{t("orders.details.binding", { type: t(`services.bindingTypes.${ligne.reliure}`) })}</span>}
+                                            {ligne.finition && ligne.finition !== "AUCUNE" && <span>{t("orders.details.lamination", { type: t(`services.laminationTypes.${ligne.finition}`) })}</span>}
                                           </div>
                                         </div>
                                         <span className="font-semibold text-sm shrink-0">{Number(ligne.prixTotal).toFixed(2)}€</span>
@@ -889,7 +886,7 @@ const DashboardImprimeur = () => {
                                             >
                                               <FileText className="h-3.5 w-3.5" />
                                               {fichier.nomFichier}
-                                              <span className="text-muted-foreground">({fichier.nbPagesDetectees}p)</span>
+                                              <span className="text-muted-foreground">{t("orders.details.filePagesAbbrev", { count: fichier.nbPagesDetectees })}</span>
                                             </button>
                                           ))}
                                         </div>
@@ -901,7 +898,7 @@ const DashboardImprimeur = () => {
 
                               {/* Récapitulatif financier */}
                               <div className="flex items-center justify-between text-sm pt-2 border-t">
-                                <span className="text-muted-foreground">Total TTC</span>
+                                <span className="text-muted-foreground">{t("orders.details.totalTTC")}</span>
                                 <span className="font-bold text-primary">{Number(order.totalTTC).toFixed(2)}€</span>
                               </div>
                               {STATUTS_FACTURABLES.has(order.statut) && (
@@ -917,7 +914,7 @@ const DashboardImprimeur = () => {
                                   ) : (
                                     <Download className="h-4 w-4 mr-2" />
                                   )}
-                                  Relevé de vente
+                                  {t("orders.details.salesReport")}
                                 </Button>
                               )}
 
@@ -936,7 +933,7 @@ const DashboardImprimeur = () => {
                                   ) : (
                                     <Download className="h-4 w-4 mr-2" />
                                   )}
-                                  Facture client
+                                  {t("orders.details.clientInvoice")}
                                 </Button>
                               )}
 
@@ -944,7 +941,7 @@ const DashboardImprimeur = () => {
                               {order.modeRetrait === "LIVRAISON" && order.adresseLivraison && (
                                 <div className="pt-2 border-t space-y-1">
                                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                                    <MapPin className="h-3.5 w-3.5" /> Adresse de livraison
+                                    <MapPin className="h-3.5 w-3.5" /> {t("orders.details.deliveryAddressTitle")}
                                   </p>
                                   <div className="text-sm bg-muted/30 rounded-lg p-3">
                                     <p className="font-medium">{order.adresseLivraison.nomDestinataire}</p>
@@ -956,7 +953,7 @@ const DashboardImprimeur = () => {
                                       {order.adresseLivraison.pays ? `, ${order.adresseLivraison.pays}` : ""}
                                     </p>
                                     {order.adresseLivraison.telephone && (
-                                      <p className="text-muted-foreground mt-1">Tél : {order.adresseLivraison.telephone}</p>
+                                      <p className="text-muted-foreground mt-1">{t("orders.details.phone", { phone: order.adresseLivraison.telephone })}</p>
                                     )}
                                   </div>
                                 </div>
@@ -966,11 +963,11 @@ const DashboardImprimeur = () => {
                               {order.modeRetrait === "LIVRAISON" && (
                                 <div className="pt-2 border-t space-y-2">
                                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                                    <Truck className="h-3.5 w-3.5" /> Numéro de suivi bpost
+                                    <Truck className="h-3.5 w-3.5" /> {t("orders.details.trackingTitle")}
                                   </p>
                                   <div className="flex gap-2">
                                     <Input
-                                      placeholder="ex: 010123456789"
+                                      placeholder={t("orders.details.trackingPlaceholder")}
                                       value={suiviInputs[order.id] ?? ""}
                                       onChange={(e) => setSuiviInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
                                     />
@@ -980,7 +977,7 @@ const DashboardImprimeur = () => {
                                       disabled={!suiviInputs[order.id]?.trim() || suiviSaving === order.id}
                                       onClick={() => handleAjouterSuivi(order.id)}
                                     >
-                                      {suiviSaving === order.id ? <RotateCcw className="h-4 w-4 animate-spin" /> : "Enregistrer"}
+                                      {suiviSaving === order.id ? <RotateCcw className="h-4 w-4 animate-spin" /> : t("orders.details.save")}
                                     </Button>
                                   </div>
                                 </div>
@@ -1002,7 +999,7 @@ const DashboardImprimeur = () => {
 
                               {(order.statut === "LIVREE" || order.statut === "ANNULEE") && (
                                 <p className="text-center text-xs text-muted-foreground pt-1">
-                                  {order.statut === "LIVREE" ? "Commande terminée." : "Commande annulée."}
+                                  {order.statut === "LIVREE" ? t("orders.details.completed") : t("orders.details.cancelled")}
                                 </p>
                               )}
                             </div>
@@ -1021,7 +1018,7 @@ const DashboardImprimeur = () => {
                       disabled={ordersCurrentPage === 1}
                       onClick={() => setOrdersPage(ordersCurrentPage - 1)}
                     >
-                      Précédent
+                      {t("orders.pagination.previous")}
                     </Button>
                     {Array.from({ length: ordersTotalPages }, (_, i) => i + 1).map((n) => (
                       <Button
@@ -1040,7 +1037,7 @@ const DashboardImprimeur = () => {
                       disabled={ordersCurrentPage === ordersTotalPages}
                       onClick={() => setOrdersPage(ordersCurrentPage + 1)}
                     >
-                      Suivant
+                      {t("orders.pagination.next")}
                     </Button>
                   </div>
                 )}
@@ -1052,13 +1049,13 @@ const DashboardImprimeur = () => {
               <Card className="p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-2">
                   <Printer className="h-6 w-6 text-primary" />
-                  <h2 className="font-display text-xl font-semibold">Services proposés</h2>
+                  <h2 className="font-display text-xl font-semibold">{t("services.title")}</h2>
                   <Badge variant="outline" className="ml-auto">
-                    {activeServicesCount} actif{activeServicesCount > 1 ? "s" : ""}
+                    {t("services.activeCount", { count: activeServicesCount })}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Cochez les services que vous proposez et configurez vos options de finition.
+                  {t("services.hint")}
                 </p>
 
                 <div className="space-y-4">
@@ -1080,7 +1077,7 @@ const DashboardImprimeur = () => {
                           />
                           <div className="flex-1 font-medium">{s.name}</div>
                           <div className="flex items-center gap-2">
-                            <Label className="text-xs text-muted-foreground hidden sm:block">Prix base</Label>
+                            <Label className="text-xs text-muted-foreground hidden sm:block">{t("services.basePrice")}</Label>
                             <Input
                               type="number" step="0.01" min="0"
                               value={state.price}
@@ -1107,7 +1104,7 @@ const DashboardImprimeur = () => {
                                   />
                                   <div className="flex items-center gap-2">
                                     <Layers className="h-4 w-4 text-muted-foreground" />
-                                    <Label htmlFor={`plast-${s.id}`} className="cursor-pointer font-medium">Proposer Plastification</Label>
+                                    <Label htmlFor={`plast-${s.id}`} className="cursor-pointer font-medium">{t("services.offerLamination")}</Label>
                                   </div>
                                 </div>
                                 {state.proposePlastification && (
@@ -1118,7 +1115,7 @@ const DashboardImprimeur = () => {
                                         <div key={type} className={`flex items-center justify-between p-2 border rounded-md transition-colors ${isActive ? "bg-background border-primary/40" : "bg-muted/50 border-border opacity-70"}`}>
                                           <div className="flex items-center gap-2">
                                             <Checkbox checked={isActive} onCheckedChange={(v) => toggleSvcOptionActive(s.id, "activePlastification", type, Boolean(v))} />
-                                            <span className="text-xs font-medium">{formatEnumName(type)}</span>
+                                            <span className="text-xs font-medium">{t(`services.laminationTypes.${type}`)}</span>
                                           </div>
                                           <div className="flex items-center gap-1">
                                             <Input type="number" step="0.01" value={price as string} disabled={!isActive}
@@ -1145,7 +1142,7 @@ const DashboardImprimeur = () => {
                                   />
                                   <div className="flex items-center gap-2">
                                     <Book className="h-4 w-4 text-muted-foreground" />
-                                    <Label htmlFor={`rel-${s.id}`} className="cursor-pointer font-medium">Proposer Reliure</Label>
+                                    <Label htmlFor={`rel-${s.id}`} className="cursor-pointer font-medium">{t("services.offerBinding")}</Label>
                                   </div>
                                 </div>
                                 {state.proposeReliure && (
@@ -1156,7 +1153,7 @@ const DashboardImprimeur = () => {
                                         <div key={type} className={`flex items-center justify-between p-2 border rounded-md transition-colors ${isActive ? "bg-background border-primary/40" : "bg-muted/50 border-border opacity-70"}`}>
                                           <div className="flex items-center gap-2 overflow-hidden">
                                             <Checkbox checked={isActive} onCheckedChange={(v) => toggleSvcOptionActive(s.id, "activeReliure", type, Boolean(v))} />
-                                            <span className="text-xs font-medium truncate">{formatEnumName(type)}</span>
+                                            <span className="text-xs font-medium truncate">{t(`services.bindingTypes.${type}`)}</span>
                                           </div>
                                           <div className="flex items-center gap-1 shrink-0">
                                             <Input type="number" step="0.01" value={price as string} disabled={!isActive}
@@ -1180,7 +1177,7 @@ const DashboardImprimeur = () => {
 
                 <div className="flex justify-end mt-6">
                   <Button onClick={handleSaveServices} disabled={isSavingServices}>
-                    {isSavingServices ? "Enregistrement..." : "Enregistrer les modifications"}
+                    {isSavingServices ? t("services.saving") : t("services.save")}
                   </Button>
                 </div>
               </Card>
@@ -1189,19 +1186,19 @@ const DashboardImprimeur = () => {
             {/* OPTIONS */}
             <TabsContent value="options">
               <Card className="p-6 space-y-6">
-                <h3 className="font-display font-semibold text-lg">Options proposées aux clients</h3>
+                <h3 className="font-display font-semibold text-lg">{t("options.title")}</h3>
 
                 <div className="p-4 border border-border rounded-lg bg-background space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="font-semibold flex items-center gap-2"><GraduationCap className="h-4 w-4 text-primary" /> Tarif étudiant</Label>
-                      <p className="text-sm text-muted-foreground mt-1">Remise accordée aux étudiants sur présentation de carte.</p>
+                      <Label className="font-semibold flex items-center gap-2"><GraduationCap className="h-4 w-4 text-primary" /> {t("options.studentDiscount.label")}</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{t("options.studentDiscount.description")}</p>
                     </div>
                     <Switch checked={!!shop.proposeTarifEtudiant} onCheckedChange={(v) => handleToggleOption("proposeTarifEtudiant", v)} />
                   </div>
                   {shop.proposeTarifEtudiant && (
                     <div className="flex items-center gap-2 pt-2 border-t border-border">
-                      <Label className="text-sm text-muted-foreground">Remise :</Label>
+                      <Label className="text-sm text-muted-foreground">{t("options.discountLabel")}</Label>
                       <Input
                         type="number"
                         defaultValue={shop.pourcentageRemiseEtudiant ?? 10}
@@ -1219,14 +1216,14 @@ const DashboardImprimeur = () => {
                 <div className="p-4 border border-border rounded-lg bg-background space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="font-semibold flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Impression express 2h</Label>
-                      <p className="text-sm text-muted-foreground mt-1">Proposez l'impression prioritaire très rapide.</p>
+                      <Label className="font-semibold flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> {t("options.express.label")}</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{t("options.express.description")}</p>
                     </div>
                     <Switch checked={!!shop.proposeExpress2h} onCheckedChange={(v) => handleToggleOption("proposeExpress2h", v)} />
                   </div>
                   {shop.proposeExpress2h && (
                     <div className="flex items-center gap-2 pt-2 border-t border-border">
-                      <Label className="text-sm text-muted-foreground">Frais express :</Label>
+                      <Label className="text-sm text-muted-foreground">{t("options.express.feeLabel")}</Label>
                       <Input
                         type="number"
                         defaultValue={shop.prixExpress2h ?? 5}
@@ -1243,14 +1240,14 @@ const DashboardImprimeur = () => {
                 <div className="p-4 border border-border rounded-lg bg-background space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="font-semibold flex items-center gap-2"><Truck className="h-4 w-4 text-primary" /> Livraison à domicile</Label>
-                      <p className="text-sm text-muted-foreground mt-1">Activez la livraison autour de votre boutique.</p>
+                      <Label className="font-semibold flex items-center gap-2"><Truck className="h-4 w-4 text-primary" /> {t("options.delivery.label")}</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{t("options.delivery.description")}</p>
                     </div>
                     <Switch checked={!!shop.livraisonActive} onCheckedChange={(v) => handleToggleOption("livraisonActive", v)} />
                   </div>
                   {shop.livraisonActive && (
                     <div className="flex items-center gap-2 pt-2 border-t border-border">
-                      <Label className="text-sm text-muted-foreground">Frais de livraison :</Label>
+                      <Label className="text-sm text-muted-foreground">{t("options.delivery.feeLabel")}</Label>
                       <Input
                         type="number"
                         defaultValue={shop.prixLivraison ?? 4.99}
@@ -1266,11 +1263,11 @@ const DashboardImprimeur = () => {
 
                 <div className="p-4 border border-border rounded-lg bg-background space-y-3">
                   <div>
-                    <Label className="font-semibold flex items-center gap-2"><Layers className="h-4 w-4 text-primary" /> Remise recto-verso</Label>
-                    <p className="text-sm text-muted-foreground mt-1">Réduction appliquée au coût d'impression quand le client choisit le recto-verso.</p>
+                    <Label className="font-semibold flex items-center gap-2"><Layers className="h-4 w-4 text-primary" /> {t("options.duplexDiscount.label")}</Label>
+                    <p className="text-sm text-muted-foreground mt-1">{t("options.duplexDiscount.description")}</p>
                   </div>
                   <div className="flex items-center gap-2 pt-2 border-t border-border">
-                    <Label className="text-sm text-muted-foreground">Remise :</Label>
+                    <Label className="text-sm text-muted-foreground">{t("options.discountLabel")}</Label>
                     <Input
                       type="number"
                       defaultValue={shop.pourcentageRemiseRectoVerso ?? 15}
@@ -1289,36 +1286,36 @@ const DashboardImprimeur = () => {
             {/* HORAIRES */}
             <TabsContent value="hours">
               <Card className="p-6 space-y-4">
-                <h3 className="font-display font-semibold text-lg">Horaires d'ouverture</h3>
+                <h3 className="font-display font-semibold text-lg">{t("hours.title")}</h3>
                 <div className="space-y-3">
                   {shop.horaires && shop.horaires.length > 0 ? (
                     shop.horaires.map((h: any) => {
                       const isEditing = editingHoraireId === h.id;
                       return (
                         <div key={h.id} className="flex items-center gap-3 p-4 border border-border rounded-lg bg-background">
-                          <div className="font-medium capitalize w-28 shrink-0">{h.jourSemaine.toLowerCase()}</div>
+                          <div className="font-medium capitalize w-28 shrink-0">{t(`hours.days.${h.jourSemaine}`)}</div>
 
                           {!isEditing ? (
                             <div className="flex-1 text-sm text-muted-foreground">
-                              {h.ferme ? <span className="text-destructive font-medium">Fermé</span>
+                              {h.ferme ? <span className="text-destructive font-medium">{t("hours.closed")}</span>
                                 : `${h.heureOuverture?.slice(0, 5)} - ${h.heureFermeture?.slice(0, 5)}`}
                             </div>
                           ) : (
                             <div className="flex-1 flex flex-wrap items-center gap-3">
                               <div className="flex items-center gap-2">
-                                <Label className="text-xs text-muted-foreground">Fermé</Label>
+                                <Label className="text-xs text-muted-foreground">{t("hours.closed")}</Label>
                                 <Switch checked={horaireForm.ferme} onCheckedChange={(v) => setHoraireForm(f => ({ ...f, ferme: v }))} />
                               </div>
                               {!horaireForm.ferme && (
                                 <>
                                   <div className="flex items-center gap-1">
-                                    <Label className="text-xs text-muted-foreground">Ouverture</Label>
+                                    <Label className="text-xs text-muted-foreground">{t("hours.opening")}</Label>
                                     <Input type="time" value={horaireForm.heureOuverture}
                                       onChange={(e) => setHoraireForm(f => ({ ...f, heureOuverture: e.target.value }))}
                                       className="w-28 h-7 text-sm" />
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <Label className="text-xs text-muted-foreground">Fermeture</Label>
+                                    <Label className="text-xs text-muted-foreground">{t("hours.closing")}</Label>
                                     <Input type="time" value={horaireForm.heureFermeture}
                                       onChange={(e) => setHoraireForm(f => ({ ...f, heureFermeture: e.target.value }))}
                                       className="w-28 h-7 text-sm" />
@@ -1330,12 +1327,12 @@ const DashboardImprimeur = () => {
 
                           <div className="flex gap-2 shrink-0">
                             {!isEditing ? (
-                              <Button variant="outline" size="sm" onClick={() => startEditHoraire(h)}>Modifier</Button>
+                              <Button variant="outline" size="sm" onClick={() => startEditHoraire(h)}>{t("hours.edit")}</Button>
                             ) : (
                               <>
-                                <Button variant="outline" size="sm" onClick={() => setEditingHoraireId(null)} disabled={isSavingHoraire}>Annuler</Button>
+                                <Button variant="outline" size="sm" onClick={() => setEditingHoraireId(null)} disabled={isSavingHoraire}>{t("hours.cancel")}</Button>
                                 <Button size="sm" onClick={() => handleSaveHoraire(h)} disabled={isSavingHoraire}>
-                                  {isSavingHoraire ? "..." : "Enregistrer"}
+                                  {isSavingHoraire ? t("hours.saving") : t("hours.save")}
                                 </Button>
                               </>
                             )}
@@ -1344,7 +1341,7 @@ const DashboardImprimeur = () => {
                       );
                     })
                   ) : (
-                    <p className="text-muted-foreground text-center py-4">Horaires non configurés.</p>
+                    <p className="text-muted-foreground text-center py-4">{t("hours.empty")}</p>
                   )}
                 </div>
               </Card>
@@ -1354,14 +1351,14 @@ const DashboardImprimeur = () => {
             <TabsContent value="shop">
               <Card className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-display font-semibold text-lg">Informations de la boutique</h3>
+                  <h3 className="font-display font-semibold text-lg">{t("shop.title")}</h3>
                   {!isEditingShop ? (
-                    <Button variant="outline" size="sm" onClick={() => setIsEditingShop(true)}>Modifier</Button>
+                    <Button variant="outline" size="sm" onClick={() => setIsEditingShop(true)}>{t("shop.edit")}</Button>
                   ) : (
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={handleCancelShop} disabled={isSavingShop}>Annuler</Button>
+                      <Button variant="outline" size="sm" onClick={handleCancelShop} disabled={isSavingShop}>{t("shop.cancel")}</Button>
                       <Button size="sm" onClick={handleSaveShop} disabled={isSavingShop}>
-                        {isSavingShop ? "Enregistrement..." : "Enregistrer"}
+                        {isSavingShop ? t("shop.saving") : t("shop.save")}
                       </Button>
                     </div>
                   )}
@@ -1369,7 +1366,7 @@ const DashboardImprimeur = () => {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2 md:col-span-2">
-                    <Label>Logo de l'imprimerie</Label>
+                    <Label>{t("shop.logo.label")}</Label>
                     {isEditingShop ? (
                       <label
                         htmlFor="shop-logo-upload"
@@ -1383,60 +1380,60 @@ const DashboardImprimeur = () => {
                           onChange={handleLogoChange}
                         />
                         {isUploadingLogo ? (
-                          <p className="text-sm text-muted-foreground">Envoi en cours…</p>
+                          <p className="text-sm text-muted-foreground">{t("shop.logo.uploading")}</p>
                         ) : shopForm.logoUrl ? (
                           <>
                             <img
                               src={`${SERVER_URL}${shopForm.logoUrl}`}
-                              alt="Logo de l'imprimerie"
+                              alt={t("shop.logo.alt")}
                               className="h-16 w-16 object-contain rounded-md border border-border bg-background"
                             />
-                            <p className="text-sm text-muted-foreground">Cliquez pour changer le logo</p>
+                            <p className="text-sm text-muted-foreground">{t("shop.logo.changeCta")}</p>
                           </>
                         ) : (
                           <>
                             <Upload className="h-6 w-6 text-muted-foreground shrink-0" />
-                            <p className="text-sm text-muted-foreground">Cliquez pour téléverser un logo (PNG, JPG)</p>
+                            <p className="text-sm text-muted-foreground">{t("shop.logo.uploadCta")}</p>
                           </>
                         )}
                       </label>
                     ) : shopForm.logoUrl ? (
                       <img
                         src={`${SERVER_URL}${shopForm.logoUrl}`}
-                        alt="Logo de l'imprimerie"
+                        alt={t("shop.logo.alt")}
                         className="h-16 w-16 object-contain rounded-md border border-border bg-muted/40"
                       />
                     ) : (
-                      <p className="text-sm text-muted-foreground">Aucun logo</p>
+                      <p className="text-sm text-muted-foreground">{t("shop.logo.none")}</p>
                     )}
                     {logoError && <p className="text-sm text-destructive">{logoError}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="shop-nom">Nom de l'imprimerie</Label>
+                    <Label htmlFor="shop-nom">{t("shop.fields.name")}</Label>
                     <Input id="shop-nom" value={shopForm.nom} onChange={(e) => setShopForm(f => ({ ...f, nom: e.target.value }))}
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40" : ""} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="shop-tva">N° de TVA</Label>
+                    <Label htmlFor="shop-tva">{t("shop.fields.vat")}</Label>
                     <Input id="shop-tva" value={shopForm.numeroTva} onChange={(e) => setShopForm(f => ({ ...f, numeroTva: e.target.value }))}
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40" : ""} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="shop-tel">Téléphone</Label>
+                    <Label htmlFor="shop-tel">{t("shop.fields.phone")}</Label>
                     <Input id="shop-tel" value={shopForm.telephoneContact} onChange={(e) => setShopForm(f => ({ ...f, telephoneContact: e.target.value }))}
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40" : ""} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="shop-email">Email</Label>
+                    <Label htmlFor="shop-email">{t("shop.fields.email")}</Label>
                     <Input id="shop-email" value={shopForm.emailContact} onChange={(e) => setShopForm(f => ({ ...f, emailContact: e.target.value }))}
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40" : ""} />
                   </div>
                   <div className="space-y-2 relative" ref={suggestionsRef}>
-                    <Label htmlFor="shop-adresse">Adresse</Label>
+                    <Label htmlFor="shop-adresse">{t("shop.fields.address")}</Label>
                     <div className="relative">
                       <Input id="shop-adresse" value={shopForm.adresse}
                         onChange={(e) => setShopForm(f => ({ ...f, adresse: e.target.value }))}
@@ -1465,19 +1462,19 @@ const DashboardImprimeur = () => {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="shop-ville">Ville</Label>
+                    <Label htmlFor="shop-ville">{t("shop.fields.city")}</Label>
                     <Input id="shop-ville" value={shopForm.ville} onChange={(e) => setShopForm(f => ({ ...f, ville: e.target.value }))}
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40" : ""} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="shop-pays">Pays</Label>
+                    <Label htmlFor="shop-pays">{t("shop.fields.country")}</Label>
                     <Input id="shop-pays" value={shopForm.pays} onChange={(e) => setShopForm(f => ({ ...f, pays: e.target.value }))}
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40" : ""} />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="shop-desc">Description</Label>
+                    <Label htmlFor="shop-desc">{t("shop.fields.description")}</Label>
                     <Textarea id="shop-desc" value={shopForm.description} onChange={(e) => setShopForm(f => ({ ...f, description: e.target.value }))}
                       readOnly={!isEditingShop} onClick={() => !isEditingShop && setIsEditingShop(true)}
                       className={!isEditingShop ? "bg-muted/40 resize-none" : "resize-none"} rows={3} />
@@ -1487,16 +1484,14 @@ const DashboardImprimeur = () => {
 
               <Card className="p-6 border-destructive/30">
                 <h3 className="font-display font-semibold text-lg mb-2 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-destructive" /> Supprimer mon compte
+                  <AlertTriangle className="h-5 w-5 text-destructive" /> {t("shop.deleteAccount.title")}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Vos données personnelles seront définitivement effacées et votre boutique
-                  fermera : elle disparaîtra du catalogue et ne recevra plus de commandes.
-                  Vos factures sont conservées, comme la loi l'impose.
+                  {t("shop.deleteAccount.description")}
                 </p>
                 <Button variant="destructive" onClick={() => setConfirmationSuppression(true)}>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer mon compte
+                  {t("shop.deleteAccount.button")}
                 </Button>
               </Card>
             </TabsContent>
@@ -1505,54 +1500,54 @@ const DashboardImprimeur = () => {
             <TabsContent value="promos">
               <Card className="p-6 space-y-6">
                 <div>
-                  <h3 className="font-display font-semibold text-lg mb-1">Codes promo</h3>
-                  <p className="text-sm text-muted-foreground">Créez des codes de réduction pour vos clients.</p>
+                  <h3 className="font-display font-semibold text-lg mb-1">{t("promos.title")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("promos.subtitle")}</p>
                 </div>
 
                 {/* Formulaire création */}
                 <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
-                  <h4 className="font-medium text-sm flex items-center gap-2"><Tag className="h-4 w-4" /> Nouveau code</h4>
+                  <h4 className="font-medium text-sm flex items-center gap-2"><Tag className="h-4 w-4" /> {t("promos.form.newCode")}</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Code</Label>
-                      <Input placeholder="EX: BIENVENUE10" value={promoForm.code} onChange={(e) => setPromoForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} />
+                      <Label className="text-xs text-muted-foreground">{t("promos.form.codeLabel")}</Label>
+                      <Input placeholder={t("promos.form.codePlaceholder")} value={promoForm.code} onChange={(e) => setPromoForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Type de réduction</Label>
+                      <Label className="text-xs text-muted-foreground">{t("promos.form.typeLabel")}</Label>
                       <Select value={promoForm.typeReduction} onValueChange={(v) => setPromoForm(f => ({ ...f, typeReduction: v }))}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="POURCENTAGE">Pourcentage (%)</SelectItem>
-                          <SelectItem value="MONTANT_FIXE">Montant fixe (€)</SelectItem>
+                          <SelectItem value="POURCENTAGE">{t("promos.form.typePercentage")}</SelectItem>
+                          <SelectItem value="MONTANT_FIXE">{t("promos.form.typeFixed")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Valeur {promoForm.typeReduction === "POURCENTAGE" ? "(%)" : "(€)"}</Label>
+                      <Label className="text-xs text-muted-foreground">{promoForm.typeReduction === "POURCENTAGE" ? t("promos.form.valueLabelPercentage") : t("promos.form.valueLabelFixed")}</Label>
                       <Input type="number" min="0" value={promoForm.valeurReduction} onChange={(e) => setPromoForm(f => ({ ...f, valeurReduction: e.target.value }))} />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Date d'expiration (optionnel)</Label>
+                      <Label className="text-xs text-muted-foreground">{t("promos.form.expiryLabel")}</Label>
                       <Input type="date" value={promoForm.dateFin} onChange={(e) => setPromoForm(f => ({ ...f, dateFin: e.target.value }))} />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Utilisations max par personne (optionnel)</Label>
-                      <Input type="number" min="1" placeholder="Illimité" value={promoForm.utilisationMax} onChange={(e) => setPromoForm(f => ({ ...f, utilisationMax: e.target.value }))} />
+                      <Label className="text-xs text-muted-foreground">{t("promos.form.maxUsesLabel")}</Label>
+                      <Input type="number" min="1" placeholder={t("promos.form.maxUsesPlaceholder")} value={promoForm.utilisationMax} onChange={(e) => setPromoForm(f => ({ ...f, utilisationMax: e.target.value }))} />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Montant minimum commande (optionnel)</Label>
-                      <Input type="number" min="0" placeholder="Aucun" value={promoForm.montantMinimumCommande} onChange={(e) => setPromoForm(f => ({ ...f, montantMinimumCommande: e.target.value }))} />
+                      <Label className="text-xs text-muted-foreground">{t("promos.form.minAmountLabel")}</Label>
+                      <Input type="number" min="0" placeholder={t("promos.form.minAmountPlaceholder")} value={promoForm.montantMinimumCommande} onChange={(e) => setPromoForm(f => ({ ...f, montantMinimumCommande: e.target.value }))} />
                     </div>
                   </div>
                   <Button onClick={handleCreerPromo} disabled={!promoForm.code || !promoForm.valeurReduction}>
-                    <Tag className="h-4 w-4 mr-2" /> Créer le code
+                    <Tag className="h-4 w-4 mr-2" /> {t("promos.form.submit")}
                   </Button>
                 </div>
 
                 {/* Liste des codes */}
                 <div className="space-y-3">
                   {promos.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">Aucun code promo pour l'instant.</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">{t("promos.empty")}</p>
                   )}
                   {promos.map((p: any) => (
                     <div key={p.id} className={`flex items-center justify-between p-4 rounded-lg border ${p.actif ? "bg-background" : "bg-muted/30 opacity-60"}`}>
@@ -1562,13 +1557,13 @@ const DashboardImprimeur = () => {
                           {p.typeReduction === "POURCENTAGE" ? `-${p.valeurReduction}%` : `-${Number(p.valeurReduction).toFixed(2)}€`}
                         </Badge>
                         {p.dateFin && (
-                          <span className="text-xs text-muted-foreground">Expire le {new Date(p.dateFin).toLocaleDateString("fr-BE")}</span>
+                          <span className="text-xs text-muted-foreground">{t("promos.expiresOn", { date: new Date(p.dateFin).toLocaleDateString("fr-BE") })}</span>
                         )}
                         {p.utilisationMax && (
-                          <span className="text-xs text-muted-foreground">Max {p.utilisationMax}x/personne · {p.utilisationCourante} utilisation{p.utilisationCourante !== 1 ? "s" : ""} au total</span>
+                          <span className="text-xs text-muted-foreground">{t("promos.maxUses", { max: p.utilisationMax, count: p.utilisationCourante })}</span>
                         )}
                         {p.montantMinimumCommande && (
-                          <span className="text-xs text-muted-foreground">Min. {Number(p.montantMinimumCommande).toFixed(2)}€</span>
+                          <span className="text-xs text-muted-foreground">{t("promos.minAmount", { amount: Number(p.montantMinimumCommande).toFixed(2) })}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 shrink-0 ml-2">
@@ -1605,15 +1600,14 @@ const DashboardImprimeur = () => {
                 <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                   <CheckCircle2 className="h-7 w-7 text-primary" />
                 </div>
-                <DialogTitle className="text-center">Votre compte a été supprimé</DialogTitle>
+                <DialogTitle className="text-center">{t("deleteDialog.success.title")}</DialogTitle>
                 <DialogDescription className="text-center">
-                  Vos données personnelles ont été effacées et votre boutique est fermée.
-                  Merci d'avoir été partenaire PrintNow.
+                  {t("deleteDialog.success.description")}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <Button className="w-full" onClick={quitterApresSuppression}>
-                  Retour à l'accueil
+                  {t("deleteDialog.success.backHome")}
                 </Button>
               </DialogFooter>
             </>
@@ -1623,38 +1617,36 @@ const DashboardImprimeur = () => {
                 <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
                   <AlertTriangle className="h-7 w-7 text-destructive" />
                 </div>
-                <DialogTitle className="text-center">Supprimer votre compte ?</DialogTitle>
+                <DialogTitle className="text-center">{t("deleteDialog.confirm.title")}</DialogTitle>
                 <DialogDescription className="text-center">
-                  Cette action est définitive et ne peut pas être annulée.
+                  {t("deleteDialog.confirm.description")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="text-sm text-muted-foreground space-y-2">
-                <p>Votre nom, votre email et votre téléphone seront effacés.</p>
+                <p>{t("deleteDialog.confirm.point1")}</p>
                 <p>
-                  Votre boutique fermera : elle disparaîtra du catalogue et ne recevra plus
-                  aucune commande.
+                  {t("deleteDialog.confirm.point2")}
                 </p>
                 <p>
-                  Vos factures sont conservées sept ans, comme la loi l'impose, et restent
-                  téléchargeables jusque-là.
+                  {t("deleteDialog.confirm.point3")}
                 </p>
               </div>
 
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button variant="outline" onClick={() => setConfirmationSuppression(false)} disabled={suppressionEnCours}>
-                  Annuler
+                  {t("deleteDialog.confirm.cancel")}
                 </Button>
                 <Button variant="destructive" onClick={handleSupprimerMonCompte} disabled={suppressionEnCours}>
                   {suppressionEnCours ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Suppression...
+                      {t("deleteDialog.confirm.deleting")}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Oui, supprimer mon compte
+                      {t("deleteDialog.confirm.confirmButton")}
                     </>
                   )}
                 </Button>

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const iconProps = {
   viewBox: "0 0 24 24",
@@ -38,7 +39,16 @@ const Linkedin = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const languages = [
+  { code: "fr", label: "FR" },
+  { code: "en", label: "EN" },
+  { code: "nl", label: "NL" },
+];
+
 const Footer = () => {
+  const { t, i18n } = useTranslation(["common", "footer"]);
+  const currentLangCode = i18n.resolvedLanguage ?? i18n.language;
+
   return (
     <footer className="bg-foreground text-background">
       <div className="container mx-auto px-4 py-14">
@@ -49,7 +59,7 @@ const Footer = () => {
               <img src="/logo-white.png" alt="PrintNow" className="h-9 w-auto object-contain" />
             </Link>
             <p className="text-background/70 text-sm mb-6 leading-relaxed">
-              La plateforme qui connecte vos besoins d'impression aux meilleurs professionnels près de chez vous.
+              {t("footer:tagline")}
             </p>
             <div className="flex gap-3">
               <a href="#" className="w-9 h-9 rounded-lg bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors">
@@ -69,39 +79,39 @@ const Footer = () => {
 
           {/* Services */}
           <div>
-            <h4 className="font-display font-semibold text-lg mb-4">Services</h4>
+            <h4 className="font-display font-semibold text-lg mb-4">{t("footer:services.title")}</h4>
             {/* Simple énumération de ce que la plateforme permet d'imprimer : ces
                 trois entrées renvoyaient toutes vers la même page générique, ce
                 que leur apparence de lien laissait mal deviner. */}
             <ul className="space-y-3 text-sm text-background/70">
-              <li>Documents & CV</li>
-              <li>Flyers & Affiches</li>
-              <li>Cartes de visite</li>
+              <li>{t("footer:services.documents")}</li>
+              <li>{t("footer:services.flyers")}</li>
+              <li>{t("footer:services.businessCards")}</li>
             </ul>
           </div>
 
           {/* Company */}
           <div>
-            <h4 className="font-display font-semibold text-lg mb-4">Entreprise</h4>
+            <h4 className="font-display font-semibold text-lg mb-4">{t("footer:company.title")}</h4>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link to="/imprimeries" className="text-background/70 hover:text-background transition-colors">
-                  Imprimeries
+                  {t("common:nav.imprimeries")}
                 </Link>
               </li>
               <li>
                 <Link to="/devenir-partenaire" className="text-background/70 hover:text-background transition-colors">
-                  Devenir partenaire
+                  {t("common:nav.partner")}
                 </Link>
               </li>
               <li>
                 <Link to="/faq" className="text-background/70 hover:text-background transition-colors">
-                  FAQ
+                  {t("common:nav.faq")}
                 </Link>
               </li>
               <li>
                 <Link to="/contact" className="text-background/70 hover:text-background transition-colors">
-                  Contact
+                  {t("common:nav.contact")}
                 </Link>
               </li>
             </ul>
@@ -109,7 +119,7 @@ const Footer = () => {
 
           {/* Contact */}
           <div>
-            <h4 className="font-display font-semibold text-lg mb-4">Contact</h4>
+            <h4 className="font-display font-semibold text-lg mb-4">{t("footer:contact.title")}</h4>
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2 text-background/70">
                 <Mail className="h-4 w-4" />
@@ -117,15 +127,25 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2 text-background/70">
                 <Phone className="h-4 w-4" />
-                +32 2 123 45 67
+                {t("footer:contact.phone")}
               </li>
             </ul>
             <div className="mt-6">
-              <h5 className="font-medium text-sm mb-2">Langues</h5>
+              <h5 className="font-medium text-sm mb-2">{t("footer:languages.title")}</h5>
               <div className="flex gap-2">
-                <button className="px-3 py-1 text-xs rounded-md bg-background/20 hover:bg-background/30 transition-colors">FR</button>
-                <button className="px-3 py-1 text-xs rounded-md bg-background/10 hover:bg-background/20 transition-colors">EN</button>
-                <button className="px-3 py-1 text-xs rounded-md bg-background/10 hover:bg-background/20 transition-colors">NL</button>
+                {languages.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => i18n.changeLanguage(lang.code)}
+                    className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                      currentLangCode === lang.code
+                        ? "bg-background/20 hover:bg-background/30"
+                        : "bg-background/10 hover:bg-background/20"
+                    }`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -134,17 +154,17 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-background/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-background/50">
-            © 2026 PrintNow. Tous droits réservés.
+            {t("footer:copyright")}
           </p>
           <div className="flex gap-6 text-sm">
             <Link to="/mentions-legales" className="text-background/50 hover:text-background/80 transition-colors">
-              Mentions légales
+              {t("common:legal.mentions")}
             </Link>
             <Link to="/conditions-generales" className="text-background/50 hover:text-background/80 transition-colors">
-              CGV
+              {t("common:legal.cgv")}
             </Link>
             <Link to="/confidentialite" className="text-background/50 hover:text-background/80 transition-colors">
-              Confidentialité
+              {t("common:legal.confidentiality")}
             </Link>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,34 +10,18 @@ import type { MessageChat } from "@/models/chatbot.model";
 
 type Message = { id: string; role: "bot" | "user"; text: string };
 
-const MESSAGE_ACCUEIL =
-  "Bonjour 👋 Je suis l'assistant PrintNow. Posez-moi votre question sur les commandes, les prix, la livraison, les factures ou le partenariat imprimeur.";
-
-/**
- * Questions proposées au visiteur. Ce ne sont que des raccourcis de saisie :
- * les réponses viennent toujours de l'assistant, jamais d'un texte figé ici.
- */
-const questionsFrequentes = [
-  "Comment passer une commande ?",
-  "Comment le prix est-il calculé ?",
-
-  "Pouvez-vous corriger les fautes de mon document ?",
-  "Quels formats de fichiers acceptez-vous ?",
-  "Livraison ou retrait en magasin ?",
-  "Puis-je modifier ou annuler ma commande ?",
-  "Quels sont les délais d'impression ?",
-  "Y a-t-il un tarif étudiant ?",
-  "Comment utiliser un code promo ?",
-  "Comment suivre ma commande ?",
-  "Comment devenir imprimeur partenaire ?",
-  "Quelle commission prend PrintNow ?",
-];
-
-const suggestions = questionsFrequentes.slice(0, 5);
-
 const FAQ = () => {
+  const { t } = useTranslation("faq");
+
+  /**
+   * Questions proposées au visiteur. Ce ne sont que des raccourcis de saisie :
+   * les réponses viennent toujours de l'assistant, jamais d'un texte figé ici.
+   */
+  const questionsFrequentes = t("questions", { returnObjects: true }) as string[];
+  const suggestions = questionsFrequentes.slice(0, 5);
+
   const [messages, setMessages] = useState<Message[]>([
-    { id: "welcome", role: "bot", text: MESSAGE_ACCUEIL },
+    { id: "welcome", role: "bot", text: t("chat.welcomeMessage") },
   ]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
@@ -75,7 +60,7 @@ const FAQ = () => {
       setMessages((prev) => [...prev, { id: `b-${Date.now()}`, role: "bot", text: reponse }]);
     } catch (e) {
       // Le service formule déjà un message compréhensible par le visiteur.
-      const texte = e instanceof Error ? e.message : "L'assistant est momentanément indisponible.";
+      const texte = e instanceof Error ? e.message : t("chat.errorFallback");
       setMessages((prev) => [...prev, { id: `b-${Date.now()}`, role: "bot", text: texte }]);
     } finally {
       setTyping(false);
@@ -84,7 +69,7 @@ const FAQ = () => {
   };
 
   const reset = () => {
-    setMessages([{ id: "welcome", role: "bot", text: MESSAGE_ACCUEIL }]);
+    setMessages([{ id: "welcome", role: "bot", text: t("chat.welcomeMessage") }]);
     setInput("");
     inputRef.current?.focus();
   };
@@ -97,13 +82,13 @@ const FAQ = () => {
           <div className="container mx-auto px-4 max-w-4xl text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground/90 text-sm mb-6">
               <Sparkle className="h-4 w-4" />
-              Foire aux questions
+              {t("hero.badge")}
             </div>
             <h1 className="font-display text-3xl md:text-5xl font-bold text-primary-foreground mb-4">
-              Posez votre question, l'assistant répond
+              {t("hero.title")}
             </h1>
             <p className="text-lg text-primary-foreground/80">
-              Commandes, prix, délais, livraison, factures ou partenariat : réponse immédiate.
+              {t("hero.subtitle")}
             </p>
           </div>
         </section>
@@ -120,13 +105,13 @@ const FAQ = () => {
                       <Printer className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-display font-semibold leading-tight">Assistant PrintNow</p>
-                      <p className="text-xs text-secondary">En ligne</p>
+                      <p className="font-display font-semibold leading-tight">{t("chat.assistantName")}</p>
+                      <p className="text-xs text-secondary">{t("chat.online")}</p>
                     </div>
                   </div>
                   <Button variant="ghost" size="sm" onClick={reset}>
                     <RotateCcw className="h-4 w-4" />
-                    <span className="hidden sm:inline">Réinitialiser</span>
+                    <span className="hidden sm:inline">{t("chat.reset")}</span>
                   </Button>
                 </div>
 
@@ -201,7 +186,7 @@ const FAQ = () => {
                       value={input}
                       maxLength={500}
                       onChange={(e) => setInput(e.target.value)}
-                      placeholder="Écrivez votre question…"
+                      placeholder={t("chat.inputPlaceholder")}
                     />
                     <Button type="submit" size="icon" disabled={typing || !input.trim()}>
                       <Send className="h-4 w-4" />
@@ -215,7 +200,7 @@ const FAQ = () => {
                 <Card className="border-border">
                   <CardContent className="p-5">
                     <h2 className="font-display font-semibold text-lg mb-3">
-                      Questions fréquentes
+                      {t("sidebar.questionsTitle")}
                     </h2>
                     <ul className="space-y-1.5">
                       {questionsFrequentes.map((question) => (
@@ -236,12 +221,12 @@ const FAQ = () => {
 
                 <Card className="border-border bg-muted/40">
                   <CardContent className="p-5">
-                    <h3 className="font-display font-semibold mb-2">Pas de réponse ?</h3>
+                    <h3 className="font-display font-semibold mb-2">{t("sidebar.noAnswerTitle")}</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Notre équipe vous répond sous 24h ouvrées par email.
+                      {t("sidebar.noAnswerText")}
                     </p>
                     <Button variant="outline" className="w-full" asChild>
-                      <Link to="/contact">Contacter le support</Link>
+                      <Link to="/contact">{t("sidebar.contactButton")}</Link>
                     </Button>
                   </CardContent>
                 </Card>

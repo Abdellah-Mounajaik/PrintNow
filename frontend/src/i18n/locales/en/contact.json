@@ -1,0 +1,72 @@
+{
+  "hero": {
+    "badge": "Contact",
+    "title": "Got a question? Let's talk",
+    "subtitle": "Our team supports customers and partner printers from Monday to Friday."
+  },
+  "info": {
+    "email": {
+      "title": "Email",
+      "detail": "Reply within 24 business hours"
+    },
+    "phone": {
+      "title": "Phone",
+      "value": "+32 2 123 45 67",
+      "detail": "Mon – Fri, 9am to 6pm"
+    }
+  },
+  "fields": {
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "message": "Message"
+  },
+  "toast": {
+    "missingFields": {
+      "title": "Missing fields",
+      "description": "Please complete: {{fields}}."
+    },
+    "invalidEmail": {
+      "title": "Invalid email",
+      "description": "Please enter a valid email address."
+    },
+    "success": {
+      "title": "Message sent",
+      "description": "Our team will reply within 24 business hours."
+    },
+    "error": {
+      "title": "Error"
+    }
+  },
+  "sent": {
+    "title": "Message sent",
+    "description": "Thank you {{firstName}}, we have received your request \"{{subject}}\". A reply will be sent to {{email}}.",
+    "resetButton": "Send another message"
+  },
+  "form": {
+    "title": "Write to us",
+    "requiredNote": "All fields marked with a * are required.",
+    "name": {
+      "label": "Full name *",
+      "placeholder": "Jane Doe"
+    },
+    "email": {
+      "label": "Email *",
+      "placeholder": "jane@example.com"
+    },
+    "subject": {
+      "label": "Subject *",
+      "placeholder": "E.g.: Delivery issue, partnership, technical question…"
+    },
+    "message": {
+      "label": "Message *",
+      "placeholder": "Describe your request…"
+    },
+    "submitButton": "Send message"
+  },
+  "printerCta": {
+    "title": "Are you a printer?",
+    "description": "Join the PrintNow catalog: online sign-up, configurable services and hours, immediate activation after payment.",
+    "button": "Become a partner"
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +17,14 @@ import {
   Loader2,
 } from "lucide-react";
 
-const infos = [
-  { icon: Mail, title: "Email", value: "contact@printnow.be", detail: "Réponse sous 24h ouvrées" },
-  { icon: Phone, title: "Téléphone", value: "+32 2 123 45 67", detail: "Lun – Ven, 9h à 18h" },
-];
-
 const Contact = () => {
+  const { t } = useTranslation("contact");
+
+  const infos = [
+    { icon: Mail, title: t("info.email.title"), value: "contact@printnow.be", detail: t("info.email.detail") },
+    { icon: Phone, title: t("info.phone.title"), value: t("info.phone.value"), detail: t("info.phone.detail") },
+  ];
+
   const [form, setForm] = useState({
     nom: "",
     email: "",
@@ -38,15 +41,15 @@ const Contact = () => {
     e.preventDefault();
 
     const missing: string[] = [];
-    if (!form.nom.trim()) missing.push("nom");
-    if (!form.email.trim()) missing.push("email");
-    if (!form.sujet.trim()) missing.push("sujet");
-    if (!form.message.trim()) missing.push("message");
+    if (!form.nom.trim()) missing.push(t("fields.name"));
+    if (!form.email.trim()) missing.push(t("fields.email"));
+    if (!form.sujet.trim()) missing.push(t("fields.subject"));
+    if (!form.message.trim()) missing.push(t("fields.message"));
 
     if (missing.length > 0) {
       toast({
-        title: "Champs manquants",
-        description: `Merci de compléter : ${missing.join(", ")}.`,
+        title: t("toast.missingFields.title"),
+        description: t("toast.missingFields.description", { fields: missing.join(", ") }),
         variant: "destructive",
       });
       return;
@@ -54,8 +57,8 @@ const Contact = () => {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       toast({
-        title: "Email invalide",
-        description: "Merci de saisir une adresse email valide.",
+        title: t("toast.invalidEmail.title"),
+        description: t("toast.invalidEmail.description"),
         variant: "destructive",
       });
       return;
@@ -67,12 +70,12 @@ const Contact = () => {
 
       setSent(true);
       toast({
-        title: "Message envoyé",
-        description: "Notre équipe vous répond sous 24h ouvrées.",
+        title: t("toast.success.title"),
+        description: t("toast.success.description"),
       });
     } catch (error) {
       toast({
-        title: "Erreur",
+        title: t("toast.error.title"),
         description: (error as Error).message,
         variant: "destructive",
       });
@@ -89,13 +92,13 @@ const Contact = () => {
           <div className="container mx-auto px-4 max-w-4xl text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground/90 text-sm mb-6">
               <MessageCircle className="h-4 w-4" />
-              Contact
+              {t("hero.badge")}
             </div>
             <h1 className="font-display text-3xl md:text-5xl font-bold text-primary-foreground mb-4">
-              Une question ? Parlons-en
+              {t("hero.title")}
             </h1>
             <p className="text-lg text-primary-foreground/80">
-              Notre équipe accompagne clients et imprimeurs partenaires du lundi au vendredi.
+              {t("hero.subtitle")}
             </p>
           </div>
         </section>
@@ -131,10 +134,13 @@ const Contact = () => {
                       <div className="p-3 rounded-2xl bg-secondary/10 w-fit mx-auto mb-4">
                         <CheckCircle className="h-8 w-8 text-secondary" />
                       </div>
-                      <h2 className="font-display text-2xl font-bold mb-2">Message envoyé</h2>
+                      <h2 className="font-display text-2xl font-bold mb-2">{t("sent.title")}</h2>
                       <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                        Merci {form.nom.split(" ")[0]}, nous avons bien reçu votre demande
-                        « {form.sujet} ». Une réponse sera envoyée à {form.email}.
+                        {t("sent.description", {
+                          firstName: form.nom.split(" ")[0],
+                          subject: form.sujet,
+                          email: form.email,
+                        })}
                       </p>
                       <Button
                         variant="outline"
@@ -143,62 +149,62 @@ const Contact = () => {
                           setForm({ nom: "", email: "", sujet: "", message: "" });
                         }}
                       >
-                        Envoyer un autre message
+                        {t("sent.resetButton")}
                       </Button>
                     </div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-5">
                       <div>
-                        <h2 className="font-display text-2xl font-bold mb-1">Nous écrire</h2>
+                        <h2 className="font-display text-2xl font-bold mb-1">{t("form.title")}</h2>
                         <p className="text-sm text-muted-foreground">
-                          Tous les champs marqués d'un * sont obligatoires.
+                          {t("form.requiredNote")}
                         </p>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="nom">Nom complet *</Label>
+                          <Label htmlFor="nom">{t("form.name.label")}</Label>
                           <Input
                             id="nom"
                             maxLength={100}
                             value={form.nom}
                             onChange={(e) => update("nom", e.target.value)}
-                            placeholder="Marie Dupont"
+                            placeholder={t("form.name.placeholder")}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="email">Email *</Label>
+                          <Label htmlFor="email">{t("form.email.label")}</Label>
                           <Input
                             id="email"
                             type="email"
                             maxLength={255}
                             value={form.email}
                             onChange={(e) => update("email", e.target.value)}
-                            placeholder="marie@exemple.be"
+                            placeholder={t("form.email.placeholder")}
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="sujet">Sujet *</Label>
+                        <Label htmlFor="sujet">{t("form.subject.label")}</Label>
                         <Input
                           id="sujet"
                           maxLength={120}
                           value={form.sujet}
                           onChange={(e) => update("sujet", e.target.value)}
-                          placeholder="Ex. : Problème de livraison, partenariat, question technique…"
+                          placeholder={t("form.subject.placeholder")}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="message">Message *</Label>
+                        <Label htmlFor="message">{t("form.message.label")}</Label>
                         <Textarea
                           id="message"
                           rows={6}
                           maxLength={1000}
                           value={form.message}
                           onChange={(e) => update("message", e.target.value)}
-                          placeholder="Décrivez votre demande…"
+                          placeholder={t("form.message.placeholder")}
                         />
                         <p className="text-xs text-muted-foreground text-right">
                           {form.message.length}/1000
@@ -207,7 +213,7 @@ const Contact = () => {
 
                       <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={sending}>
                         {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                        Envoyer le message
+                        {t("form.submitButton")}
                       </Button>
                     </form>
                   )}
@@ -218,14 +224,13 @@ const Contact = () => {
                 <Card className="border-border">
                   <CardContent className="p-6">
                     <h3 className="font-display font-semibold text-lg mb-2">
-                      Vous êtes imprimeur ?
+                      {t("printerCta.title")}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Rejoignez le catalogue PrintNow : inscription en ligne, services et horaires
-                      configurables, activation immédiate après paiement.
+                      {t("printerCta.description")}
                     </p>
                     <Button className="w-full" asChild>
-                      <Link to="/devenir-partenaire">Devenir partenaire</Link>
+                      <Link to="/devenir-partenaire">{t("printerCta.button")}</Link>
                     </Button>
                   </CardContent>
                 </Card>

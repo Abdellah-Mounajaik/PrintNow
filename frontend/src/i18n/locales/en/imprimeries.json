@@ -1,0 +1,99 @@
+{
+  "section": {
+    "title": "Print shops near you",
+    "searching": "Searching...",
+    "resultsCount": "{{count}} print shops found in the catalog"
+  },
+  "search": {
+    "placeholder": "Search for a print shop..."
+  },
+  "sort": {
+    "placeholder": "Sort by",
+    "distance": "Distance",
+    "rating": "Rating",
+    "priceAsc": "Price: low to high",
+    "priceDesc": "Price: high to low"
+  },
+  "priceType": {
+    "placeholder": "Product type",
+    "any": "Starting price (all products)",
+    "types": [
+      { "id": "DOCUMENT", "label": "Documents" },
+      { "id": "FLYER", "label": "Flyers" },
+      { "id": "CARTE_VISITE", "label": "Business cards" },
+      { "id": "POSTER", "label": "Posters" }
+    ]
+  },
+  "geo": {
+    "locationRequired": "Enable location to sort by distance."
+  },
+  "filters": {
+    "button": "Filters",
+    "title": "Filter print shops",
+    "openNow": "Open now",
+    "servicesTitle": "Services",
+    "optionsTitle": "Options",
+    "services": {
+      "documents": "Documents",
+      "flyers": "Flyers & Posters",
+      "cartes": "Business cards"
+    },
+    "options": {
+      "express": "Express 2h",
+      "student": "Student rate",
+      "delivery": "Delivery"
+    },
+    "clear": "Clear filters"
+  },
+  "status": {
+    "open": "Open",
+    "closed": "Closed",
+    "closedToday": "Closed today",
+    "seeHours": "See hours",
+    "closedWithHours": "Closed (Hours: {{hours}})"
+  },
+  "toast": {
+    "errorTitle": "Error",
+    "loadError": "Unable to load print shops."
+  },
+  "loading": "Loading partner print shops...",
+  "emptyStates": {
+    "noPartners": {
+      "title": "No partners yet",
+      "description": "Be the first to list your print shop!"
+    },
+    "noResults": {
+      "title": "No results",
+      "withQuery": "No print shop matches \"{{query}}\".",
+      "withoutQuery": "No print shop matches these filters."
+    }
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "card": {
+    "express": "Express",
+    "studentDiscount": "-10%",
+    "delivery": "Delivery",
+    "priceFrom": "From €{{price}}",
+    "priceUnavailable": "Price unavailable",
+    "distanceUnknown": "Nearby"
+  },
+  "map": {
+    "trigger": "View on map",
+    "title": "Print shops on the map",
+    "empty": "No print shop has been located yet.",
+    "legend": {
+      "yourPosition": "Your position"
+    },
+    "travel": {
+      "positionRequired": "Location required for directions",
+      "calculating": "Calculating...",
+      "unavailable": "Directions unavailable",
+      "walking": "walking",
+      "driving": "driving"
+    },
+    "viewDetails": "View listing"
+  }
+}
