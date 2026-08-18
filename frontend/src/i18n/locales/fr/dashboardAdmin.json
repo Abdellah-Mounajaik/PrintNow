@@ -28,7 +28,8 @@
     "shops": "Imprimeries",
     "users": "Utilisateurs",
     "orders": "Commandes",
-    "verifications": "Vérifications étudiantes"
+    "verifications": "Vérifications étudiantes",
+    "parametres": "Tarifs"
   },
   "pagination": {
     "previous": "Précédent",
@@ -107,7 +108,7 @@
       "client": "Client",
       "shop": "Imprimerie",
       "totalTtc": "Total TTC",
-      "commission": "Commission (10%)",
+      "commission": "Commission ({{percent}}%)",
       "correction": "Correction",
       "aiDesign": "Design IA",
       "statement": "Relevé"
@@ -197,5 +198,20 @@
       "validationFailed": "Impossible de valider.",
       "refusalFailed": "Impossible de refuser."
     }
+  },
+  "parametres": {
+    "title": "Tarifs de la plateforme",
+    "description": "Ces valeurs s'appliquent immédiatement à toutes les nouvelles commandes et inscriptions.",
+    "commissionLabel": "Commission (%)",
+    "fraisInscriptionLabel": "Frais d'inscription imprimeur (€)",
+    "correctionForfaitLabel": "Correction orthographique — forfait (€)",
+    "pagesInclusesLabel": "Pages incluses dans le forfait",
+    "correctionPageSuppLabel": "Correction — prix par page supplémentaire (€)",
+    "generationDesignLabel": "Génération de design IA (€)",
+    "save": "Enregistrer les tarifs",
+    "saving": "Enregistrement...",
+    "loadError": "Impossible de charger les tarifs.",
+    "saveSuccess": "Tarifs mis à jour",
+    "saveError": "Impossible de mettre à jour les tarifs."
   }
 }

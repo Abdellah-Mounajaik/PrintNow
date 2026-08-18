@@ -28,7 +28,8 @@
     "shops": "Print shops",
     "users": "Users",
     "orders": "Orders",
-    "verifications": "Student verifications"
+    "verifications": "Student verifications",
+    "parametres": "Pricing"
   },
   "pagination": {
     "previous": "Previous",
@@ -107,7 +108,7 @@
       "client": "Customer",
       "shop": "Print shop",
       "totalTtc": "Total (incl. VAT)",
-      "commission": "Commission (10%)",
+      "commission": "Commission ({{percent}}%)",
       "correction": "Proofreading",
       "aiDesign": "AI design",
       "statement": "Statement"
@@ -197,5 +198,20 @@
       "validationFailed": "Could not accept the verification.",
       "refusalFailed": "Could not reject the verification."
     }
+  },
+  "parametres": {
+    "title": "Platform pricing",
+    "description": "These values apply immediately to all new orders and sign-ups.",
+    "commissionLabel": "Commission (%)",
+    "fraisInscriptionLabel": "Print shop registration fee (€)",
+    "correctionForfaitLabel": "Spell check — flat rate (€)",
+    "pagesInclusesLabel": "Pages included in the flat rate",
+    "correctionPageSuppLabel": "Spell check — price per extra page (€)",
+    "generationDesignLabel": "AI design generation (€)",
+    "save": "Save pricing",
+    "saving": "Saving...",
+    "loadError": "Unable to load pricing.",
+    "saveSuccess": "Pricing updated",
+    "saveError": "Unable to update pricing."
   }
 }

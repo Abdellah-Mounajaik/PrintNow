@@ -38,16 +38,19 @@ import {
   Search,
   Trash2,
   AlertTriangle,
+  Settings,
 } from "lucide-react";
 import { toast } from "../../../hooks/use-toast";
 import { useAuth } from "../../auth/context/AuthContext";
 import { adminService } from "../services/admin.service";
+import { parametresService } from "../../../services/parametres.service";
 import type {
   UserDTO,
   ImprimerieDTO,
   CommandeDTO,
   VerificationDTO,
 } from "../models/admin.model";
+import type { ParametresPlateforme } from "../../../models/parametres.model";
 
 const AuthImage = ({ url, alt, token }: { url: string; alt: string; token: string }) => {
   const { t } = useTranslation("dashboardAdmin");
@@ -144,6 +147,29 @@ const DashboardAdmin = () => {
   const [motifRefus, setMotifRefus] = useState("");
   const [downloadingCommissionId, setDownloadingCommissionId] = useState<number | null>(null);
 
+  const [tarifs, setTarifs] = useState<ParametresPlateforme | null>(null);
+  const [tarifsForm, setTarifsForm] = useState<Record<keyof ParametresPlateforme, string>>({
+    commissionPourcentage: "", fraisInscription: "", prixCorrectionForfait: "",
+    pagesInclusesCorrection: "", prixCorrectionPageSupp: "", prixGenerationDesign: "",
+  });
+  const [savingTarifs, setSavingTarifs] = useState(false);
+
+  const chargerTarifs = () => {
+    parametresService.getParametres().then((p) => {
+      setTarifs(p);
+      setTarifsForm({
+        commissionPourcentage: String(p.commissionPourcentage),
+        fraisInscription: String(p.fraisInscription),
+        prixCorrectionForfait: String(p.prixCorrectionForfait),
+        pagesInclusesCorrection: String(p.pagesInclusesCorrection),
+        prixCorrectionPageSupp: String(p.prixCorrectionPageSupp),
+        prixGenerationDesign: String(p.prixGenerationDesign),
+      });
+    }).catch(() => {
+      toast({ title: t("toasts.error.title"), description: t("parametres.loadError"), variant: "destructive" });
+    });
+  };
+
   useEffect(() => {
     if (!token) return;
     Promise.all([
@@ -159,7 +185,35 @@ const DashboardAdmin = () => {
         setVerifications(Array.isArray(v) ? v : []);
       })
       .finally(() => setLoading(false));
+    chargerTarifs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  const handleSaveTarifs = async () => {
+    if (!token) return;
+    setSavingTarifs(true);
+    try {
+      const dto: ParametresPlateforme = {
+        commissionPourcentage: Number(tarifsForm.commissionPourcentage),
+        fraisInscription: Number(tarifsForm.fraisInscription),
+        prixCorrectionForfait: Number(tarifsForm.prixCorrectionForfait),
+        pagesInclusesCorrection: Number(tarifsForm.pagesInclusesCorrection),
+        prixCorrectionPageSupp: Number(tarifsForm.prixCorrectionPageSupp),
+        prixGenerationDesign: Number(tarifsForm.prixGenerationDesign),
+      };
+      const updated = await parametresService.mettreAJour(dto, token);
+      setTarifs(updated);
+      toast({ title: t("parametres.saveSuccess") });
+    } catch (err) {
+      toast({
+        title: t("parametres.saveError"),
+        description: err instanceof Error ? err.message : undefined,
+        variant: "destructive",
+      });
+    } finally {
+      setSavingTarifs(false);
+    }
+  };
 
   const handleValider = async (id: number) => {
     if (!token) return;
@@ -226,7 +280,11 @@ const DashboardAdmin = () => {
 
   const imprimeriesActives = imprimeries.filter((i) => i.actif);
   const caTotal = commandes.reduce((s, c) => s + Number(c.totalTTC ?? 0), 0);
-  const commissionTotale = caTotal * 0.1;
+  // Somme de la commission réellement enregistrée par commande (au tarif en
+  // vigueur à ce moment-là), plutôt qu'un pourcentage fixe recalculé ici : la
+  // commission est désormais configurable, un taux figé donnerait un total faux
+  // dès qu'elle change.
+  const commissionTotale = commandes.reduce((s, c) => s + Number(c.commissionPlateforme ?? 0), 0);
   // La vérification orthographique et les designs IA (studio) sont des services de
   // la plateforme : leur montant ne passe pas par l'imprimerie et s'ajoute donc
   // entièrement à ses revenus.
@@ -399,6 +457,7 @@ const DashboardAdmin = () => {
                   </span>
                 )}
               </TabsTrigger>
+              <TabsTrigger value="parametres">{t("tabs.parametres")}</TabsTrigger>
             </TabsList>
 
             {/* Inscriptions récentes */}
@@ -744,7 +803,7 @@ const DashboardAdmin = () => {
                         <TableHead>{t("orders.columns.client")}</TableHead>
                         <TableHead>{t("orders.columns.shop")}</TableHead>
                         <TableHead>{t("orders.columns.totalTtc")}</TableHead>
-                        <TableHead>{t("orders.columns.commission")}</TableHead>
+                        <TableHead>{t("orders.columns.commission", { percent: tarifs?.commissionPourcentage ?? 10 })}</TableHead>
                         <TableHead>{t("orders.columns.correction")}</TableHead>
                         <TableHead>{t("orders.columns.aiDesign")}</TableHead>
                         <TableHead>{t("orders.columns.statement")}</TableHead>
@@ -762,7 +821,7 @@ const DashboardAdmin = () => {
                             {Number(c.totalTTC).toFixed(2)}€
                           </TableCell>
                           <TableCell className="text-success">
-                            {(Number(c.totalTTC) * 0.1).toFixed(2)}€
+                            {Number(c.commissionPlateforme ?? 0).toFixed(2)}€
                           </TableCell>
                           <TableCell className="text-success">
                             {Number(c.montantCorrections ?? 0) > 0
@@ -1000,6 +1059,81 @@ const DashboardAdmin = () => {
                   )}
                 </DialogContent>
               </Dialog>
+            </TabsContent>
+
+            {/* Tarifs de la plateforme */}
+            <TabsContent value="parametres">
+              <Card className="p-6 space-y-6">
+                <div className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-display font-semibold text-lg">{t("parametres.title")}</h3>
+                    <p className="text-sm text-muted-foreground">{t("parametres.description")}</p>
+                  </div>
+                </div>
+
+                {!tarifs ? (
+                  <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">{t("parametres.commissionLabel")}</label>
+                        <Input
+                          type="number" min="0" max="100" step="0.01"
+                          value={tarifsForm.commissionPourcentage}
+                          onChange={(e) => setTarifsForm((f) => ({ ...f, commissionPourcentage: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">{t("parametres.fraisInscriptionLabel")}</label>
+                        <Input
+                          type="number" min="0" step="0.01"
+                          value={tarifsForm.fraisInscription}
+                          onChange={(e) => setTarifsForm((f) => ({ ...f, fraisInscription: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">{t("parametres.correctionForfaitLabel")}</label>
+                        <Input
+                          type="number" min="0" step="0.01"
+                          value={tarifsForm.prixCorrectionForfait}
+                          onChange={(e) => setTarifsForm((f) => ({ ...f, prixCorrectionForfait: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">{t("parametres.pagesInclusesLabel")}</label>
+                        <Input
+                          type="number" min="0" step="1"
+                          value={tarifsForm.pagesInclusesCorrection}
+                          onChange={(e) => setTarifsForm((f) => ({ ...f, pagesInclusesCorrection: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">{t("parametres.correctionPageSuppLabel")}</label>
+                        <Input
+                          type="number" min="0" step="0.01"
+                          value={tarifsForm.prixCorrectionPageSupp}
+                          onChange={(e) => setTarifsForm((f) => ({ ...f, prixCorrectionPageSupp: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">{t("parametres.generationDesignLabel")}</label>
+                        <Input
+                          type="number" min="0" step="0.01"
+                          value={tarifsForm.prixGenerationDesign}
+                          onChange={(e) => setTarifsForm((f) => ({ ...f, prixGenerationDesign: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    <Button onClick={handleSaveTarifs} disabled={savingTarifs}>
+                      {savingTarifs ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Euro className="h-4 w-4 mr-2" />}
+                      {savingTarifs ? t("parametres.saving") : t("parametres.save")}
+                    </Button>
+                  </>
+                )}
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

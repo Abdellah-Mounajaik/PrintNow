@@ -22,6 +22,8 @@ private Long id;
     private BigDecimal montantCorrections;
     /** Designs IA (studio) réglés avec la commande. Revenu de la plateforme, compté à part du total. */
     private BigDecimal montantGenerations;
+    /** Commission PrintNow sur cette commande, déjà calculée au tarif en vigueur au moment de la commande. */
+    private BigDecimal commissionPlateforme;
     private BigDecimal totalHT;
     private BigDecimal totalTVA;
     private LocalDateTime dateCreation;

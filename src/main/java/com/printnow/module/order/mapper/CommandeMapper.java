@@ -49,6 +49,7 @@ public class CommandeMapper {
         // services de la plateforme, hors du total facturé pour l'impression.
         dto.setMontantCorrections(commande.getMontantCorrections());
         dto.setMontantGenerations(commande.getMontantGenerations());
+        dto.setCommissionPlateforme(commande.getCommissionPlateforme());
 
         // Mapping de l'Utilisateur (Client)
         if (commande.getClient() != null) {

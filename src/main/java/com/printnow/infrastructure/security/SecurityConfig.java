@@ -98,6 +98,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/fichiers-pdf/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/avis/imprimerie/**").permitAll() // Lecture des avis publique
                 .requestMatchers(HttpMethod.GET, "/api/avis/*/traduction").permitAll() // Traduction d'un avis, publique comme sa lecture
+                .requestMatchers(HttpMethod.GET, "/api/parametres").permitAll() // Tarifs affichés publiquement (page partenaire, chatbot)
                 .anyRequest().authenticated() // TOUT le reste nécessite un token JWT valide
             );
 

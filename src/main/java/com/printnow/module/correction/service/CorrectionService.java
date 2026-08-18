@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.printnow.module.correction.dto.FauteDTO;
 import com.printnow.module.correction.model.VerificationOrthographe;
 import com.printnow.module.correction.repository.VerificationOrthographeRepository;
+import com.printnow.module.parametres.service.ParametresService;
 import com.printnow.module.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,14 +53,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CorrectionService {
 
-    // ─── Tarification ─────────────────────────────────────────────────────────
-    /** Forfait couvrant les premières pages. */
-    private static final BigDecimal PRIX_FORFAIT = new BigDecimal("2.90");
-    /** Nombre de pages incluses dans le forfait. */
-    private static final int PAGES_INCLUSES = 10;
-    /** Prix de chaque page au-delà du forfait. */
-    private static final BigDecimal PRIX_PAGE_SUPP = new BigDecimal("0.20");
-
     /** Nombre de corrections essayées en contexte avant d'abandonner. */
     private static final int MAX_CANDIDATS = 6;
 
@@ -69,6 +62,7 @@ public class CorrectionService {
     private final CorrecteurPdfService correcteurPdf;
     private final QuotaAnalyse quota;
     private final ProgressionAnalyse progression;
+    private final ParametresService parametresService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${app.upload.dir:uploads}")
@@ -86,11 +80,15 @@ public class CorrectionService {
     private int pagesMax;
 
     /**
-     * 2,90 € pour les 10 premières pages, puis 0,20 € par page supplémentaire.
+     * Forfait couvrant les premières pages, puis un tarif par page supplémentaire
+     * (valeurs configurables par un administrateur).
      */
-    public static BigDecimal calculerPrix(int nbPages) {
-        if (nbPages <= PAGES_INCLUSES) return PRIX_FORFAIT;
-        return PRIX_FORFAIT.add(PRIX_PAGE_SUPP.multiply(BigDecimal.valueOf(nbPages - PAGES_INCLUSES)));
+    public BigDecimal calculerPrix(int nbPages) {
+        var p = parametresService.getParametres();
+        int pagesIncluses = p.getPagesInclusesCorrection();
+        if (nbPages <= pagesIncluses) return p.getPrixCorrectionForfait();
+        return p.getPrixCorrectionForfait()
+                .add(p.getPrixCorrectionPageSupp().multiply(BigDecimal.valueOf(nbPages - pagesIncluses)));
     }
 
     /**

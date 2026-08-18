@@ -28,7 +28,8 @@
     "shops": "Drukkerijen",
     "users": "Gebruikers",
     "orders": "Bestellingen",
-    "verifications": "Studentenverificaties"
+    "verifications": "Studentenverificaties",
+    "parametres": "Tarieven"
   },
   "pagination": {
     "previous": "Vorige",
@@ -107,7 +108,7 @@
       "client": "Klant",
       "shop": "Drukkerij",
       "totalTtc": "Totaal incl. btw",
-      "commission": "Commissie (10%)",
+      "commission": "Commissie ({{percent}}%)",
       "correction": "Correctie",
       "aiDesign": "AI-design",
       "statement": "Overzicht"
@@ -197,5 +198,20 @@
       "validationFailed": "Kon de verificatie niet accepteren.",
       "refusalFailed": "Kon de verificatie niet weigeren."
     }
+  },
+  "parametres": {
+    "title": "Platformtarieven",
+    "description": "Deze waarden gelden onmiddellijk voor alle nieuwe bestellingen en inschrijvingen.",
+    "commissionLabel": "Commissie (%)",
+    "fraisInscriptionLabel": "Inschrijvingskost drukkerij (€)",
+    "correctionForfaitLabel": "Spellingscontrole — forfait (€)",
+    "pagesInclusesLabel": "Pagina's inbegrepen in het forfait",
+    "correctionPageSuppLabel": "Spellingscontrole — prijs per extra pagina (€)",
+    "generationDesignLabel": "AI-designgeneratie (€)",
+    "save": "Tarieven opslaan",
+    "saving": "Bezig met opslaan...",
+    "loadError": "Kan de tarieven niet laden.",
+    "saveSuccess": "Tarieven bijgewerkt",
+    "saveError": "Kan de tarieven niet bijwerken."
   }
 }

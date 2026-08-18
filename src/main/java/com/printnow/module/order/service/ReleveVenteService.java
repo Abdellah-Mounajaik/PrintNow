@@ -20,6 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -157,7 +159,7 @@ public class ReleveVenteService {
         c.texte(FONT, 10, xTotal, formatMontant(commande.getTotalTTC()));
         c.avancer(15);
 
-        c.texte(FONT, 10, xLabelTotal, "Commission retenue (10%)");
+        c.texte(FONT, 10, xLabelTotal, "Commission retenue (" + pourcentageCommission(commande) + "%)");
         c.texte(FONT, 10, xTotal, "- " + formatMontant(commande.getCommissionPlateforme()));
         c.avancer(21);
 
@@ -170,5 +172,25 @@ public class ReleveVenteService {
         float largeurNote = FONT.getStringWidth("Facture générée automatiquement par la plateforme PrintNow.") / 1000f * 8;
         c.texteCouleurA(FONT, 8, MARGE + (largeurUtile - largeurNote) / 2, c.y,
                 "Facture générée automatiquement par la plateforme PrintNow.", GRIS_TEXTE);
+    }
+
+    /**
+     * Pourcentage de commission effectivement appliqué à CETTE commande, recalculé
+     * depuis son propre montant plutôt que lu depuis le tarif actuel de la
+     * plateforme : la commission étant configurable, le taux en vigueur au moment
+     * de la commande peut différer de celui d'aujourd'hui, et ce relevé doit
+     * rester exact indéfiniment.
+     */
+    private String pourcentageCommission(Commande commande) {
+        if (commande.getTotalTTC() == null || commande.getCommissionPlateforme() == null
+                || commande.getTotalTTC().compareTo(BigDecimal.ZERO) == 0) {
+            return "";
+        }
+        return commande.getCommissionPlateforme()
+                .divide(commande.getTotalTTC(), 4, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal(100))
+                .setScale(2, RoundingMode.HALF_UP)
+                .stripTrailingZeros()
+                .toPlainString();
     }
 }

@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -140,7 +141,8 @@ public class FactureCommissionService {
         c.texte(FONT, 10, xTotal, formatMontant(montantCommission));
         c.avancer(13);
         c.texteCouleur(FONT, 8, xDesignation,
-                "Commande N° " + commande.getNumeroCommande() + "  ·  Taux : 10 %  ·  Base de calcul : " + formatMontant(commande.getTotalTTC()) + " (Vente TTC)"
+                "Commande N° " + commande.getNumeroCommande() + "  ·  Taux : " + pourcentageCommission(commande)
+                        + " %  ·  Base de calcul : " + formatMontant(commande.getTotalTTC()) + " (Vente TTC)"
                         + "  ·  Due par l'imprimerie",
                 GRIS_TEXTE);
         c.avancer(24);
@@ -192,5 +194,25 @@ public class FactureCommissionService {
         String note = "Document interne. Ne vaut pas facture : ces revenus n'ont pas le même débiteur.";
         float largeurNote = FONT.getStringWidth(note) / 1000f * 8;
         c.texteCouleurA(FONT, 8, MARGE + (largeurUtile - largeurNote) / 2, c.y, note, GRIS_TEXTE);
+    }
+
+    /**
+     * Pourcentage de commission effectivement appliqué à CETTE commande, recalculé
+     * depuis son propre montant plutôt que lu depuis le tarif actuel de la
+     * plateforme : la commission étant configurable, le taux en vigueur au moment
+     * de la commande peut différer de celui d'aujourd'hui, et ce relevé doit
+     * rester exact indéfiniment.
+     */
+    private String pourcentageCommission(Commande commande) {
+        if (commande.getTotalTTC() == null || commande.getCommissionPlateforme() == null
+                || commande.getTotalTTC().compareTo(BigDecimal.ZERO) == 0) {
+            return "";
+        }
+        return commande.getCommissionPlateforme()
+                .divide(commande.getTotalTTC(), 4, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal(100))
+                .setScale(2, RoundingMode.HALF_UP)
+                .stripTrailingZeros()
+                .toPlainString();
     }
 }

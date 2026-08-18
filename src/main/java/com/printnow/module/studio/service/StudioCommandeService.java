@@ -1,5 +1,6 @@
 package com.printnow.module.studio.service;
 
+import com.printnow.module.parametres.service.ParametresService;
 import com.printnow.module.studio.model.PropositionSupport;
 import com.printnow.module.studio.repository.PropositionSupportRepository;
 import com.printnow.module.user.model.User;
@@ -28,10 +29,8 @@ import java.util.List;
 @Slf4j
 public class StudioCommandeService {
 
-    /** Forfait par design généré utilisé dans une commande. */
-    private static final BigDecimal PRIX_GENERATION = new BigDecimal("4.90");
-
     private final PropositionSupportRepository propositionRepository;
+    private final ParametresService parametresService;
 
     /**
      * @param propositionIds propositions du studio utilisées dans la commande
@@ -46,6 +45,7 @@ public class StudioCommandeService {
                                            BigDecimal totalPrecedent, Long montantRegle) {
         if (propositionIds == null || propositionIds.isEmpty()) return BigDecimal.ZERO;
 
+        BigDecimal prixGeneration = parametresService.getParametres().getPrixGenerationDesign();
         List<PropositionSupport> aFacturer = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
 
@@ -61,7 +61,7 @@ public class StudioCommandeService {
             if (proposition.isPayee()) continue; // déjà facturée, on ne la compte pas deux fois
 
             aFacturer.add(proposition);
-            total = total.add(PRIX_GENERATION);
+            total = total.add(prixGeneration);
         }
 
         if (aFacturer.isEmpty()) return BigDecimal.ZERO;

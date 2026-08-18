@@ -1,7 +1,10 @@
 package com.printnow.module.chatbot.service;
 
 import com.printnow.module.chatbot.dto.ChatMessageDTO;
+import com.printnow.module.parametres.model.ParametresPlateforme;
+import com.printnow.module.parametres.service.ParametresService;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,7 +25,10 @@ import java.util.Map;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ChatbotService {
+
+    private final ParametresService parametresService;
 
     @Value("${mistral.api.key}")
     private String apiKey;
@@ -148,8 +154,8 @@ public class ChatbotService {
           d'orthographe et de grammaire de son PDF avant impression. C'est facultatif.
         - L'analyse est GRATUITE : elle indique combien de fautes ont été trouvées et le prix,
           sans rien engager. Le client ne paie que s'il décide de faire corriger.
-        - Tarif : 2,90 € pour un document jusqu'à 10 pages, puis 0,20 € par page supplémentaire.
-          Exemple : 15 pages coûtent 3,90 €.
+        - Tarif : §PRIX_CORRECTION§ € pour un document jusqu'à §PAGES_INCLUSES§ pages, puis
+          §PRIX_PAGE_SUPP§ € par page supplémentaire.
         - Trois langues sont reconnues : français, néerlandais et anglais, et elles seules. La
           langue est détectée automatiquement. Si on t'interroge sur une autre langue (espagnol,
           allemand, italien…), réponds que la correction ne la prend pas en charge — c'est bien
@@ -172,7 +178,7 @@ public class ChatbotService {
           celle qui lui plaît : son PDF rejoint alors la commande comme un fichier déposé.
         - Générer et prévisualiser les propositions est GRATUIT. Le client ne paie que s'il
           retient un design et va au bout de la commande.
-        - Tarif : 4,90 € par design retenu et joint à la commande.
+        - Tarif : §PRIX_DESIGN§ € par design retenu et joint à la commande.
         - Un type n'est proposé que si l'imprimerie choisie sait l'imprimer : une imprimerie
           qui ne fait pas de cartes de visite, par exemple, n'en proposera pas la génération.
         - Comme la correction, ce service est vendu par PrintNow, pas par l'imprimerie : son
@@ -262,9 +268,9 @@ public class ChatbotService {
         DEVENIR IMPRIMEUR PARTENAIRE
         - Inscription via la page « Devenir partenaire » : informations de l'imprimerie,
           services et prix proposés, horaires d'ouverture.
-        - Frais d'inscription uniques de 100 €, payables en ligne. La boutique est activée
+        - Frais d'inscription uniques de §FRAIS_INSCRIPTION§ €, payables en ligne. La boutique est activée
           immédiatement après le paiement, sans validation manuelle.
-        - PrintNow prélève ensuite une commission de 10 % sur le montant TTC de chaque commande.
+        - PrintNow prélève ensuite une commission de §COMMISSION§ % sur le montant TTC de chaque commande.
         - L'imprimeur gère ses commandes, services, tarifs, horaires et codes promo depuis son
           espace professionnel, où il télécharge aussi ses relevés de vente.
 
@@ -307,7 +313,15 @@ public class ChatbotService {
         }
 
         String langueCible = LANGUES.getOrDefault(langue == null ? "fr" : langue.toLowerCase(), "français");
-        String systemPrompt = SYSTEM_PROMPT.replace("§LANGUE§", langueCible);
+        ParametresPlateforme tarifs = parametresService.getParametres();
+        String systemPrompt = SYSTEM_PROMPT
+                .replace("§LANGUE§", langueCible)
+                .replace("§PRIX_CORRECTION§", tarifs.getPrixCorrectionForfait().toPlainString())
+                .replace("§PAGES_INCLUSES§", String.valueOf(tarifs.getPagesInclusesCorrection()))
+                .replace("§PRIX_PAGE_SUPP§", tarifs.getPrixCorrectionPageSupp().toPlainString())
+                .replace("§PRIX_DESIGN§", tarifs.getPrixGenerationDesign().toPlainString())
+                .replace("§FRAIS_INSCRIPTION§", tarifs.getFraisInscription().toPlainString())
+                .replace("§COMMISSION§", tarifs.getCommissionPourcentage().toPlainString());
 
         List<Map<String, Object>> messages = new ArrayList<>();
         messages.add(Map.of("role", "system", "content", systemPrompt));

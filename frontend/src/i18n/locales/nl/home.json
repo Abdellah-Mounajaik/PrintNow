@@ -97,19 +97,13 @@
     "subtitle": "Laat uw activiteit groeien door lid te worden van PrintNow. Bereik nieuwe klanten en beheer uw bestellingen op een eenvoudige manier.",
     "primaryCta": "Partner worden",
     "secondaryCta": "Neem contact op",
-    "benefits": [
-      {
-        "value": "100€",
-        "label": "Eenmalige inschrijvingskosten"
-      },
-      {
-        "value": "10%",
-        "label": "Vaste commissie"
-      },
-      {
-        "value": "24/7",
-        "label": "Toegewijde ondersteuning"
-      }
-    ]
+    "benefits": {
+      "feeValue": "{{fee}}€",
+      "feeLabel": "Eenmalige inschrijvingskosten",
+      "commissionValue": "{{commission}}%",
+      "commissionLabel": "Vaste commissie",
+      "supportValue": "24/7",
+      "supportLabel": "Toegewijde ondersteuning"
+    }
   }
 }

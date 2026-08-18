@@ -27,6 +27,8 @@ export interface CommandeDTO {
   montantCorrections?: number | null;
   /** Designs IA (studio) réglés avec la commande : revenu PrintNow. */
   montantGenerations?: number | null;
+  /** Commission PrintNow sur cette commande, déjà calculée au tarif en vigueur au moment de la commande. */
+  commissionPlateforme?: number | null;
   dateCreation: string;
   nomClient: string;
   nomImprimerie: string;

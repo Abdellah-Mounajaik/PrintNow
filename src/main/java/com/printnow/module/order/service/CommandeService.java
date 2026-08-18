@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.printnow.module.correction.service.CorrectionCommandeService;
 import com.printnow.module.studio.service.StudioCommandeService;
+import com.printnow.module.parametres.service.ParametresService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +68,7 @@ public class CommandeService {
     private final VerificationEtudiantRepository verificationEtudiantRepository;
     private final CorrectionCommandeService correctionCommandeService;
     private final StudioCommandeService studioCommandeService;
+    private final ParametresService parametresService;
 
     /**
      * Passe une commande et applique, dans la même transaction, les vérifications
@@ -341,8 +343,10 @@ public class CommandeService {
         commande.setTotalTVA(totalHT.multiply(new BigDecimal("0.21"))); // TVA fixe à 21% (taux belge standard)
         commande.setTotalTTC(commande.getTotalHT().add(commande.getTotalTVA()));
         
-        // Commission (10% du TTC)
-        BigDecimal commission = commande.getTotalTTC().multiply(new BigDecimal("0.10"));
+        // Commission, en pourcentage configurable du TTC
+        BigDecimal commission = commande.getTotalTTC()
+                .multiply(parametresService.getParametres().getCommissionPourcentage())
+                .divide(new BigDecimal("100"));
         commande.setCommissionPlateforme(commission);
         
         // Montant net pour l'imprimeur

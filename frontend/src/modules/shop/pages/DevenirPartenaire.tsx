@@ -19,6 +19,8 @@ import type { SuggestionAdresse } from "../../../models/adresse.model";
 import { partnerService } from "../services/partner.service";
 import { type PartnerRegistrationRequest } from "../models/partner.model";
 import { DAYS, SERVICES, type Hours } from "../models/partner.constants";
+import { parametresService } from "../../../services/parametres.service";
+import type { ParametresPlateforme } from "../../../models/parametres.model";
 
 import {
   Printer, Building2, Mail, Phone, MapPin, Upload,
@@ -108,16 +110,32 @@ const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) =
 // =========================================================================
 // COMPOSANT PRINCIPAL
 // =========================================================================
-// Frais d'inscription unique et taux de commission affichés sur la page
-// (également utilisés comme montant envoyé à Stripe).
-const REGISTRATION_FEE = 100;
-const COMMISSION_PERCENT = 10;
+// Valeurs de repli affichées le temps que les tarifs réels soient chargés
+// depuis le serveur — évite un flash à "0€" au premier rendu.
+const TARIFS_PAR_DEFAUT: ParametresPlateforme = {
+  commissionPourcentage: 10,
+  fraisInscription: 100,
+  prixCorrectionForfait: 2.9,
+  pagesInclusesCorrection: 10,
+  prixCorrectionPageSupp: 0.2,
+  prixGenerationDesign: 4.9,
+};
 
 const DevenirPartenaire = () => {
   const { t } = useTranslation("devenirPartenaire");
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Frais d'inscription et commission : configurables par un administrateur,
+  // affichés ici tels quels (jamais en dur) pour ne jamais mentir au partenaire
+  // ni envoyer à Stripe un montant différent de celui réellement dû.
+  const [tarifs, setTarifs] = useState<ParametresPlateforme>(TARIFS_PAR_DEFAUT);
+  useEffect(() => {
+    parametresService.getParametres().then(setTarifs).catch(() => {});
+  }, []);
+  const REGISTRATION_FEE = tarifs.fraisInscription;
+  const COMMISSION_PERCENT = tarifs.commissionPourcentage;
 
   // Step 1
   const [shopName, setShopName] = useState("");

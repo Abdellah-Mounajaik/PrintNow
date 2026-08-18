@@ -97,19 +97,13 @@
     "subtitle": "Grow your business by joining PrintNow. Reach new customers and manage your orders with ease.",
     "primaryCta": "Become a partner",
     "secondaryCta": "Contact us",
-    "benefits": [
-      {
-        "value": "100€",
-        "label": "One-time registration fee"
-      },
-      {
-        "value": "10%",
-        "label": "Flat commission"
-      },
-      {
-        "value": "24/7",
-        "label": "Dedicated support"
-      }
-    ]
+    "benefits": {
+      "feeValue": "{{fee}}€",
+      "feeLabel": "One-time registration fee",
+      "commissionValue": "{{commission}}%",
+      "commissionLabel": "Flat commission",
+      "supportValue": "24/7",
+      "supportLabel": "Dedicated support"
+    }
   }
 }

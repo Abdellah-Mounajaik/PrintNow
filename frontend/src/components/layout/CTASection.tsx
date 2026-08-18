@@ -1,16 +1,33 @@
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { ArrowRight, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { parametresService } from "../../services/parametres.service";
+import type { ParametresPlateforme } from "../../models/parametres.model";
 
-type CTABenefit = {
-  value: string;
-  label: string;
+// Valeurs de repli le temps que les tarifs réels soient chargés — évite un
+// flash à "0€"/"0%" au premier rendu.
+const TARIFS_PAR_DEFAUT: Pick<ParametresPlateforme, "fraisInscription" | "commissionPourcentage"> = {
+  fraisInscription: 100,
+  commissionPourcentage: 10,
 };
 
 const CTASection = () => {
   const { t } = useTranslation("home");
-  const benefits = t("cta.benefits", { returnObjects: true }) as CTABenefit[];
+  const [tarifs, setTarifs] = useState(TARIFS_PAR_DEFAUT);
+
+  useEffect(() => {
+    parametresService.getParametres().then(setTarifs).catch(() => {});
+  }, []);
+
+  // Les frais d'inscription et la commission sont configurables par un
+  // administrateur : jamais en dur ici, pour ne pas afficher un tarif obsolète.
+  const benefits = [
+    { value: t("cta.benefits.feeValue", { fee: tarifs.fraisInscription }), label: t("cta.benefits.feeLabel") },
+    { value: t("cta.benefits.commissionValue", { commission: tarifs.commissionPourcentage }), label: t("cta.benefits.commissionLabel") },
+    { value: t("cta.benefits.supportValue"), label: t("cta.benefits.supportLabel") },
+  ];
 
   return (
     <section className="py-20 bg-primary relative overflow-hidden">

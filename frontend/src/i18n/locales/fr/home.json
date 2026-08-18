@@ -97,19 +97,13 @@
     "subtitle": "Développez votre activité en rejoignant PrintNow. Accédez à de nouveaux clients et gérez vos commandes simplement.",
     "primaryCta": "Devenir partenaire",
     "secondaryCta": "Nous contacter",
-    "benefits": [
-      {
-        "value": "100€",
-        "label": "Frais d'inscription unique"
-      },
-      {
-        "value": "10%",
-        "label": "Commission unique"
-      },
-      {
-        "value": "24/7",
-        "label": "Support dédié"
-      }
-    ]
+    "benefits": {
+      "feeValue": "{{fee}}€",
+      "feeLabel": "Frais d'inscription unique",
+      "commissionValue": "{{commission}}%",
+      "commissionLabel": "Commission unique",
+      "supportValue": "24/7",
+      "supportLabel": "Support dédié"
+    }
   }
 }
