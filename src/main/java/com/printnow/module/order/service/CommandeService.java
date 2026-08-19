@@ -242,11 +242,13 @@ public class CommandeService {
             BigDecimal nbPages = BigDecimal.valueOf(item.getNbPages() != null && item.getNbPages() > 0 ? item.getNbPages() : 1);
             BigDecimal prixU = prixBase.multiply(nbPages);
 
-            // Le recto-verso n'a aucun sens pour une affiche (personne ne voit le verso) :
-            // on l'ignore côté serveur quel que soit ce qu'envoie le client, pour ne pas
-            // dépendre uniquement de la restriction faite côté frontend.
+            // Le recto-verso n'a aucun sens pour une affiche (personne ne voit le verso) ni
+            // pour un document d'une seule page (pas de verso à imprimer) : on l'ignore
+            // côté serveur quel que soit ce qu'envoie le client, pour ne pas dépendre
+            // uniquement de la restriction faite côté frontend.
             boolean rectoVerso = Boolean.TRUE.equals(item.getRectoVerso())
-                    && produit.getTypeProduit() != TypeProduit.POSTER;
+                    && produit.getTypeProduit() != TypeProduit.POSTER
+                    && nbPages.compareTo(BigDecimal.ONE) > 0;
 
             // Remise recto-verso (configurée par l'imprimerie, 15% par défaut) : ne
             // s'applique qu'au coût d'impression, pas à la reliure/finition ci-dessous.

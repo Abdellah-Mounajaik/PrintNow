@@ -487,7 +487,7 @@ const Order = () => {
           updatedOptions.finish = "AUCUNE";
           // Le recto-verso n'a aucun sens pour une affiche (personne ne voit le verso)
           const newProduct = activeProducts.find((p) => p.id === value);
-          if (newProduct?.typeProduit === "POSTER") {
+          if (newProduct?.typeProduit === "POSTER" || f.pageCount <= 1) {
             updatedOptions.recto = "recto";
           }
         }
@@ -917,8 +917,8 @@ const Order = () => {
                         )}
                       </div>
 
-                      <div className={`grid gap-4 ${selectedProduct?.typeProduit === "POSTER" ? "grid-cols-1" : "grid-cols-2"}`}>
-                        {selectedProduct?.typeProduit !== "POSTER" && (
+                      <div className={`grid gap-4 ${selectedProduct?.typeProduit === "POSTER" || uploadedFile.pageCount <= 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+                        {selectedProduct?.typeProduit !== "POSTER" && uploadedFile.pageCount > 1 && (
                           <div className="space-y-3">
                             <Label className="text-sm">{t("fileCard.layout.label")}</Label>
                             <RadioGroup value={uploadedFile.options.recto} onValueChange={(v) => updateFileOption(index, "recto", v as "recto" | "rectoverso")} className="flex gap-4">
