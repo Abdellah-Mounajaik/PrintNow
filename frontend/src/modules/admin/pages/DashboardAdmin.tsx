@@ -490,7 +490,7 @@ const DashboardAdmin = () => {
           </div>
 
           <Tabs defaultValue="signups" className="space-y-6">
-            <TabsList>
+            <TabsList className="flex-wrap h-auto">
               <TabsTrigger value="signups">{t("tabs.signups")}</TabsTrigger>
               <TabsTrigger value="shops">{t("tabs.shops")}</TabsTrigger>
               <TabsTrigger value="users">{t("tabs.users")}</TabsTrigger>

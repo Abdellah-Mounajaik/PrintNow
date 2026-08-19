@@ -917,7 +917,7 @@ const Order = () => {
                         )}
                       </div>
 
-                      <div className={`grid gap-4 ${selectedProduct?.typeProduit === "POSTER" || uploadedFile.pageCount <= 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+                      <div className={`grid gap-4 ${selectedProduct?.typeProduit === "POSTER" || uploadedFile.pageCount <= 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
                         {selectedProduct?.typeProduit !== "POSTER" && uploadedFile.pageCount > 1 && (
                           <div className="space-y-3">
                             <Label className="text-sm">{t("fileCard.layout.label")}</Label>

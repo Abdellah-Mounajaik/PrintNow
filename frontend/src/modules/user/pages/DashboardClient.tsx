@@ -40,6 +40,7 @@ import {
   DialogTitle,
 } from "../../../components/ui/dialog";
 import { toast } from "../../../hooks/use-toast";
+import { getPaginationRange } from "../../../lib/utils";
 import { useRef } from "react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { userService } from "../services/user.service";
@@ -458,17 +459,21 @@ const DashboardClient = () => {
                       >
                         {t("pagination.previous")}
                       </Button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                        <Button
-                          key={n}
-                          variant={n === currentPage ? "default" : "outline"}
-                          size="sm"
-                          className="w-9"
-                          onClick={() => setOrdersPage(n)}
-                        >
-                          {n}
-                        </Button>
-                      ))}
+                      {getPaginationRange(currentPage, totalPages).map((n, idx) =>
+                        n === "..." ? (
+                          <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground">…</span>
+                        ) : (
+                          <Button
+                            key={n}
+                            variant={n === currentPage ? "default" : "outline"}
+                            size="sm"
+                            className="w-9"
+                            onClick={() => setOrdersPage(n)}
+                          >
+                            {n}
+                          </Button>
+                        )
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -588,17 +593,21 @@ const DashboardClient = () => {
                         >
                           {t("pagination.previous")}
                         </Button>
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                          <Button
-                            key={n}
-                            variant={n === currentPage ? "default" : "outline"}
-                            size="sm"
-                            className="w-9"
-                            onClick={() => setInvoicesPage(n)}
-                          >
-                            {n}
-                          </Button>
-                        ))}
+                        {getPaginationRange(currentPage, totalPages).map((n, idx) =>
+                          n === "..." ? (
+                            <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground">…</span>
+                          ) : (
+                            <Button
+                              key={n}
+                              variant={n === currentPage ? "default" : "outline"}
+                              size="sm"
+                              className="w-9"
+                              onClick={() => setInvoicesPage(n)}
+                            >
+                              {n}
+                            </Button>
+                          )
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
