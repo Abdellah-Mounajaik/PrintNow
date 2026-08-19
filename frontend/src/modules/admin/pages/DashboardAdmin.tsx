@@ -538,10 +538,11 @@ const DashboardAdmin = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Badge className={shop.actif ? "status-open" : "status-closed"}>
-                            {shop.actif ? t("shops.status.active") : t("shops.status.inactive")}
-                          </Badge>
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`/imprimerie/${shop.slug ?? shop.id}`, "_blank", "noopener,noreferrer")}
+                          >
                             <Eye className="h-4 w-4 mr-1" />
                             {t("signups.viewButton")}
                           </Button>

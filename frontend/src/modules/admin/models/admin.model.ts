@@ -13,6 +13,7 @@ export interface UserDTO {
 export interface ImprimerieDTO {
   id: number;
   nom: string;
+  slug?: string;
   ville: string;
   emailContact: string;
   actif: boolean;
