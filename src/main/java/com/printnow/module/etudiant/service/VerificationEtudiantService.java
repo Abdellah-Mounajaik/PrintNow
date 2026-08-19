@@ -45,6 +45,13 @@ public class VerificationEtudiantService {
     private final EmailService emailService;
     private final VerificationEtudiantIaService iaService;
 
+    /**
+     * Au-delà de ce nombre de refus d'affilée, les resoumissions sont bloquées :
+     * sans limite, un compte refusé pouvait retenter indéfiniment (spam de
+     * demandes, et donc d'appels à l'IA qui les analyse).
+     */
+    private static final int MAX_TENTATIVES = 3;
+
     @Transactional
     public VerificationEtudiantResponseDTO soumettre(User user, MultipartFile carteEtudiante, MultipartFile carteIdentite) {
         VerificationEtudiant verification = repository.findByUser_Id(user.getId())
@@ -56,6 +63,11 @@ public class VerificationEtudiantService {
             }
             if (verification.getStatut() == StatutEtudiant.EN_ATTENTE) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Votre demande est déjà en attente de vérification.");
+            }
+            if (verification.getStatut() == StatutEtudiant.REFUSE && verification.getNombreRefus() >= MAX_TENTATIVES) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Vous avez atteint le nombre maximum de tentatives (" + MAX_TENTATIVES
+                                + "). Contactez le support via la page Contact pour une vérification manuelle.");
             }
         }
 
@@ -174,6 +186,9 @@ public class VerificationEtudiantService {
         v.setDateValidation(LocalDateTime.now());
         v.setValableJusquA(calculerExpiration());
         v.setDecisionAutomatique(automatique);
+        // Une acceptation solde les refus précédents : ils ne doivent pas peser
+        // sur un futur renouvellement (année suivante) qui n'a rien à voir.
+        v.setNombreRefus(0);
         // La décision prise, les pièces ont rempli leur rôle : on ne garde que le verdict.
         effacerLesJustificatifs(v);
         repository.save(v);
@@ -187,6 +202,7 @@ public class VerificationEtudiantService {
         v.setDateValidation(LocalDateTime.now());
         v.setMotifRefus(motifRefus);
         v.setDecisionAutomatique(automatique);
+        v.setNombreRefus(v.getNombreRefus() + 1);
         // Refus aussi définitif qu'une acceptation : les pièces n'ont plus lieu d'être.
         effacerLesJustificatifs(v);
         repository.save(v);

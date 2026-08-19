@@ -64,4 +64,12 @@ public class VerificationEtudiant {
     /** True si le statut final (ACCEPTE/REFUSE) a été décidé par l'IA, sans intervention d'un admin. */
     @Column(name = "decision_automatique", nullable = false)
     private boolean decisionAutomatique = false;
+
+    /**
+     * Nombre de refus essuyés d'affilée. Au-delà de {@link VerificationEtudiantService#MAX_TENTATIVES},
+     * les resoumissions sont bloquées — sans cette limite, chaque refus (auto ou
+     * manuel) rouvrait la porte à un nouvel essai indéfiniment.
+     */
+    @Column(name = "nombre_refus", nullable = false)
+    private int nombreRefus = 0;
 }
