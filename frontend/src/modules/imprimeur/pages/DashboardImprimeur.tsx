@@ -24,6 +24,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "../../../components/ui/select";
 import { toast } from "../../../hooks/use-toast";
+import { getPaginationRange } from "../../../lib/utils";
 import { SERVER_URL } from "../../../lib/api";
 import { adresseService, LONGUEUR_MINIMALE } from "../../../services/adresse.service";
 import type { SuggestionAdresse } from "../../../models/adresse.model";
@@ -1021,17 +1022,21 @@ const DashboardImprimeur = () => {
                     >
                       {t("orders.pagination.previous")}
                     </Button>
-                    {Array.from({ length: ordersTotalPages }, (_, i) => i + 1).map((n) => (
-                      <Button
-                        key={n}
-                        variant={n === ordersCurrentPage ? "default" : "outline"}
-                        size="sm"
-                        className="w-9"
-                        onClick={() => setOrdersPage(n)}
-                      >
-                        {n}
-                      </Button>
-                    ))}
+                    {getPaginationRange(ordersCurrentPage, ordersTotalPages).map((n, idx) =>
+                      n === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground">…</span>
+                      ) : (
+                        <Button
+                          key={n}
+                          variant={n === ordersCurrentPage ? "default" : "outline"}
+                          size="sm"
+                          className="w-9"
+                          onClick={() => setOrdersPage(n)}
+                        >
+                          {n}
+                        </Button>
+                      )
+                    )}
                     <Button
                       variant="outline"
                       size="sm"

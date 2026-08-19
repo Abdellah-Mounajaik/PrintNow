@@ -7,7 +7,7 @@ import PrintShopCard from "./PrintShopCard";
 import type { PrintShop, TravelTimeState } from "../../models/catalogue.model";
 import { partnerService } from "../../modules/shop/services/partner.service";
 import { toast } from "../../hooks/use-toast";
-import { resolveFileUrl, haversineDistanceKm } from "../../lib/utils";
+import { resolveFileUrl, haversineDistanceKm, getPaginationRange } from "../../lib/utils";
 import { itineraireService } from "../../services/itineraire.service";
 import ShopsMapDialog from "./ShopsMapDialog";
 
@@ -694,17 +694,21 @@ const PrintShopsSection = () => {
                 >
                   {t("pagination.previous")}
                 </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                  <Button
-                    key={n}
-                    variant={n === currentPage ? "default" : "outline"}
-                    size="sm"
-                    className="w-9"
-                    onClick={() => setPage(n)}
-                  >
-                    {n}
-                  </Button>
-                ))}
+                {getPaginationRange(currentPage, totalPages).map((n, idx) =>
+                  n === "..." ? (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground">…</span>
+                  ) : (
+                    <Button
+                      key={n}
+                      variant={n === currentPage ? "default" : "outline"}
+                      size="sm"
+                      className="w-9"
+                      onClick={() => setPage(n)}
+                    >
+                      {n}
+                    </Button>
+                  )
+                )}
                 <Button
                   variant="outline"
                   size="sm"

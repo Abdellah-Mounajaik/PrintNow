@@ -33,6 +33,29 @@ export function haversineDistanceKm(lat1: number, lon1: number, lat2: number, lo
   return R * c;
 }
 
+/**
+ * Numéros de page à afficher dans une pagination, tronqués avec des "..." au
+ * lieu de tout lister : au-delà d'une poignée de pages, un bouton par page
+ * déborde et devient inutilisable (ex. 39 pages de commandes).
+ *
+ * Toujours la première, la dernière, et un voisinage autour de la page
+ * courante — ex. pour (20, 39) : [1, "...", 19, 20, 21, "...", 39].
+ */
+export function getPaginationRange(page: number, totalPages: number, delta = 1): (number | "...")[] {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  const range: (number | "...")[] = [1];
+  const gauche = Math.max(2, page - delta);
+  const droite = Math.min(totalPages - 1, page + delta);
+
+  if (gauche > 2) range.push("...");
+  for (let i = gauche; i <= droite; i++) range.push(i);
+  if (droite < totalPages - 1) range.push("...");
+  range.push(totalPages);
+
+  return range;
+}
+
 /** Formate une durée en minutes en texte lisible ("8 min", "1h20"). */
 export function formatDuration(minutes: number): string {
   if (minutes < 1) return "< 1 min";

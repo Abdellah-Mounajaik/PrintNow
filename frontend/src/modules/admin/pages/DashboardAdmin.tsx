@@ -43,6 +43,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { toast } from "../../../hooks/use-toast";
+import { getPaginationRange } from "../../../lib/utils";
 import { useAuth } from "../../auth/context/AuthContext";
 import { adminService } from "../services/admin.service";
 import { parametresService } from "../../../services/parametres.service";
@@ -656,17 +657,21 @@ const DashboardAdmin = () => {
                     >
                       {t("pagination.previous")}
                     </Button>
-                    {Array.from({ length: shopsTotalPages }, (_, i) => i + 1).map((n) => (
-                      <Button
-                        key={n}
-                        variant={n === shopsCurrentPage ? "default" : "outline"}
-                        size="sm"
-                        className="w-9"
-                        onClick={() => setShopsPage(n)}
-                      >
-                        {n}
-                      </Button>
-                    ))}
+                    {getPaginationRange(shopsCurrentPage, shopsTotalPages).map((n, idx) =>
+                      n === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground">…</span>
+                      ) : (
+                        <Button
+                          key={n}
+                          variant={n === shopsCurrentPage ? "default" : "outline"}
+                          size="sm"
+                          className="w-9"
+                          onClick={() => setShopsPage(n)}
+                        >
+                          {n}
+                        </Button>
+                      )
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -797,17 +802,21 @@ const DashboardAdmin = () => {
                     >
                       {t("pagination.previous")}
                     </Button>
-                    {Array.from({ length: usersTotalPages }, (_, i) => i + 1).map((n) => (
-                      <Button
-                        key={n}
-                        variant={n === usersCurrentPage ? "default" : "outline"}
-                        size="sm"
-                        className="w-9"
-                        onClick={() => setUsersPage(n)}
-                      >
-                        {n}
-                      </Button>
-                    ))}
+                    {getPaginationRange(usersCurrentPage, usersTotalPages).map((n, idx) =>
+                      n === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground">…</span>
+                      ) : (
+                        <Button
+                          key={n}
+                          variant={n === usersCurrentPage ? "default" : "outline"}
+                          size="sm"
+                          className="w-9"
+                          onClick={() => setUsersPage(n)}
+                        >
+                          {n}
+                        </Button>
+                      )
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -931,17 +940,21 @@ const DashboardAdmin = () => {
                     >
                       {t("pagination.previous")}
                     </Button>
-                    {Array.from({ length: commandesTotalPages }, (_, i) => i + 1).map((n) => (
-                      <Button
-                        key={n}
-                        variant={n === commandesCurrentPage ? "default" : "outline"}
-                        size="sm"
-                        className="w-9"
-                        onClick={() => setCommandesPage(n)}
-                      >
-                        {n}
-                      </Button>
-                    ))}
+                    {getPaginationRange(commandesCurrentPage, commandesTotalPages).map((n, idx) =>
+                      n === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground">…</span>
+                      ) : (
+                        <Button
+                          key={n}
+                          variant={n === commandesCurrentPage ? "default" : "outline"}
+                          size="sm"
+                          className="w-9"
+                          onClick={() => setCommandesPage(n)}
+                        >
+                          {n}
+                        </Button>
+                      )
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
