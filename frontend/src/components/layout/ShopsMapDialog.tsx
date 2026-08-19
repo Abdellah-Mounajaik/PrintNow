@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { Map as MapIcon, Footprints, Car, Loader2 } from "lucide-react";
+import { Map as MapIcon, Footprints, Car, Loader2, Star } from "lucide-react";
 import { formatDuration } from "../../lib/utils";
 import { itineraireService } from "../../services/itineraire.service";
 import type { ShopMapPoint, TravelTimeState } from "../../models/catalogue.model";
@@ -166,6 +166,14 @@ const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
                           <p className="font-semibold">{shop.name}</p>
                           <p className="text-xs text-muted-foreground">{shop.address}</p>
                           <p className="text-xs">{shop.isOpen ? `🟢 ${t("status.open")}` : `🔴 ${t("status.closed")}`}</p>
+
+                          {!!shop.reviewCount && (
+                            <div className="flex items-center gap-1">
+                              <Star className="h-3.5 w-3.5 text-secondary fill-secondary" />
+                              <span className="text-xs font-medium">{shop.rating?.toFixed(1)}</span>
+                              <span className="text-xs text-muted-foreground">({shop.reviewCount})</span>
+                            </div>
+                          )}
 
                           {shop.distanceKm != null && (
                             <div className="text-xs text-muted-foreground pt-1 space-y-0.5">

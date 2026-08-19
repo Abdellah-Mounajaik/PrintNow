@@ -54,4 +54,6 @@ export interface ShopMapPoint {
   longitude: number | null;
   isOpen: boolean;
   distanceKm?: number;
+  rating?: number;
+  reviewCount?: number;
 }
