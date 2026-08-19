@@ -320,7 +320,7 @@ const DashboardClient = () => {
           })()}
 
           <Tabs defaultValue="orders" className="space-y-6">
-            <TabsList>
+            <TabsList className="flex-wrap h-auto">
               <TabsTrigger value="orders">{t("tabs.orders")}</TabsTrigger>
               <TabsTrigger value="invoices">{t("tabs.invoices")}</TabsTrigger>
               <TabsTrigger value="etudiant">{t("tabs.student")}</TabsTrigger>
