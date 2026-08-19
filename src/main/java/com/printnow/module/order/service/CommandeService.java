@@ -358,8 +358,39 @@ public class CommandeService {
 
         // 8. Sauvegarde en base (sauvegarde la commande, ses lignes, l'adresse et le suivi de livraison !)
         Commande savedCommande = commandeRepository.save(commande);
-        
+
+        // Une commande non encore payée peut ne jamais aboutir : on n'alerte
+        // l'imprimerie qu'une fois le règlement confirmé.
+        if (paiementConfirme) {
+            notifierNouvelleCommande(savedCommande);
+        }
+
         return commandeMapper.toDto(savedCommande);
+    }
+
+    /**
+     * Alerte l'imprimerie par email qu'une commande vient d'être payée.
+     *
+     * Envoyé à l'email de contact de la boutique (modifiable indépendamment du
+     * compte de connexion du gérant), avec le compte du gérant en repli si elle
+     * n'est pas renseignée.
+     */
+    private void notifierNouvelleCommande(Commande commande) {
+        Imprimerie imprimerie = commande.getImprimerie();
+        String destinataire = (imprimerie.getEmailContact() != null && !imprimerie.getEmailContact().isBlank())
+                ? imprimerie.getEmailContact()
+                : (imprimerie.getGerant() != null ? imprimerie.getGerant().getEmail() : null);
+        if (destinataire == null || destinataire.isBlank()) return;
+
+        String libelleMode = commande.getModeRetrait() == ModeRetrait.LIVRAISON
+                ? "Livraison à domicile" : "Retrait en magasin";
+
+        emailService.envoyerNouvelleCommande(
+                destinataire,
+                commande.getNumeroCommande(),
+                libelleMode,
+                Boolean.TRUE.equals(commande.getExpress2h()),
+                String.format("%.2f €", commande.getTotalTTC()));
     }
 
     /**

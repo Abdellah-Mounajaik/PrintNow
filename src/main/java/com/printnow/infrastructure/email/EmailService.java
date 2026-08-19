@@ -123,6 +123,28 @@ public class EmailService {
     }
 
     /**
+     * Prévient l'imprimerie qu'une nouvelle commande payée vient d'arriver.
+     *
+     * Sans cette alerte, l'imprimerie ne découvre une commande — express ou
+     * à retirer rapidement — qu'en pensant à rafraîchir son dashboard.
+     */
+    @Async
+    public void envoyerNouvelleCommande(String destinataire, String numeroCommande, String modeRetrait,
+                                        boolean express2h, String totalTTC) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            helper.setTo(destinataire);
+            helper.setFrom(EXPEDITEUR);
+            helper.setSubject((express2h ? "⚡ Nouvelle commande express " : "Nouvelle commande ") + numeroCommande);
+            helper.setText(corpsNouvelleCommande(numeroCommande, modeRetrait, express2h, totalTTC), true);
+            mailSender.send(message);
+        } catch (MessagingException | RuntimeException e) {
+            log.warn("Échec de l'envoi du mail « nouvelle commande » à {}", destinataire, e);
+        }
+    }
+
+    /**
      * Envoie le lien permettant de choisir un nouveau mot de passe.
      *
      * Le jeton ne figure que dans cet email : c'est lui qui fait office de
@@ -470,6 +492,80 @@ public class EmailService {
                 </html>
                 """.formatted(salutation, echapperHtml(numeroCommande), echapperHtml(nomImprimerie),
                         coordonnees.toString(), URL_DASHBOARD_CLIENT);
+    }
+
+    private String corpsNouvelleCommande(String numeroCommande, String modeRetrait, boolean express2h, String totalTTC) {
+        String ligneMode = express2h ? "À préparer en express, sous 2 heures ⚡" : modeRetrait;
+
+        return """
+                <!DOCTYPE html>
+                <html lang="fr">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f6; color: #334155; }
+                        .email-wrapper { width: 100%%; background-color: #f8fafc; padding: 40px 15px; box-sizing: border-box; }
+                        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+                        .email-header { background-color: #1e293b; padding: 35px 20px; text-align: center; }
+                        .logo { font-size: 32px; font-weight: 800; color: #ffffff; margin: 0; letter-spacing: 0.5px; }
+                        .logo span { color: #f59e0b; }
+                        .email-body { padding: 40px 35px; }
+                        h1 { color: #1e293b; font-size: 22px; margin-top: 0; font-weight: 700; text-align: center; margin-bottom: 25px;}
+                        p { font-size: 16px; line-height: 1.6; margin-bottom: 20px; color: #475569; }
+                        .commande { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px 20px; text-align: center; margin-bottom: 25px; }
+                        .commande p { margin: 0; font-size: 14px; color: #94a3b8; }
+                        .commande strong { display: block; font-size: 18px; color: #1e293b; letter-spacing: 0.5px; margin-top: 4px; }
+                        .detail-ligne { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
+                        .detail-ligne:last-child { border-bottom: none; }
+                        .detail-label { color: #94a3b8; }
+                        .detail-valeur { color: #1e293b; font-weight: 600; }
+                        .cta-container { text-align: center; margin: 35px 0; }
+                        .cta-button { display: inline-block; background-color: #f59e0b; color: #ffffff; text-decoration: none; padding: 15px 35px; border-radius: 8px; font-weight: bold; font-size: 16px; }
+                        .signature { margin-top: 30px; font-size: 16px; }
+                        .email-footer { background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #e2e8f0; }
+                        .email-footer p { font-size: 12px; color: #94a3b8; margin: 5px 0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="email-wrapper">
+                        <div class="email-container">
+                            <div class="email-header">
+                                <p class="logo">PRINT<span>NOW</span></p>
+                            </div>
+                            <div class="email-body">
+                                <h1>Nouvelle commande reçue ! 🎉</h1>
+                                <p>Bonjour,</p>
+                                <p>Vous venez de recevoir une nouvelle commande.</p>
+                                <div class="commande">
+                                    <p>Numéro de commande</p>
+                                    <strong>%s</strong>
+                                </div>
+                                <div class="detail-ligne">
+                                    <span class="detail-label">Mode</span>
+                                    <span class="detail-valeur">%s</span>
+                                </div>
+                                <div class="detail-ligne">
+                                    <span class="detail-label">Montant total</span>
+                                    <span class="detail-valeur">%s</span>
+                                </div>
+                                <div class="cta-container">
+                                    <a href="%s" class="cta-button">Voir la commande</a>
+                                </div>
+                                <p class="signature">
+                                    Bonnes impressions,<br>
+                                    <strong>L'équipe PrintNow</strong>
+                                </p>
+                            </div>
+                            <div class="email-footer">
+                                <p>© 2026 PrintNow. Tous droits réservés.</p>
+                                <p>Une question ? Contactez-nous à <a href="mailto:contact@printnow.be" style="color: #f59e0b; text-decoration: none;">contact@printnow.be</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(echapperHtml(numeroCommande), echapperHtml(ligneMode), echapperHtml(totalTTC), URL_DASHBOARD_PARTENAIRE);
     }
 
     private String corpsReinitialisation(String prenom, String jeton, long minutesDeValidite) {
