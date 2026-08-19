@@ -42,6 +42,17 @@ public class ImprimerieController {
         return ResponseEntity.ok(imprimerieService.getAllActiveImprimeries());
     }
 
+    /**
+     * GET /api/imprimeries/admin/toutes
+     * Toutes les imprimeries, y compris fermées : réservé à l'administration
+     * (le catalogue public ci-dessus ne doit montrer que les actives).
+     */
+    @GetMapping("/admin/toutes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ImprimerieResponseDTO>> getToutesImprimeries() {
+        return ResponseEntity.ok(imprimerieService.getToutesImprimeries());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ImprimerieResponseDTO> getImprimerieById(@PathVariable Long id) {
         return ResponseEntity.ok(imprimerieService.getImprimerieById(id));

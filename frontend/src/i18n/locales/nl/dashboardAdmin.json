@@ -17,10 +17,14 @@
       "label": "Totale omzet",
       "commission": "Commissie: {{amount}}€",
       "corrections": "Correcties: {{amount}}€",
-      "designs": "AI-designs: {{amount}}€"
+      "designs": "AI-designs: {{amount}}€",
+      "registrationFees": "Inschrijvingskosten: {{amount}}€"
     },
     "orders": {
       "label": "Totaal aantal bestellingen"
+    },
+    "platformRevenue": {
+      "label": "PrintNow-omzet"
     }
   },
   "tabs": {

@@ -18,6 +18,8 @@ export interface ImprimerieDTO {
   actif: boolean;
   /** Absent pour les imprimeries inscrites avant la mise en place de cette facture. */
   numeroFactureInscription?: string | null;
+  /** Montant réellement payé à l'inscription, figé (voir numeroFactureInscription). */
+  montantFraisInscription?: number | null;
 }
 
 export interface CommandeDTO {

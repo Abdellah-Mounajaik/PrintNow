@@ -57,8 +57,10 @@ export const adminService = {
     }
   },
 
-  getImprimeries: async (): Promise<ImprimerieDTO[]> => {
-    const response = await fetch(`${API_URL}/imprimeries`);
+  // Toutes les imprimeries, y compris fermées : pour que les totaux (ex. frais
+  // d'inscription perçus) ne chutent pas dès qu'une imprimerie ferme.
+  getImprimeries: async (token: string): Promise<ImprimerieDTO[]> => {
+    const response = await fetch(`${API_URL}/imprimeries/admin/toutes`, { headers: authHeaders(token) });
     if (!response.ok) throw new Error("Erreur lors de la récupération des imprimeries");
     return response.json();
   },

@@ -44,6 +44,20 @@ public class ImprimerieService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Toutes les imprimeries, y compris fermées — réservé à l'administration.
+     * Le catalogue public ({@link #getAllActiveImprimeries()}) ne doit jamais
+     * exposer une boutique fermée à un client, mais l'admin a besoin de les
+     * garder visibles (ex. total des frais d'inscription perçus, qui ne doit
+     * pas chuter dès qu'une imprimerie ferme).
+     */
+    @Transactional(readOnly = true)
+    public List<ImprimerieResponseDTO> getToutesImprimeries() {
+        return imprimerieRepository.findAll().stream()
+                .map(shopMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional(readOnly = true)
     public ImprimerieResponseDTO getImprimerieById(Long id) {
         Imprimerie imprimerie = imprimerieRepository.findById(id)

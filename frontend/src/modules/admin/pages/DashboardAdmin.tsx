@@ -40,6 +40,7 @@ import {
   AlertTriangle,
   Settings,
   Bot,
+  Wallet,
 } from "lucide-react";
 import { toast } from "../../../hooks/use-toast";
 import { useAuth } from "../../auth/context/AuthContext";
@@ -176,7 +177,7 @@ const DashboardAdmin = () => {
     if (!token) return;
     Promise.all([
       adminService.getUsers(token),
-      adminService.getImprimeries(),
+      adminService.getImprimeries(token),
       adminService.getCommandes(token),
       adminService.getVerifications(token),
     ])
@@ -312,6 +313,13 @@ const DashboardAdmin = () => {
   // entièrement à ses revenus.
   const correctionsTotal = commandes.reduce((s, c) => s + Number(c.montantCorrections ?? 0), 0);
   const generationsTotal = commandes.reduce((s, c) => s + Number(c.montantGenerations ?? 0), 0);
+  // Payés une seule fois à l'inscription, hors de toute commande : sans lien
+  // avec le catalogue actif, on garde donc aussi les imprimeries fermées ici.
+  const fraisInscriptionTotal = imprimeries.reduce((s, i) => s + Number(i.montantFraisInscription ?? 0), 0);
+  // Revenu PrintNow toutes sources confondues, décorrélé du CA (volume des
+  // commandes) : les frais d'inscription n'en font pas partie par exemple.
+  const revenuPlateformeGlobal = commissionTotale + correctionsTotal + generationsTotal + fraisInscriptionTotal;
+  // Revenu limité aux commandes, utilisé dans le récapitulatif de l'onglet Commandes.
   const revenuPlateforme = commissionTotale + correctionsTotal + generationsTotal;
   const recentesImprimeries = [...imprimeries].sort((a, b) => b.id - a.id).slice(0, 5);
 
@@ -402,7 +410,7 @@ const DashboardAdmin = () => {
           </div>
 
           {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             <Card className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <Users className="h-8 w-8 text-primary" />
@@ -441,6 +449,24 @@ const DashboardAdmin = () => {
                 {caTotal.toFixed(2)}€
               </div>
               <div className="text-sm text-muted-foreground">{t("kpis.revenue.label")}</div>
+            </Card>
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <ShoppingCart className="h-8 w-8 text-success" />
+                <TrendingUp className="h-4 w-4 text-success" />
+              </div>
+              <div className="font-display text-3xl font-bold">{commandes.length}</div>
+              <div className="text-sm text-muted-foreground">{t("kpis.orders.label")}</div>
+            </Card>
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <Wallet className="h-8 w-8 text-success" />
+                <TrendingUp className="h-4 w-4 text-success" />
+              </div>
+              <div className="font-display text-3xl font-bold">
+                {revenuPlateformeGlobal.toFixed(2)}€
+              </div>
+              <div className="text-sm text-muted-foreground">{t("kpis.platformRevenue.label")}</div>
               <div className="text-xs text-success mt-1">
                 {t("kpis.revenue.commission", { amount: commissionTotale.toFixed(2) })}
               </div>
@@ -454,14 +480,11 @@ const DashboardAdmin = () => {
                   {t("kpis.revenue.designs", { amount: generationsTotal.toFixed(2) })}
                 </div>
               )}
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <ShoppingCart className="h-8 w-8 text-success" />
-                <TrendingUp className="h-4 w-4 text-success" />
-              </div>
-              <div className="font-display text-3xl font-bold">{commandes.length}</div>
-              <div className="text-sm text-muted-foreground">{t("kpis.orders.label")}</div>
+              {fraisInscriptionTotal > 0 && (
+                <div className="text-xs text-success">
+                  {t("kpis.revenue.registrationFees", { amount: fraisInscriptionTotal.toFixed(2) })}
+                </div>
+              )}
             </Card>
           </div>
 

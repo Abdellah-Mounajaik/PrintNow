@@ -1,5 +1,6 @@
 package com.printnow.module.shop.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import lombok.Data;
@@ -33,4 +34,6 @@ public class ImprimerieResponseDTO {
     private Integer nombreAvis;
     /** Présent seulement si les frais d'inscription ont bien été facturés (voir Imprimerie). */
     private String numeroFactureInscription;
+    /** Montant réellement payé à l'inscription, figé (voir Imprimerie.montantFraisInscription). */
+    private BigDecimal montantFraisInscription;
 }

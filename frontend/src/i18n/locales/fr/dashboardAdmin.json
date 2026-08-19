@@ -17,10 +17,14 @@
       "label": "CA total",
       "commission": "Commission : {{amount}}€",
       "corrections": "Corrections : {{amount}}€",
-      "designs": "Designs IA : {{amount}}€"
+      "designs": "Designs IA : {{amount}}€",
+      "registrationFees": "Frais d'inscription : {{amount}}€"
     },
     "orders": {
       "label": "Commandes totales"
+    },
+    "platformRevenue": {
+      "label": "Revenu PrintNow"
     }
   },
   "tabs": {
