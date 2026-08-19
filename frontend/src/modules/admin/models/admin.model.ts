@@ -46,6 +46,12 @@ export interface VerificationDTO {
   carteEtudiantePresente: boolean;
   carteIdentitePresente: boolean;
   motifRefus: string | null;
+  /** Verdict de l'analyse automatique : "CORRESPONDANCE" | "DIVERGENCE_MANIFESTE" | "INCERTAIN" | null (pas encore analysée / IA indisponible). */
+  verdictIa: string | null;
+  nomExtraitCarteEtudiante: string | null;
+  nomExtraitCarteIdentite: string | null;
+  /** True si le statut final a été décidé par l'IA, sans intervention d'un admin. */
+  decisionAutomatique: boolean;
 }
 
 /** Type d'image d'une vérification étudiante */

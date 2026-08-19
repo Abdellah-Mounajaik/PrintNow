@@ -150,7 +150,13 @@
     "previousRefusalReason": "Motif du refus précédent",
     "refusalPlaceholder": "Motif du refus (optionnel) — visible par l'étudiant",
     "acceptButton": "Accepter",
-    "refuseButton": "Refuser"
+    "refuseButton": "Refuser",
+    "autoDecided": "Décidé automatiquement par l'IA",
+    "aiUncertain": {
+      "title": "Vérification IA incertaine — comparez les noms",
+      "studentCardName": "Nom lu sur la carte étudiante : {{name}}",
+      "idCardName": "Nom lu sur la carte d'identité : {{name}}"
+    }
   },
   "deleteUserDialog": {
     "title": "Supprimer ce compte ?",

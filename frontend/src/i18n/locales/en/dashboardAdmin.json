@@ -150,7 +150,13 @@
     "previousRefusalReason": "Previous rejection reason",
     "refusalPlaceholder": "Rejection reason (optional) — visible to the student",
     "acceptButton": "Accept",
-    "refuseButton": "Reject"
+    "refuseButton": "Reject",
+    "autoDecided": "Automatically decided by AI",
+    "aiUncertain": {
+      "title": "Uncertain AI check — compare the names",
+      "studentCardName": "Name read on the student card: {{name}}",
+      "idCardName": "Name read on the ID card: {{name}}"
+    }
   },
   "deleteUserDialog": {
     "title": "Delete this account?",

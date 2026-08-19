@@ -39,6 +39,7 @@ import {
   Trash2,
   AlertTriangle,
   Settings,
+  Bot,
 } from "lucide-react";
 import { toast } from "../../../hooks/use-toast";
 import { useAuth } from "../../auth/context/AuthContext";
@@ -966,7 +967,14 @@ const DashboardAdmin = () => {
                                   : "—"}
                               </TableCell>
                               <TableCell>
-                                <Badge className={cfg.className}>{cfg.label}</Badge>
+                                <div className="flex items-center gap-1.5">
+                                  <Badge className={cfg.className}>{cfg.label}</Badge>
+                                  {v.decisionAutomatique && (
+                                    <span title={t("verifications.autoDecided")}>
+                                      <Bot className="h-3.5 w-3.5 text-muted-foreground" />
+                                    </span>
+                                  )}
+                                </div>
                               </TableCell>
                               <TableCell>
                                 <Button variant="outline" size="sm" onClick={() => setSelectedVerif(v)}>
@@ -1017,6 +1025,20 @@ const DashboardAdmin = () => {
                         <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm">
                           <p className="font-medium text-destructive mb-1">{t("verifications.previousRefusalReason")}</p>
                           <p className="text-muted-foreground">{selectedVerif.motifRefus}</p>
+                        </div>
+                      )}
+
+                      {selectedVerif.statut === "EN_ATTENTE" && selectedVerif.verdictIa === "INCERTAIN" && (
+                        <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 text-sm space-y-1">
+                          <p className="font-medium text-warning flex items-center gap-1.5">
+                            <Bot className="h-4 w-4" /> {t("verifications.aiUncertain.title")}
+                          </p>
+                          <p className="text-muted-foreground">
+                            {t("verifications.aiUncertain.studentCardName", { name: selectedVerif.nomExtraitCarteEtudiante || "—" })}
+                          </p>
+                          <p className="text-muted-foreground">
+                            {t("verifications.aiUncertain.idCardName", { name: selectedVerif.nomExtraitCarteIdentite || "—" })}
+                          </p>
                         </div>
                       )}
 

@@ -150,7 +150,13 @@
     "previousRefusalReason": "Reden van vorige weigering",
     "refusalPlaceholder": "Reden van weigering (optioneel) — zichtbaar voor de student",
     "acceptButton": "Accepteren",
-    "refuseButton": "Weigeren"
+    "refuseButton": "Weigeren",
+    "autoDecided": "Automatisch beslist door AI",
+    "aiUncertain": {
+      "title": "Onzekere AI-controle — vergelijk de namen",
+      "studentCardName": "Naam gelezen op de studentenkaart: {{name}}",
+      "idCardName": "Naam gelezen op de identiteitskaart: {{name}}"
+    }
   },
   "deleteUserDialog": {
     "title": "Dit account verwijderen?",

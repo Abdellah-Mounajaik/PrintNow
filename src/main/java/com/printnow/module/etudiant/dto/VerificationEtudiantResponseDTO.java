@@ -17,4 +17,8 @@ public class VerificationEtudiantResponseDTO {
     private boolean carteEtudiantePresente;
     private boolean carteIdentitePresente;
     private String motifRefus;
+    private String verdictIa;
+    private String nomExtraitCarteEtudiante;
+    private String nomExtraitCarteIdentite;
+    private boolean decisionAutomatique;
 }

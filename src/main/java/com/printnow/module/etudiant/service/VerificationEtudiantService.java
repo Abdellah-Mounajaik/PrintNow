@@ -6,6 +6,7 @@ import com.printnow.module.etudiant.enums.StatutEtudiant;
 import com.printnow.module.etudiant.mapper.VerificationEtudiantMapper;
 import com.printnow.module.etudiant.model.VerificationEtudiant;
 import com.printnow.module.etudiant.repository.VerificationEtudiantRepository;
+import com.printnow.module.etudiant.service.VerificationEtudiantIaService.Resultat;
 import com.printnow.module.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class VerificationEtudiantService {
     private final VerificationEtudiantRepository repository;
     private final VerificationEtudiantMapper mapper;
     private final EmailService emailService;
+    private final VerificationEtudiantIaService iaService;
 
     @Transactional
     public VerificationEtudiantResponseDTO soumettre(User user, MultipartFile carteEtudiante, MultipartFile carteIdentite) {
@@ -78,10 +80,52 @@ public class VerificationEtudiantService {
             verification.setDateSoumission(LocalDateTime.now());
             verification.setDateValidation(null);
             verification.setValableJusquA(null);
+            verification.setMotifRefus(null);
+            // Une resoumission (après un refus) ne doit pas garder le verdict de
+            // l'analyse précédente : chaque dépôt est réanalysé à neuf.
+            verification.setVerdictIa(null);
+            verification.setNomExtraitCarteEtudiante(null);
+            verification.setNomExtraitCarteIdentite(null);
+            verification.setDecisionAutomatique(false);
 
-            return mapper.toDto(repository.save(verification));
+            VerificationEtudiant saved = repository.save(verification);
+            analyserEtDeciderAutomatiquement(saved, carteEtudiante, carteIdentite);
+
+            return mapper.toDto(saved);
         } catch (IOException e) {
             throw new RuntimeException("Erreur lors de l'upload des fichiers", e);
+        }
+    }
+
+    /**
+     * Analyse les deux documents et, selon le verdict, décide seule
+     * (correspondance claire → acceptation, incohérence manifeste → refus) ou
+     * laisse la demande EN_ATTENTE pour l'admin (doute, ou IA indisponible).
+     *
+     * Ne relance rien en cas d'échec : une analyse ratée équivaut simplement à
+     * l'absence d'IA, la demande suit alors le circuit manuel habituel.
+     */
+    private void analyserEtDeciderAutomatiquement(VerificationEtudiant v, MultipartFile carteEtudiante, MultipartFile carteIdentite) {
+        Resultat resultat;
+        try {
+            resultat = iaService.analyser(
+                    carteEtudiante.getBytes(), carteEtudiante.getContentType(),
+                    carteIdentite.getBytes(), carteIdentite.getContentType());
+        } catch (IOException e) {
+            log.warn("Lecture des fichiers impossible pour l'analyse automatique de la vérification {}", v.getId(), e);
+            return;
+        }
+        if (resultat == null || resultat.getVerdict() == null) return;
+
+        v.setVerdictIa(resultat.getVerdict());
+        v.setNomExtraitCarteEtudiante(resultat.getNomCarteEtudiante());
+        v.setNomExtraitCarteIdentite(resultat.getNomCarteIdentite());
+
+        switch (resultat.getVerdict()) {
+            case CORRESPONDANCE -> appliquerAcceptation(v, true);
+            case DIVERGENCE_MANIFESTE -> appliquerRefus(v,
+                    "Les documents fournis ne correspondent pas.", true);
+            case INCERTAIN -> repository.save(v); // reste EN_ATTENTE, verdict et noms conservés pour l'admin
         }
     }
 
@@ -109,16 +153,8 @@ public class VerificationEtudiantService {
     public VerificationEtudiantResponseDTO valider(Long id) {
         VerificationEtudiant v = repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vérification introuvable"));
-        v.setStatut(StatutEtudiant.ACCEPTE);
-        v.setDateValidation(LocalDateTime.now());
-        v.setValableJusquA(calculerExpiration());
-        // La décision prise, les pièces ont rempli leur rôle : on ne garde que le verdict.
-        effacerLesJustificatifs(v);
-        VerificationEtudiantResponseDTO dto = mapper.toDto(repository.save(v));
-
-        emailService.envoyerVerificationAcceptee(v.getUser().getEmail(), v.getUser().getPrenom());
-
-        return dto;
+        appliquerAcceptation(v, false);
+        return mapper.toDto(v);
     }
 
     @Transactional
@@ -128,16 +164,34 @@ public class VerificationEtudiantService {
         }
         VerificationEtudiant v = repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vérification introuvable"));
+        appliquerRefus(v, motifRefus, false);
+        return mapper.toDto(v);
+    }
+
+    /** @param automatique true si décidé par l'analyse IA, sans intervention d'un admin. */
+    private void appliquerAcceptation(VerificationEtudiant v, boolean automatique) {
+        v.setStatut(StatutEtudiant.ACCEPTE);
+        v.setDateValidation(LocalDateTime.now());
+        v.setValableJusquA(calculerExpiration());
+        v.setDecisionAutomatique(automatique);
+        // La décision prise, les pièces ont rempli leur rôle : on ne garde que le verdict.
+        effacerLesJustificatifs(v);
+        repository.save(v);
+
+        emailService.envoyerVerificationAcceptee(v.getUser().getEmail(), v.getUser().getPrenom());
+    }
+
+    /** @param automatique true si décidé par l'analyse IA, sans intervention d'un admin. */
+    private void appliquerRefus(VerificationEtudiant v, String motifRefus, boolean automatique) {
         v.setStatut(StatutEtudiant.REFUSE);
         v.setDateValidation(LocalDateTime.now());
         v.setMotifRefus(motifRefus);
+        v.setDecisionAutomatique(automatique);
         // Refus aussi définitif qu'une acceptation : les pièces n'ont plus lieu d'être.
         effacerLesJustificatifs(v);
-        VerificationEtudiantResponseDTO dto = mapper.toDto(repository.save(v));
+        repository.save(v);
 
         emailService.envoyerVerificationRefusee(v.getUser().getEmail(), v.getUser().getPrenom(), motifRefus);
-
-        return dto;
     }
 
     public ResponseEntity<Resource> getImage(Long id, String type) {
