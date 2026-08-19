@@ -344,10 +344,14 @@ public class CommandeService {
         commande.setTotalTTC(commande.getTotalHT().add(commande.getTotalTVA()));
         
         // Commission, en pourcentage configurable du TTC
+        BigDecimal tauxCommission = parametresService.getParametres().getCommissionPourcentage();
         BigDecimal commission = commande.getTotalTTC()
-                .multiply(parametresService.getParametres().getCommissionPourcentage())
+                .multiply(tauxCommission)
                 .divide(new BigDecimal("100"));
         commande.setCommissionPlateforme(commission);
+        // Conservé tel quel : recalculer ce taux plus tard depuis le montant
+        // arrondi de la commission dériverait sur les petites commandes.
+        commande.setCommissionPourcentageAppliquee(tauxCommission);
         
         // Montant net pour l'imprimeur
         commande.setMontantVerseImprimerie(commande.getTotalTTC().subtract(commission));

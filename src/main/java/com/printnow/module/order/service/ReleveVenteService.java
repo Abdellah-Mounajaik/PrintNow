@@ -182,6 +182,14 @@ public class ReleveVenteService {
      * rester exact indéfiniment.
      */
     private String pourcentageCommission(Commande commande) {
+        // Taux réellement appliqué, stocké tel quel sur la commande — fiable
+        // même sur une petite commande (voir Commande.commissionPourcentageAppliquee).
+        if (commande.getCommissionPourcentageAppliquee() != null) {
+            return commande.getCommissionPourcentageAppliquee().stripTrailingZeros().toPlainString();
+        }
+        // Repli pour les commandes passées avant l'ajout de ce champ : on
+        // redérive le taux depuis les montants, imprécis sur les petites sommes
+        // (l'arrondi du montant de commission à 2 décimales fausse le ratio).
         if (commande.getTotalTTC() == null || commande.getCommissionPlateforme() == null
                 || commande.getTotalTTC().compareTo(BigDecimal.ZERO) == 0) {
             return "";

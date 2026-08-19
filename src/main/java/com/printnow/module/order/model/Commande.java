@@ -77,6 +77,19 @@ public class Commande {
     private BigDecimal commissionPlateforme;
 
     /**
+     * Taux de commission réellement appliqué à cette commande (en %), tel que
+     * configuré au moment où elle a été passée.
+     *
+     * Sert à l'affichage sur les relevés : recalculer ce taux depuis
+     * {@code commissionPlateforme / totalTTC} dérive sur les petites commandes,
+     * l'arrondi du montant à 2 décimales faussant le ratio (ex: 8% de 1,82€
+     * arrondi à 0,15€ redonne 8,24% une fois redivisé). Nul pour les commandes
+     * passées avant l'ajout de ce champ.
+     */
+    @Column(precision = 5, scale = 2)
+    private BigDecimal commissionPourcentageAppliquee;
+
+    /**
      * Vérification orthographique réglée avec la commande.
      *
      * C'est un service de la plateforme, pas une prestation de l'imprimerie :
