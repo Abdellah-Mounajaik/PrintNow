@@ -160,11 +160,11 @@ const DashboardAdmin = () => {
       setTarifs(p);
       setTarifsForm({
         commissionPourcentage: String(p.commissionPourcentage),
-        fraisInscription: String(p.fraisInscription),
-        prixCorrectionForfait: String(p.prixCorrectionForfait),
+        fraisInscription: p.fraisInscription.toFixed(2),
+        prixCorrectionForfait: p.prixCorrectionForfait.toFixed(2),
         pagesInclusesCorrection: String(p.pagesInclusesCorrection),
-        prixCorrectionPageSupp: String(p.prixCorrectionPageSupp),
-        prixGenerationDesign: String(p.prixGenerationDesign),
+        prixCorrectionPageSupp: p.prixCorrectionPageSupp.toFixed(2),
+        prixGenerationDesign: p.prixGenerationDesign.toFixed(2),
       });
     }).catch(() => {
       toast({ title: t("toasts.error.title"), description: t("parametres.loadError"), variant: "destructive" });
@@ -204,6 +204,14 @@ const DashboardAdmin = () => {
       };
       const updated = await parametresService.mettreAJour(dto, token);
       setTarifs(updated);
+      setTarifsForm({
+        commissionPourcentage: String(updated.commissionPourcentage),
+        fraisInscription: updated.fraisInscription.toFixed(2),
+        prixCorrectionForfait: updated.prixCorrectionForfait.toFixed(2),
+        pagesInclusesCorrection: String(updated.pagesInclusesCorrection),
+        prixCorrectionPageSupp: updated.prixCorrectionPageSupp.toFixed(2),
+        prixGenerationDesign: updated.prixGenerationDesign.toFixed(2),
+      });
       toast({ title: t("parametres.saveSuccess") });
     } catch (err) {
       toast({
