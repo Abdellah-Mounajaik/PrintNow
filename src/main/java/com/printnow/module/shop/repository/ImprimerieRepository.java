@@ -22,6 +22,8 @@ public interface ImprimerieRepository extends JpaRepository<Imprimerie, Long> {
 
     boolean existsBySlug(String slug);
 
+    boolean existsByNumeroTva(String numeroTva);
+
     // Imprimeries dont l'adresse lisible reste à calculer (créées avant sa mise en place)
     List<Imprimerie> findBySlugIsNull();
 

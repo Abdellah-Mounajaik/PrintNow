@@ -74,6 +74,23 @@ export const imprimeurService = {
     URL.revokeObjectURL(url);
   },
 
+  /** Facture PrintNow des frais d'inscription, émise une fois pour toutes à l'activation du compte. */
+  telechargerFactureInscription: async (imprimerieId: number, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/imprimeries/${imprimerieId}/facture-inscription`, {
+      headers: authHeaders(token),
+    });
+    if (!response.ok) throw new Error("Impossible de télécharger la facture d'inscription");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = `facture-inscription-${imprimerieId}.pdf`;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    URL.revokeObjectURL(url);
+  },
+
   /**
    * Supprime le compte de l'imprimeur connecté.
    *

@@ -188,6 +188,11 @@
       "country": "Country",
       "description": "Description"
     },
+    "invoice": {
+      "title": "Registration invoice",
+      "description": "The document issued by PrintNow for your registration fee, to keep for your accounting records.",
+      "download": "Download"
+    },
     "deleteAccount": {
       "title": "Delete my account",
       "description": "Your personal data will be permanently erased and your shop will close: it will disappear from the catalog and will no longer receive orders. Your invoices are kept, as required by law.",

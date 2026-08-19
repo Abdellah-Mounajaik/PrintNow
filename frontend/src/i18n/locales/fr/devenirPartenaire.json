@@ -79,6 +79,8 @@
       "defaultError": "Erreur lors de l'envoi du logo"
     },
     "continue": "Continuer",
+    "checking": "Vérification…",
+    "unavailableTitle": "Inscription impossible",
     "errors": {
       "shopName": "nom de l'imprimerie",
       "email": "email",

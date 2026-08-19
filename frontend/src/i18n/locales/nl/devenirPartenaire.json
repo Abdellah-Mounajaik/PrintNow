@@ -79,6 +79,8 @@
       "defaultError": "Fout bij het uploaden van het logo"
     },
     "continue": "Doorgaan",
+    "checking": "Controleren…",
+    "unavailableTitle": "Inschrijving niet mogelijk",
     "errors": {
       "shopName": "naam van de drukkerij",
       "email": "e-mailadres",

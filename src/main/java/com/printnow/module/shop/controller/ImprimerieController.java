@@ -1,11 +1,15 @@
 package com.printnow.module.shop.controller;
 
+import com.printnow.infrastructure.security.UtilisateurCourant;
+import com.printnow.module.order.service.FactureInscriptionService;
 import com.printnow.module.shop.dto.ImprimerieRequestDTO;
 import com.printnow.module.shop.dto.ImprimerieResponseDTO;
 import com.printnow.module.shop.service.DroitsImprimerieService;
 import com.printnow.module.shop.service.ImprimerieService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +28,8 @@ public class ImprimerieController {
 
     private final ImprimerieService imprimerieService;
     private final DroitsImprimerieService droits;
+    private final FactureInscriptionService factureInscriptionService;
+    private final UtilisateurCourant utilisateurCourant;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -73,5 +79,22 @@ public class ImprimerieController {
     public ResponseEntity<Void> deleteImprimerie(@PathVariable Long id) {
         imprimerieService.deleteImprimerie(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * GET /api/imprimeries/{id}/facture-inscription
+     * Télécharge la facture PDF des frais d'inscription de cette imprimerie.
+     * Accessible à l'admin (n'importe quelle imprimerie) ou au gérant propriétaire.
+     */
+    @GetMapping("/{id}/facture-inscription")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('IMPRIMERIE')")
+    public ResponseEntity<byte[]> telechargerFactureInscription(@PathVariable Long id) {
+        Long gerantId = utilisateurCourant.estAdmin() ? null : utilisateurCourant.id();
+        byte[] pdf = factureInscriptionService.genererFacture(id, gerantId);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"facture-inscription-" + id + ".pdf\"")
+                .body(pdf);
     }
 }

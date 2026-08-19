@@ -79,6 +79,8 @@
       "defaultError": "An error occurred while uploading the logo"
     },
     "continue": "Continue",
+    "checking": "Checking…",
+    "unavailableTitle": "Registration not possible",
     "errors": {
       "shopName": "print shop name",
       "email": "email",

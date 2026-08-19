@@ -1,5 +1,7 @@
 package com.printnow.module.shop.model;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.printnow.module.user.model.User;
@@ -98,4 +100,21 @@ public class Imprimerie {
 
     @Column(name = "nombre_avis")
     private Integer nombreAvis = 0;
+
+    // ─── Facture des frais d'inscription ─────────────────────────────────────
+    /**
+     * Numéro, date et montant figés au moment de l'inscription : les frais
+     * d'inscription sont configurables (voir ParametresPlateforme), donc le
+     * tarif effectivement facturé à cette imprimerie peut différer de celui en
+     * vigueur aujourd'hui. La facture doit toujours refléter ce qui a réellement
+     * été payé, jamais le tarif courant.
+     */
+    @Column(name = "numero_facture_inscription", length = 30)
+    private String numeroFactureInscription;
+
+    @Column(name = "date_inscription")
+    private LocalDateTime dateInscription;
+
+    @Column(name = "montant_frais_inscription", precision = 10, scale = 2)
+    private BigDecimal montantFraisInscription;
 }

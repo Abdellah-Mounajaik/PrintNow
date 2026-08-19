@@ -152,6 +152,7 @@ const DevenirPartenaire = () => {
   const [logoUrl, setLogoUrl] = useState("");
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState("");
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
 
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fichier = e.target.files?.[0];
@@ -633,15 +634,23 @@ const DevenirPartenaire = () => {
                 {getStep1Errors().length > 0 ? (
                   <p className="text-sm text-destructive">{getStep1Errors()[0]}</p>
                 ) : <span />}
-                <Button variant="default" size="lg" onClick={() => {
+                <Button variant="default" size="lg" disabled={checkingAvailability} onClick={async () => {
                   const missing = getStep1Errors();
                   if (missing.length > 0) {
                     toast({ title: t("step1.invalidFormTitle"), description: t("step1.invalidFormDescription", { error: missing[0] }), variant: "destructive" });
                     return;
                   }
-                  setStep(2);
+                  setCheckingAvailability(true);
+                  try {
+                    await partnerService.verifierDisponibilite(email, siret);
+                    setStep(2);
+                  } catch (e: any) {
+                    toast({ title: t("step1.unavailableTitle"), description: e.message, variant: "destructive" });
+                  } finally {
+                    setCheckingAvailability(false);
+                  }
                 }}>
-                  {t("step1.continue")}
+                  {checkingAvailability ? t("step1.checking") : t("step1.continue")}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>

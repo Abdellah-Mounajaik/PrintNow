@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -20,6 +21,19 @@ public class PartnerController {
 
     private final PartnerRegistrationService registrationService;
     private final ParametresService parametresService;
+
+    // Appelé à l'étape 1 du formulaire, avant le paiement Stripe : le client ne
+    // doit jamais être débité pour découvrir ensuite que son email ou son numéro
+    // de TVA était déjà pris.
+    @GetMapping("/verifier-disponibilite")
+    public ResponseEntity<Object> verifierDisponibilite(@RequestParam String email, @RequestParam String numeroTva) {
+        try {
+            registrationService.verifierDisponibilite(email, numeroTva);
+            return ResponseEntity.ok().build();
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("message", e.getReason()));
+        }
+    }
 
     @PostMapping("/register")
     public ResponseEntity<Object> registerPartner(@Valid @RequestBody PartnerRegistrationRequest request) {
@@ -44,6 +58,8 @@ public class PartnerController {
         try {
             Long imprimerieId = registrationService.registerNewPartner(request);
             return ResponseEntity.ok(imprimerieId);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("message", e.getReason()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Erreur lors de la création : " + e.getMessage()));
         }

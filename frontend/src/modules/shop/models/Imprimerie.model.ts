@@ -46,6 +46,8 @@ export interface ImprimerieDetail {
   nombreAvis?: number;
   horaires?: Horaire[];
   produits: Produit[];
+  /** Présent seulement si les frais d'inscription ont bien été facturés. */
+  numeroFactureInscription?: string | null;
 }
 /**
  * Modification d'une imprimerie : tous les champs sont facultatifs, seuls ceux

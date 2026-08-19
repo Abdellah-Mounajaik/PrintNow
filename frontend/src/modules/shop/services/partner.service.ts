@@ -31,6 +31,25 @@ export const partnerService = {
     return data.url as string;
   },
 
+  // Vérifie que l'email et le numéro de TVA sont libres, avant le paiement
+  // (étape 1 du formulaire) : lève une erreur avec le message du backend si
+  // l'un des deux est déjà pris.
+  verifierDisponibilite: async (email: string, numeroTva: string): Promise<void> => {
+    const response = await fetch(
+      `${PARTNERS_API_URL}/verifier-disponibilite?email=${encodeURIComponent(email)}&numeroTva=${encodeURIComponent(numeroTva)}`
+    );
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      let errorMsg = errorData;
+      try {
+        const parsed = JSON.parse(errorData);
+        errorMsg = parsed.message || parsed.detail || errorData;
+      } catch { /* texte brut */ }
+      throw new Error(errorMsg || "Cet email ou ce numéro de TVA est déjà utilisé.");
+    }
+  },
+
   // 1. Méthode pour s'inscrire
   register: async (payload: any) => {
     const response = await fetch(`${PARTNERS_API_URL}/register`, {

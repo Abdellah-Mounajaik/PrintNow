@@ -188,6 +188,11 @@
       "country": "Land",
       "description": "Beschrijving"
     },
+    "invoice": {
+      "title": "Inschrijvingsfactuur",
+      "description": "Het document uitgegeven door PrintNow voor uw inschrijvingskost, te bewaren voor uw boekhouding.",
+      "download": "Downloaden"
+    },
     "deleteAccount": {
       "title": "Mijn account verwijderen",
       "description": "Uw persoonsgegevens worden definitief gewist en uw winkel wordt gesloten: ze verdwijnt uit de catalogus en ontvangt geen bestellingen meer. Uw facturen worden bewaard, zoals de wet voorschrijft.",

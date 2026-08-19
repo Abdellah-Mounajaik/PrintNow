@@ -31,4 +31,6 @@ public class ImprimerieResponseDTO {
     private String telephoneContact;
     private Double noteMoyenne;
     private Integer nombreAvis;
+    /** Présent seulement si les frais d'inscription ont bien été facturés (voir Imprimerie). */
+    private String numeroFactureInscription;
 }

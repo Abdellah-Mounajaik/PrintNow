@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -43,15 +44,25 @@ public class EmailService {
         }
     }
 
+    /**
+     * @param factureInscriptionPdf peut être null (échec de génération) : le mail
+     *                              part quand même, sans pièce jointe — la facture
+     *                              reste de toute façon téléchargeable depuis
+     *                              l'espace professionnel du partenaire.
+     */
     @Async
-    public void envoyerBienvenuePartenaire(String destinataire, String nomImprimerie) {
+    public void envoyerBienvenuePartenaire(String destinataire, String nomImprimerie, byte[] factureInscriptionPdf) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            // multipart=true nécessaire pour pouvoir joindre la facture PDF.
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(destinataire);
             helper.setFrom(EXPEDITEUR);
             helper.setSubject("Bienvenue dans le réseau partenaire PrintNow !");
             helper.setText(corpsBienvenuePartenaire(nomImprimerie), true);
+            if (factureInscriptionPdf != null) {
+                helper.addAttachment("facture-inscription-printnow.pdf", new ByteArrayResource(factureInscriptionPdf));
+            }
             mailSender.send(message);
         } catch (MessagingException | RuntimeException e) {
             log.warn("Échec de l'envoi du mail de bienvenue partenaire à {}", destinataire, e);

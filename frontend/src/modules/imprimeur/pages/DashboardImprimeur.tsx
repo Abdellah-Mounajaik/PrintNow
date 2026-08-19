@@ -215,6 +215,7 @@ const DashboardImprimeur = () => {
   });
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [logoError, setLogoError] = useState("");
+  const [downloadingFactureInscription, setDownloadingFactureInscription] = useState(false);
 
   // Horaires
   const [editingHoraireId, setEditingHoraireId] = useState<number | null>(null);
@@ -1348,7 +1349,7 @@ const DashboardImprimeur = () => {
             </TabsContent>
 
             {/* MA BOUTIQUE */}
-            <TabsContent value="shop">
+            <TabsContent value="shop" className="space-y-6">
               <Card className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display font-semibold text-lg">{t("shop.title")}</h3>
@@ -1481,6 +1482,36 @@ const DashboardImprimeur = () => {
                   </div>
                 </div>
               </Card>
+
+              {shop?.numeroFactureInscription && (
+                <Card className="p-6">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-primary" /> {t("shop.invoice.title")}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">{t("shop.invoice.description")}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      disabled={downloadingFactureInscription}
+                      onClick={async () => {
+                        setDownloadingFactureInscription(true);
+                        try {
+                          await imprimeurService.telechargerFactureInscription(shop.id, token!);
+                        } catch (e) {
+                          toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
+                        } finally {
+                          setDownloadingFactureInscription(false);
+                        }
+                      }}
+                    >
+                      {downloadingFactureInscription ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                      {t("shop.invoice.download")}
+                    </Button>
+                  </div>
+                </Card>
+              )}
 
               <Card className="p-6 border-destructive/30">
                 <h3 className="font-display font-semibold text-lg mb-2 flex items-center gap-2">

@@ -188,6 +188,11 @@
       "country": "Pays",
       "description": "Description"
     },
+    "invoice": {
+      "title": "Facture d'inscription",
+      "description": "Le document émis par PrintNow pour vos frais d'inscription, à conserver pour votre comptabilité.",
+      "download": "Télécharger"
+    },
     "deleteAccount": {
       "title": "Supprimer mon compte",
       "description": "Vos données personnelles seront définitivement effacées et votre boutique fermera : elle disparaîtra du catalogue et ne recevra plus de commandes. Vos factures sont conservées, comme la loi l'impose.",
