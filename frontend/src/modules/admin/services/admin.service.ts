@@ -63,6 +63,22 @@ export const adminService = {
     return response.json();
   },
 
+  telechargerFactureInscription: async (imprimerieId: number, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/imprimeries/${imprimerieId}/facture-inscription`, {
+      headers: authHeaders(token),
+    });
+    if (!response.ok) throw new Error("Impossible de télécharger la facture d'inscription");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = `facture-inscription-${imprimerieId}.pdf`;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    URL.revokeObjectURL(url);
+  },
+
   getCommandes: async (token: string): Promise<CommandeDTO[]> => {
     const response = await fetch(`${API_URL}/commandes`, { headers: authHeaders(token) });
     if (!response.ok) throw new Error("Erreur lors de la récupération des commandes");

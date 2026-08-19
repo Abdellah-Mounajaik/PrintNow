@@ -16,6 +16,8 @@ export interface ImprimerieDTO {
   ville: string;
   emailContact: string;
   actif: boolean;
+  /** Absent pour les imprimeries inscrites avant la mise en place de cette facture. */
+  numeroFactureInscription?: string | null;
 }
 
 export interface CommandeDTO {

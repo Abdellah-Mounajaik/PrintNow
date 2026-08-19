@@ -60,7 +60,8 @@
       "active": "Active",
       "inactive": "Inactive"
     },
-    "closeAriaLabel": "Close print shop {{name}}"
+    "closeAriaLabel": "Close print shop {{name}}",
+    "downloadInvoiceAriaLabel": "Download the registration invoice for {{name}}"
   },
   "users": {
     "title": "User management",

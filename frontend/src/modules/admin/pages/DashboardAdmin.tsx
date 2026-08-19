@@ -147,6 +147,7 @@ const DashboardAdmin = () => {
   const [selectedVerif, setSelectedVerif] = useState<VerificationDTO | null>(null);
   const [motifRefus, setMotifRefus] = useState("");
   const [downloadingCommissionId, setDownloadingCommissionId] = useState<number | null>(null);
+  const [downloadingFactureInscriptionId, setDownloadingFactureInscriptionId] = useState<number | null>(null);
 
   const [tarifs, setTarifs] = useState<ParametresPlateforme | null>(null);
   const [tarifsForm, setTarifsForm] = useState<Record<keyof ParametresPlateforme, string>>({
@@ -284,6 +285,18 @@ const DashboardAdmin = () => {
       toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
       setDownloadingCommissionId(null);
+    }
+  };
+
+  const handleTelechargerFactureInscription = async (imprimerieId: number) => {
+    if (!token) return;
+    setDownloadingFactureInscriptionId(imprimerieId);
+    try {
+      await adminService.telechargerFactureInscription(imprimerieId, token);
+    } catch (e) {
+      toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setDownloadingFactureInscriptionId(null);
     }
   };
 
@@ -573,6 +586,22 @@ const DashboardAdmin = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
+                              {/* Absente pour les imprimeries inscrites avant la mise en place de cette facture. */}
+                              {shop.numeroFactureInscription && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={downloadingFactureInscriptionId === shop.id}
+                                  aria-label={t("shops.downloadInvoiceAriaLabel", { name: shop.nom })}
+                                  onClick={() => handleTelechargerFactureInscription(shop.id)}
+                                >
+                                  {downloadingFactureInscriptionId === shop.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Download className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              )}
                               {/* Une boutique déjà fermée n'a plus rien à fermer. */}
                               {shop.actif && (
                                 <Button

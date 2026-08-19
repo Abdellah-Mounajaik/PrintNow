@@ -60,7 +60,8 @@
       "active": "Actief",
       "inactive": "Inactief"
     },
-    "closeAriaLabel": "Drukkerij {{name}} sluiten"
+    "closeAriaLabel": "Drukkerij {{name}} sluiten",
+    "downloadInvoiceAriaLabel": "Inschrijvingsfactuur van {{name}} downloaden"
   },
   "users": {
     "title": "Gebruikersbeheer",
