@@ -84,6 +84,7 @@
     "trigger": "View on map",
     "title": "Print shops on the map",
     "empty": "No print shop has been located yet.",
+    "locateMe": "Locate me",
     "legend": {
       "yourPosition": "Your position"
     },

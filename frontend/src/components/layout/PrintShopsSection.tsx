@@ -133,7 +133,28 @@ const PrintShopsSection = () => {
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
   const geoRequested = useRef(false);
+
+  // Partagée par le tri "Distance" (automatique) et le bouton de recentrage de
+  // la carte (manuel) : les deux doivent alimenter la même position.
+  const requestUserLocation = () => {
+    if (!("geolocation" in navigator)) return;
+    geoRequested.current = true;
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+        setGeoError(null);
+        setGeoLoading(false);
+      },
+      () => {
+        setGeoError(t("geo.locationRequired"));
+        setGeoLoading(false);
+      },
+      { timeout: 10000 }
+    );
+  };
 
   // Remonte en haut du catalogue à chaque changement de page (pas au premier
   // rendu) : la hauteur de la grille varie selon le contenu des cartes, donc
@@ -274,18 +295,7 @@ const PrintShopsSection = () => {
   // Demande la position du client au navigateur pour le tri par distance
   useEffect(() => {
     if (sortBy !== "distance" || geoRequested.current || !("geolocation" in navigator)) return;
-    geoRequested.current = true;
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
-        setGeoError(null);
-      },
-      () => {
-        setGeoError(t("geo.locationRequired"));
-      },
-      { timeout: 10000 }
-    );
+    requestUserLocation();
   }, [sortBy]);
 
   // Charge le temps de trajet réel (marche + voiture) pour toutes les imprimeries
@@ -490,7 +500,13 @@ const PrintShopsSection = () => {
               </Select>
             )}
 
-            <ShopsMapDialog shops={filteredShops} userLocation={userLocation} />
+            <ShopsMapDialog
+              shops={filteredShops}
+              userLocation={userLocation}
+              onRequestLocation={requestUserLocation}
+              geoLoading={geoLoading}
+              geoError={geoError}
+            />
             {sortBy === "distance" && geoError && (
               <span className="text-xs text-muted-foreground hidden md:inline">{geoError}</span>
             )}

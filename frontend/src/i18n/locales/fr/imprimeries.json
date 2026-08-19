@@ -84,6 +84,7 @@
     "trigger": "Voir sur la carte",
     "title": "Imprimeries sur la carte",
     "empty": "Aucune imprimerie localisée pour le moment.",
+    "locateMe": "Me localiser",
     "legend": {
       "yourPosition": "Votre position"
     },

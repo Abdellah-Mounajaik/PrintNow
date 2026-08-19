@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { Map as MapIcon, Footprints, Car, Loader2, Star } from "lucide-react";
+import { Map as MapIcon, Footprints, Car, Loader2, Star, LocateFixed } from "lucide-react";
 import { formatDuration } from "../../lib/utils";
 import { itineraireService } from "../../services/itineraire.service";
 import type { ShopMapPoint, TravelTimeState } from "../../models/catalogue.model";
@@ -21,12 +21,24 @@ import type { PointGps } from "../../models/itineraire.model";
 interface ShopsMapDialogProps {
   shops: ShopMapPoint[];
   userLocation?: PointGps | null;
+  /** Demande la position au navigateur ; alimente aussi le tri par distance de la liste. */
+  onRequestLocation?: () => void;
+  geoLoading?: boolean;
+  geoError?: string | null;
 }
 
 const BELGIUM_CENTER: [number, number] = [50.5039, 4.4699];
 
+/** Fait suivre la carte déjà montée quand la position devient connue/change. */
+const RecentrerSurPosition = ({ position }: { position: [number, number] | null }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (position) map.flyTo(position, 13);
+  }, [position]);
+  return null;
+};
 
-const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
+const ShopsMapDialog = ({ shops, userLocation, onRequestLocation, geoLoading, geoError }: ShopsMapDialogProps) => {
   const { t } = useTranslation("imprimeries");
   const [open, setOpen] = useState(false);
   // Temps de trajet calculés à la demande (au clic sur un marqueur), pas pour
@@ -117,13 +129,34 @@ const ShopsMapDialog = ({ shops, userLocation }: ShopsMapDialogProps) => {
               )}
             </div>
 
-            <div className="h-[500px] w-full rounded-lg overflow-hidden">
+            <div className="h-[500px] w-full rounded-lg overflow-hidden relative">
+              {onRequestLocation && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  className="absolute top-3 right-3 z-[1000] shadow-md"
+                  title={t("map.locateMe")}
+                  disabled={geoLoading}
+                  onClick={onRequestLocation}
+                >
+                  {geoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+                </Button>
+              )}
+              {geoError && (
+                <div className="absolute top-14 right-3 z-[1000] max-w-[200px] rounded-md bg-destructive/90 px-2 py-1 text-xs text-destructive-foreground shadow-md">
+                  {geoError}
+                </div>
+              )}
+
               {open && (
                 <MapContainer center={center} zoom={zoom} style={{ height: "100%", width: "100%" }}>
                   <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
+
+                  <RecentrerSurPosition position={userLocation ? [userLocation.lat, userLocation.lng] : null} />
 
                   {/* Trait pointillé entre votre position et l'imprimerie sélectionnée */}
                   {userLocation && selectedShop && (

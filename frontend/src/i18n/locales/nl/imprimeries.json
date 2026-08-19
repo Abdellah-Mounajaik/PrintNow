@@ -84,6 +84,7 @@
     "trigger": "Bekijk op de kaart",
     "title": "Drukkerijen op de kaart",
     "empty": "Er is nog geen drukkerij gelokaliseerd.",
+    "locateMe": "Mijn locatie",
     "legend": {
       "yourPosition": "Uw locatie"
     },
