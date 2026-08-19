@@ -298,38 +298,6 @@ const PrintShopsSection = () => {
     requestUserLocation();
   }, [sortBy]);
 
-  // Charge le temps de trajet réel (marche + voiture) pour toutes les imprimeries
-  // dès que la position du client est connue.
-  useEffect(() => {
-    if (!userLocation) return;
-    const toFetch = shops.filter(
-      (s) => s.latitude != null && s.longitude != null && !travelFetchedIds.current.has(s.id)
-    );
-    if (toFetch.length === 0) return;
-    toFetch.forEach((s) => travelFetchedIds.current.add(s.id));
-
-    setWalkTimes((prev) => {
-      const next = { ...prev };
-      toFetch.forEach((s) => { next[s.id] = "loading"; });
-      return next;
-    });
-    setDriveTimes((prev) => {
-      const next = { ...prev };
-      toFetch.forEach((s) => { next[s.id] = "loading"; });
-      return next;
-    });
-
-    toFetch.forEach((shop) => {
-      const destination = { lat: shop.latitude as number, lng: shop.longitude as number };
-      itineraireService.dureeAPiedMin(userLocation, destination).then((minutes) => {
-        setWalkTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
-      });
-      itineraireService.dureeEnVoitureMin(userLocation, destination).then((minutes) => {
-        setDriveTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
-      });
-    });
-  }, [shops, userLocation]);
-
   // Calcule la distance réelle de chaque imprimerie par rapport au client
   const shopsWithDistance = shops.map((shop) => {
     if (userLocation && shop.latitude != null && shop.longitude != null) {
@@ -415,6 +383,43 @@ const PrintShopsSection = () => {
     (currentPage - 1) * SHOPS_PER_PAGE,
     currentPage * SHOPS_PER_PAGE
   );
+
+  // Charge le temps de trajet réel (marche + voiture), seulement pour les
+  // imprimeries réellement affichées sur la page courante : avec un grand
+  // catalogue, précharger pour tout le catalogue envoie des dizaines de
+  // requêtes simultanées aux services gratuits (OSRM/Valhalla), qui se
+  // mettent alors à en rejeter certaines au hasard.
+  const paginatedShopsKey = paginatedShops.map((s) => s.id).join(",");
+  useEffect(() => {
+    if (!userLocation) return;
+    const toFetch = paginatedShops.filter(
+      (s) => s.latitude != null && s.longitude != null && !travelFetchedIds.current.has(s.id)
+    );
+    if (toFetch.length === 0) return;
+    toFetch.forEach((s) => travelFetchedIds.current.add(s.id));
+
+    setWalkTimes((prev) => {
+      const next = { ...prev };
+      toFetch.forEach((s) => { next[s.id] = "loading"; });
+      return next;
+    });
+    setDriveTimes((prev) => {
+      const next = { ...prev };
+      toFetch.forEach((s) => { next[s.id] = "loading"; });
+      return next;
+    });
+
+    toFetch.forEach((shop) => {
+      const destination = { lat: shop.latitude as number, lng: shop.longitude as number };
+      itineraireService.dureeAPiedMin(userLocation, destination).then((minutes) => {
+        setWalkTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
+      });
+      itineraireService.dureeEnVoitureMin(userLocation, destination).then((minutes) => {
+        setDriveTimes((prev) => ({ ...prev, [shop.id]: minutes ?? "error" }));
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paginatedShopsKey, userLocation]);
 
   const toggleFilter = (filterId: string) => {
     const next = selectedFilters.includes(filterId)
