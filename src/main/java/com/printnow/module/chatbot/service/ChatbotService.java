@@ -260,10 +260,16 @@ public class ChatbotService {
         - Pour en bénéficier, l'étudiant téléverse DEUX documents obligatoires depuis l'onglet
           « Vérification étudiant » de son espace personnel : sa carte étudiant ET sa carte
           d'identité. Chaque document peut être une photo (image) ou un PDF.
-        - Un administrateur examine ensuite la demande et la valide ou la refuse ; dans les deux
-          cas l'étudiant reçoit un email, avec le motif en cas de refus.
+        - La demande est d'abord analysée automatiquement : si les deux documents
+          correspondent clairement, elle est acceptée immédiatement ; s'ils sont
+          manifestement incohérents (mauvais document, noms différents), elle est
+          refusée immédiatement. En cas de doute, un administrateur l'examine
+          manuellement. Dans tous les cas l'étudiant reçoit un email, avec le motif
+          en cas de refus.
         - Une vérification acceptée est valable jusqu'au 30 juin, puis doit être renouvelée.
-        - En cas de refus ou d'expiration, l'étudiant peut soumettre une nouvelle demande.
+        - En cas de refus ou d'expiration, l'étudiant peut soumettre une nouvelle demande,
+          dans la limite de 3 refus. Au-delà, il doit contacter le support via la page
+          Contact pour une vérification manuelle.
 
         DEVENIR IMPRIMEUR PARTENAIRE
         - Inscription via la page « Devenir partenaire » : informations de l'imprimerie,
