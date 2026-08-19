@@ -455,22 +455,22 @@ const PrintShopsSection = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {/* Barre de recherche */}
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder={t("search.placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-[220px]"
+                className="pl-9 w-full sm:w-[220px]"
               />
             </div>
 
             {/* Sort Select */}
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[160px] sm:w-[180px]">
                 <SelectValue placeholder={t("sort.placeholder")} />
               </SelectTrigger>
               <SelectContent>
@@ -493,7 +493,7 @@ const PrintShopsSection = () => {
             {/* Type de produit, pour estimer un prix plus précis lors du tri par prix */}
             {(sortBy === "price-asc" || sortBy === "price-desc") && (
               <Select value={priceProductType || "any"} onValueChange={(v) => setPriceProductType(v === "any" ? "" : v)}>
-                <SelectTrigger className="w-[170px]">
+                <SelectTrigger className="w-[150px] sm:w-[170px]">
                   <SelectValue placeholder={t("priceType.placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
