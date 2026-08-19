@@ -94,15 +94,15 @@
         "title": "Price and payment",
         "content": [
           "Prices are set by the partner print shop and may vary depending on the options chosen. Payment is secure and made online at the time of ordering.",
-          "PrintNow charges a 10% commission on orders placed through the platform, deducted from the amount collected by the partner print shop.",
-          "Print shops wishing to join the catalogue are required to pay a registration fee of €100. This amount is charged upon registration and grants access to automatic activation of the partner account."
+          "PrintNow charges a commission on orders placed through the platform, deducted from the amount collected by the partner print shop. The current rate is shown on the \"Become a partner\" page and may be revised; the rate applicable to an order is the one in effect when it is placed.",
+          "Print shops wishing to join the catalogue are required to pay a registration fee, at the amount shown on the \"Become a partner\" page at the time of registration. This amount grants access to automatic activation of the partner account."
         ]
       },
       {
         "title": "Options, discounts and promo codes",
         "content": [
           "Depending on the partner print shop, paid options may be offered, such as express printing (shortened turnaround) for a supplement shown before payment.",
-          "A student discount may be applied after verification of your status. This verification requires submitting a student card and a proof of identity, processed in accordance with our privacy policy.",
+          "A student discount may be applied after verification of your status. This verification requires submitting a student card and a proof of identity, processed in accordance with our privacy policy. After repeated refusals (three at most), a new request is no longer possible; contact our support via the Contact page for a manual review.",
           "A partner print shop may issue promotional codes. A code is valid only at the print shop that issued it and under the conditions it has set (period, minimum amount, number of uses)."
         ]
       },
@@ -174,7 +174,7 @@
     "hero": {
       "badge": "Data protection",
       "title": "Privacy & GDPR",
-      "lastUpdate": "Last updated: 17 August 2026"
+      "lastUpdate": "Last updated: 19 August 2026"
     },
     "sections": [
       {
@@ -200,19 +200,20 @@
         "title": "Who has access to your data? Our processors",
         "content": [
           "Your data is accessible to PrintNow and, for the fulfilment of your order, to the partner print shop you have chosen.",
-          "We use specialised processors, strictly for what is necessary for the service: Stripe (payments), Mistral AI (spelling and grammar correction, design generation, FAQ assistant and review moderation), bpost and AfterShip (delivery tracking), our email delivery provider, and a route-calculation service (travel times). We never sell your data."
+          "We use specialised processors, strictly for what is necessary for the service: Stripe (payments), Mistral AI (spelling and grammar correction, design generation, FAQ assistant, review moderation and translation, student status verification), bpost and AfterShip (delivery tracking), our email delivery provider, and a route-calculation service (travel times). We never sell your data."
         ]
       },
       {
         "title": "Use of artificial intelligence",
         "content": [
-          "Four features rely on artificial intelligence provided by Mistral: spelling and grammar correction, design generation, the FAQ assistant and review moderation. For correction, the content of the document you submit is transmitted to this provider for the duration of the analysis; for generation, it is the description you enter that is transmitted to it for the time needed to produce the material. These processing operations are used solely to provide the service you have requested."
+          "Several features rely on artificial intelligence provided by Mistral: spelling and grammar correction, design generation, the FAQ assistant, review moderation and translation, and student status verification. For correction, the content of the document you submit is transmitted to this provider for the duration of the analysis; for generation, it is the description you enter that is transmitted to it for the time needed to produce the material; for student verification, it is your student card and identity card that are transmitted to it for the duration of the analysis (see the dedicated section below). These processing operations are used solely to provide the service you have requested."
         ]
       },
       {
         "title": "Verification of student status",
         "content": [
-          "To grant you the student rate, we ask for your student card and your identity card, in order to verify that the student card is indeed yours. These images are used only for this verification: they are deleted as soon as our team has made its decision. We then retain only the outcome — accepted or refused status and its period of validity."
+          "To grant you the student rate, we ask for your student card and your identity card, in order to verify that the student card is indeed yours. These images are used only for this verification: they are deleted as soon as a decision is made. We then retain only the outcome — accepted or refused status and its period of validity.",
+          "This decision is first subject to an automated analysis (see \"Use of artificial intelligence\" above): if the documents clearly match, the request is accepted immediately; if they are clearly inconsistent, it is refused immediately. In case of doubt, a member of our team reviews the request manually. In some cases, this is therefore an automated individual decision within the meaning of Article 22 of the GDPR. If your request is automatically refused, you may submit it again (up to 3 refusals); beyond that, or to contest a decision, contact our support via the Contact page to obtain a human review."
         ]
       },
       {

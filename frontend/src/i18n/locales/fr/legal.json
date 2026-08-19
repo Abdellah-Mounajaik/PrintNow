@@ -94,15 +94,15 @@
         "title": "Prix et paiement",
         "content": [
           "Les prix sont affichés par l'imprimeur partenaire et peuvent varier selon les options choisies. Le paiement est sécurisé et réalisé en ligne au moment de la commande.",
-          "PrintNow applique une commission de 10% sur les commandes réalisées via la plateforme, prélevée sur le montant encaissé par l'imprimeur partenaire.",
-          "Pour les imprimeurs souhaitant rejoindre le catalogue, un frais d'inscription de 100 € est requis. Ce montant est facturé lors de l'inscription et donne accès à l'activation automatique du compte partenaire."
+          "PrintNow applique une commission sur les commandes réalisées via la plateforme, prélevée sur le montant encaissé par l'imprimeur partenaire. Le taux en vigueur est affiché sur la page « Devenir partenaire » et peut être révisé ; le taux applicable à une commande est celui en vigueur au moment où elle est passée.",
+          "Pour les imprimeurs souhaitant rejoindre le catalogue, des frais d'inscription sont requis, au montant affiché sur la page « Devenir partenaire » au moment de l'inscription. Ce montant donne accès à l'activation automatique du compte partenaire."
         ]
       },
       {
         "title": "Options, réductions et codes promo",
         "content": [
           "Selon l'imprimeur partenaire, des options payantes peuvent être proposées, comme l'impression express (délai raccourci) moyennant un supplément affiché avant paiement.",
-          "Une réduction étudiante peut être appliquée après vérification de votre statut. Cette vérification suppose la transmission d'une carte étudiante et d'une pièce d'identité, traitées conformément à notre politique de confidentialité.",
+          "Une réduction étudiante peut être appliquée après vérification de votre statut. Cette vérification suppose la transmission d'une carte étudiante et d'une pièce d'identité, traitées conformément à notre politique de confidentialité. En cas de refus répété (trois au maximum), une nouvelle demande n'est plus possible ; contactez notre support via la page Contact pour une vérification manuelle.",
           "Un imprimeur partenaire peut émettre des codes promotionnels. Un code n'est valable que chez l'imprimerie qui l'a émis et dans les conditions qu'elle a fixées (période, montant minimum, nombre d'utilisations)."
         ]
       },
@@ -174,7 +174,7 @@
     "hero": {
       "badge": "Protection des données",
       "title": "Confidentialité & RGPD",
-      "lastUpdate": "Dernière mise à jour : 17 août 2026"
+      "lastUpdate": "Dernière mise à jour : 19 août 2026"
     },
     "sections": [
       {
@@ -200,19 +200,20 @@
         "title": "Qui a accès à vos données ? Nos sous-traitants",
         "content": [
           "Vos données sont accessibles à PrintNow et, pour la réalisation de votre commande, à l'imprimerie partenaire que vous avez choisie.",
-          "Nous faisons appel à des sous-traitants spécialisés, strictement pour ce qui est nécessaire au service : Stripe (paiements), Mistral AI (correction orthographique, génération de designs, assistant de la FAQ et modération des avis), bpost et AfterShip (suivi des livraisons), notre prestataire d'envoi d'e-mails, et un service de calcul d'itinéraires (temps de trajet). Nous ne vendons jamais vos données."
+          "Nous faisons appel à des sous-traitants spécialisés, strictement pour ce qui est nécessaire au service : Stripe (paiements), Mistral AI (correction orthographique, génération de designs, assistant de la FAQ, modération et traduction des avis, vérification du statut étudiant), bpost et AfterShip (suivi des livraisons), notre prestataire d'envoi d'e-mails, et un service de calcul d'itinéraires (temps de trajet). Nous ne vendons jamais vos données."
         ]
       },
       {
         "title": "Recours à l'intelligence artificielle",
         "content": [
-          "Quatre fonctionnalités reposent sur une intelligence artificielle fournie par Mistral : la correction orthographique, la génération de designs, l'assistant de la FAQ et la modération des avis. Pour la correction, le contenu du document que vous soumettez est transmis à ce prestataire le temps de l'analyse ; pour la génération, c'est la description que vous saisissez qui lui est transmise le temps de produire le support. Ces traitements servent uniquement à rendre le service que vous demandez."
+          "Plusieurs fonctionnalités reposent sur une intelligence artificielle fournie par Mistral : la correction orthographique, la génération de designs, l'assistant de la FAQ, la modération et la traduction des avis, et la vérification du statut étudiant. Pour la correction, le contenu du document que vous soumettez est transmis à ce prestataire le temps de l'analyse ; pour la génération, c'est la description que vous saisissez qui lui est transmise le temps de produire le support ; pour la vérification étudiante, ce sont votre carte étudiante et votre carte d'identité qui lui sont transmises le temps de l'analyse (voir la section dédiée ci-dessous). Ces traitements servent uniquement à rendre le service que vous demandez."
         ]
       },
       {
         "title": "Vérification du statut étudiant",
         "content": [
-          "Pour vous accorder le tarif étudiant, nous vous demandons votre carte étudiante et votre carte d'identité, afin de vérifier que la carte étudiante est bien la vôtre. Ces images ne servent qu'à cette vérification : elles sont effacées dès que notre équipe a rendu sa décision. Nous ne conservons alors que le résultat — statut accepté ou refusé et sa durée de validité."
+          "Pour vous accorder le tarif étudiant, nous vous demandons votre carte étudiante et votre carte d'identité, afin de vérifier que la carte étudiante est bien la vôtre. Ces images ne servent qu'à cette vérification : elles sont effacées dès qu'une décision est rendue. Nous ne conservons alors que le résultat — statut accepté ou refusé et sa durée de validité.",
+          "Cette décision est d'abord soumise à une analyse automatisée (voir « Recours à l'intelligence artificielle » ci-dessus) : si les documents correspondent clairement, la demande est acceptée immédiatement ; s'ils sont manifestement incohérents, elle est refusée immédiatement. En cas de doute, un membre de notre équipe examine la demande manuellement. Il s'agit donc, dans certains cas, d'une décision individuelle automatisée au sens de l'article 22 du RGPD. Si votre demande est refusée automatiquement, vous pouvez la soumettre à nouveau (dans la limite de 3 refus) ; au-delà, ou pour contester une décision, contactez notre support via la page Contact pour obtenir un examen humain."
         ]
       },
       {

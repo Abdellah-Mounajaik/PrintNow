@@ -94,15 +94,15 @@
         "title": "Prijs en betaling",
         "content": [
           "De prijzen worden bepaald door de partnerdrukkerij en kunnen variëren naargelang de gekozen opties. De betaling gebeurt beveiligd en online op het moment van de bestelling.",
-          "PrintNow rekent een commissie van 10% aan op de bestellingen die via het platform worden geplaatst, ingehouden op het bedrag dat door de partnerdrukkerij wordt geïnd.",
-          "Drukkerijen die zich bij de catalogus willen aansluiten, betalen een inschrijvingskost van 100 €. Dit bedrag wordt gefactureerd bij de inschrijving en geeft toegang tot de automatische activering van het partneraccount."
+          "PrintNow rekent een commissie aan op de bestellingen die via het platform worden geplaatst, ingehouden op het bedrag dat door de partnerdrukkerij wordt geïnd. Het geldende tarief staat vermeld op de pagina \"Partner worden\" en kan worden herzien; het tarief dat op een bestelling van toepassing is, is het tarief dat geldt op het moment dat ze wordt geplaatst.",
+          "Drukkerijen die zich bij de catalogus willen aansluiten, betalen een inschrijvingskost, ter hoogte van het bedrag vermeld op de pagina \"Partner worden\" op het moment van inschrijving. Dit bedrag geeft toegang tot de automatische activering van het partneraccount."
         ]
       },
       {
         "title": "Opties, kortingen en promotiecodes",
         "content": [
           "Afhankelijk van de partnerdrukkerij kunnen betalende opties worden aangeboden, zoals spoedafdruk (kortere levertermijn) tegen een supplement dat vóór de betaling wordt weergegeven.",
-          "Een studentenkorting kan worden toegepast na verificatie van uw status. Deze verificatie vereist het overmaken van een studentenkaart en een identiteitsbewijs, die worden verwerkt in overeenstemming met ons privacybeleid.",
+          "Een studentenkorting kan worden toegepast na verificatie van uw status. Deze verificatie vereist het overmaken van een studentenkaart en een identiteitsbewijs, die worden verwerkt in overeenstemming met ons privacybeleid. Bij herhaalde weigering (maximaal drie keer) is een nieuwe aanvraag niet meer mogelijk; neem contact op met onze klantendienst via de Contact-pagina voor een manuele controle.",
           "Een partnerdrukkerij kan promotiecodes uitgeven. Een code is enkel geldig bij de drukkerij die hem heeft uitgegeven en onder de voorwaarden die deze heeft vastgesteld (periode, minimumbedrag, aantal gebruiken)."
         ]
       },
@@ -174,7 +174,7 @@
     "hero": {
       "badge": "Gegevensbescherming",
       "title": "Privacy & AVG",
-      "lastUpdate": "Laatste update: 17 augustus 2026"
+      "lastUpdate": "Laatste update: 19 augustus 2026"
     },
     "sections": [
       {
@@ -200,19 +200,20 @@
         "title": "Wie heeft toegang tot uw gegevens? Onze verwerkers",
         "content": [
           "Uw gegevens zijn toegankelijk voor PrintNow en, voor de uitvoering van uw bestelling, voor de partnerdrukkerij die u heeft gekozen.",
-          "Wij doen een beroep op gespecialiseerde verwerkers, uitsluitend voor wat noodzakelijk is voor de dienst: Stripe (betalingen), Mistral AI (spelling- en grammaticacorrectie, generatie van designs, FAQ-assistent en moderatie van beoordelingen), bpost en AfterShip (opvolging van leveringen), onze dienstverlener voor het verzenden van e-mails, en een dienst voor routeberekening (reistijden). Wij verkopen uw gegevens nooit."
+          "Wij doen een beroep op gespecialiseerde verwerkers, uitsluitend voor wat noodzakelijk is voor de dienst: Stripe (betalingen), Mistral AI (spelling- en grammaticacorrectie, generatie van designs, FAQ-assistent, moderatie en vertaling van beoordelingen, verificatie van de studentenstatus), bpost en AfterShip (opvolging van leveringen), onze dienstverlener voor het verzenden van e-mails, en een dienst voor routeberekening (reistijden). Wij verkopen uw gegevens nooit."
         ]
       },
       {
         "title": "Gebruik van kunstmatige intelligentie",
         "content": [
-          "Vier functionaliteiten zijn gebaseerd op kunstmatige intelligentie geleverd door Mistral: de spelling- en grammaticacorrectie, de generatie van designs, de FAQ-assistent en de moderatie van beoordelingen. Voor de correctie wordt de inhoud van het document dat u indient, overgemaakt aan deze dienstverlener voor de duur van de analyse; voor de generatie is het de door u ingevoerde beschrijving die hem wordt overgemaakt voor de tijd die nodig is om het drukwerk te produceren. Deze verwerkingen dienen uitsluitend om de door u gevraagde dienst te leveren."
+          "Verschillende functionaliteiten zijn gebaseerd op kunstmatige intelligentie geleverd door Mistral: de spelling- en grammaticacorrectie, de generatie van designs, de FAQ-assistent, de moderatie en vertaling van beoordelingen, en de verificatie van de studentenstatus. Voor de correctie wordt de inhoud van het document dat u indient, overgemaakt aan deze dienstverlener voor de duur van de analyse; voor de generatie is het de door u ingevoerde beschrijving die hem wordt overgemaakt voor de tijd die nodig is om het drukwerk te produceren; voor de studentenverificatie zijn het uw studentenkaart en identiteitskaart die hem worden overgemaakt voor de duur van de analyse (zie de aparte sectie hieronder). Deze verwerkingen dienen uitsluitend om de door u gevraagde dienst te leveren."
         ]
       },
       {
         "title": "Verificatie van de studentenstatus",
         "content": [
-          "Om u het studententarief toe te kennen, vragen wij u om uw studentenkaart en uw identiteitskaart, teneinde te verifiëren dat de studentenkaart wel degelijk de uwe is. Deze afbeeldingen worden uitsluitend gebruikt voor deze verificatie: ze worden gewist zodra ons team een beslissing heeft genomen. Wij bewaren vervolgens enkel het resultaat — aanvaarde of geweigerde status en de geldigheidsduur ervan."
+          "Om u het studententarief toe te kennen, vragen wij u om uw studentenkaart en uw identiteitskaart, teneinde te verifiëren dat de studentenkaart wel degelijk de uwe is. Deze afbeeldingen worden uitsluitend gebruikt voor deze verificatie: ze worden gewist zodra een beslissing is genomen. Wij bewaren vervolgens enkel het resultaat — aanvaarde of geweigerde status en de geldigheidsduur ervan.",
+          "Deze beslissing wordt eerst onderworpen aan een geautomatiseerde analyse (zie \"Gebruik van kunstmatige intelligentie\" hierboven): als de documenten duidelijk overeenkomen, wordt de aanvraag onmiddellijk aanvaard; als ze duidelijk niet overeenstemmen, wordt ze onmiddellijk geweigerd. Bij twijfel onderzoekt een lid van ons team de aanvraag manueel. Het gaat dus in sommige gevallen om een geautomatiseerde individuele beslissing in de zin van artikel 22 van de AVG. Als uw aanvraag automatisch wordt geweigerd, kunt u ze opnieuw indienen (tot maximaal 3 weigeringen); daarna, of om een beslissing te betwisten, neemt u contact op met onze klantendienst via de Contact-pagina voor een menselijke beoordeling."
         ]
       },
       {
