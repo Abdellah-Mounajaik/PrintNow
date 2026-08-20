@@ -162,7 +162,9 @@
     "errors": {
       "paymentFailed": "Le paiement a échoué.",
       "paymentNotConfirmed": "Le paiement n'a pas pu être confirmé.",
-      "communicationError": "Une erreur de communication est survenue."
+      "communicationError": "Une erreur de communication est survenue.",
+      "registrationNotSavedRefunded": "Votre inscription n'a pas pu être enregistrée. Votre paiement a été remboursé, rien ne vous sera prélevé.",
+      "registrationNotSavedContactUs": "Votre inscription n'a pas pu être enregistrée. Contactez-nous : votre paiement vous sera remboursé."
     }
   },
   "success": {

@@ -117,4 +117,14 @@ public class Imprimerie {
 
     @Column(name = "montant_frais_inscription", precision = 10, scale = 2)
     private BigDecimal montantFraisInscription;
+
+    /**
+     * Paiement Stripe des frais d'inscription. Permet de vérifier après coup
+     * que ce paiement a bien débouché sur cette imprimerie (voir
+     * StripeWebhookController / PaiementAbandonneService) : sans ce lien,
+     * un paiement réussi dont l'inscription échoue ensuite ne pourrait jamais
+     * être retrouvé pour être remboursé automatiquement.
+     */
+    @Column(name = "payment_intent_id", unique = true, length = 100)
+    private String paymentIntentId;
 }

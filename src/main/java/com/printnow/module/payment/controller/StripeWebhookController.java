@@ -22,10 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
  * l'appareil du client meurt juste après le paiement (onglet fermé, réseau
  * coupé), ce filet de sécurité fonctionne quand même.
  *
- * Ne couvre pour l'instant que les commandes (metadata "type"="commande" posée
- * à la création du paiement) : les inscriptions partenaires n'ont pas encore
- * de lien enregistré entre leur paiement et le compte créé, donc rien ne
- * permettrait de vérifier ici si l'inscription a bien abouti.
+ * Couvre les deux paiements de la plateforme, distingués par la metadata
+ * "type" posée à la création du PaymentIntent : "commande" (achat client) et
+ * "inscription" (frais d'inscription d'une imprimerie partenaire).
  */
 @RestController
 @RequestMapping("/api/payments")
@@ -63,8 +62,13 @@ public class StripeWebhookController {
                 log.warn("Webhook Stripe {} reçu mais contenu illisible", event.getId(), e);
                 return ResponseEntity.ok("");
             }
-            if (obj instanceof PaymentIntent intent && "commande".equals(intent.getMetadata().get("type"))) {
-                paiementAbandonneService.recupererApresDelai(intent.getId());
+            if (obj instanceof PaymentIntent intent) {
+                String type = intent.getMetadata().get("type");
+                if ("commande".equals(type)) {
+                    paiementAbandonneService.recupererApresDelai(intent.getId());
+                } else if ("inscription".equals(type)) {
+                    paiementAbandonneService.recupererInscriptionApresDelai(intent.getId());
+                }
             }
         }
 

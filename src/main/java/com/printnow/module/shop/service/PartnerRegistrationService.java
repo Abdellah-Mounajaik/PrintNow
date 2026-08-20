@@ -93,6 +93,7 @@ public class PartnerRegistrationService {
         imprimerie.setNumeroFactureInscription(genererNumeroFactureInscription());
         imprimerie.setDateInscription(LocalDateTime.now());
         imprimerie.setMontantFraisInscription(parametresService.getParametres().getFraisInscription());
+        imprimerie.setPaymentIntentId(request.getPaymentIntentId());
         imprimerie = imprimerieRepository.save(imprimerie);
 
         // 4. CRÉER LES PRODUITS

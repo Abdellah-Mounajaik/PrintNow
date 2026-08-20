@@ -162,7 +162,9 @@
     "errors": {
       "paymentFailed": "The payment failed.",
       "paymentNotConfirmed": "The payment could not be confirmed.",
-      "communicationError": "A communication error occurred."
+      "communicationError": "A communication error occurred.",
+      "registrationNotSavedRefunded": "Your registration could not be saved. Your payment has been refunded, nothing will be charged.",
+      "registrationNotSavedContactUs": "Your registration could not be saved. Please contact us: your payment will be refunded."
     }
   },
   "success": {

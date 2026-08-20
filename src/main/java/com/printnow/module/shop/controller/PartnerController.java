@@ -1,6 +1,7 @@
 package com.printnow.module.shop.controller;
 
 import com.printnow.module.parametres.service.ParametresService;
+import com.printnow.module.payment.service.PaiementAbandonneService;
 import com.printnow.module.shop.dto.PartnerRegistrationRequest;
 import com.printnow.module.shop.service.PartnerRegistrationService;
 import com.stripe.exception.StripeException;
@@ -21,6 +22,7 @@ public class PartnerController {
 
     private final PartnerRegistrationService registrationService;
     private final ParametresService parametresService;
+    private final PaiementAbandonneService paiementAbandonneService;
 
     // Appelé à l'étape 1 du formulaire, avant le paiement Stripe : le client ne
     // doit jamais être débité pour découvrir ensuite que son email ou son numéro
@@ -63,5 +65,16 @@ public class PartnerController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Erreur lors de la création : " + e.getMessage()));
         }
+    }
+
+    /**
+     * Réclame le remboursement d'un paiement d'inscription qui n'a débouché sur
+     * aucune imprimerie. Public comme /register : aucun compte n'existe encore
+     * à ce stade pour authentifier la demande.
+     */
+    @PostMapping("/abandon-inscription")
+    public ResponseEntity<Void> abandonnerInscription(@RequestBody Map<String, String> corps) {
+        paiementAbandonneService.recupererInscription(corps.get("paymentIntentId"));
+        return ResponseEntity.noContent().build();
     }
 }

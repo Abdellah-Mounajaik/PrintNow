@@ -162,7 +162,9 @@
     "errors": {
       "paymentFailed": "De betaling is mislukt.",
       "paymentNotConfirmed": "De betaling kon niet worden bevestigd.",
-      "communicationError": "Er is een communicatiefout opgetreden."
+      "communicationError": "Er is een communicatiefout opgetreden.",
+      "registrationNotSavedRefunded": "Uw inschrijving kon niet worden opgeslagen. Uw betaling is terugbetaald, er wordt niets aangerekend.",
+      "registrationNotSavedContactUs": "Uw inschrijving kon niet worden opgeslagen. Neem contact met ons op: uw betaling wordt terugbetaald."
     }
   },
   "success": {

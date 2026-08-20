@@ -76,7 +76,34 @@ const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) =
       // 3. Paiement confirmé côté client : le compte n'est créé que maintenant.
       // Le backend revérifie indépendamment le statut auprès de Stripe avant
       // d'écrire quoi que ce soit — aucune ligne orpheline possible en cas d'échec.
-      await partnerService.register({ ...payload, paymentIntentId: result.paymentIntent.id });
+      const paymentIntentId = result.paymentIntent.id;
+
+      // La carte est déjà débitée : plutôt que d'abandonner à la première coupure,
+      // on réessaie, et on ne renonce qu'après avoir tenté de récupérer l'argent
+      // du client. Le webhook Stripe reste un filet de secours si tout ceci échoue
+      // aussi (onglet fermé, etc.) — voir StripeWebhookController côté backend.
+      for (let tentative = 1; ; tentative++) {
+        try {
+          await partnerService.register({ ...payload, paymentIntentId });
+          break;
+        } catch (err: any) {
+          const definitif = err.definitif as boolean | undefined;
+          if (!definitif && tentative < 3) {
+            await new Promise((r) => setTimeout(r, tentative * 1000));
+            continue;
+          }
+          if (!definitif) {
+            // Panne côté serveur : personne là-bas n'a pu rembourser, on le
+            // réclame nous-mêmes avant d'annoncer l'échec au client.
+            const rembourse = await partnerService.abandonnerInscription(paymentIntentId);
+            err.message = rembourse
+              ? t("payment.errors.registrationNotSavedRefunded")
+              : t("payment.errors.registrationNotSavedContactUs");
+          }
+          throw err;
+        }
+      }
+
       onPaymentSuccess();
     } catch (error: any) {
       // error.message vient du backend (échec de l'appel API) : on ne le traduit pas.

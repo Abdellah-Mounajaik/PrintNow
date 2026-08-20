@@ -24,6 +24,8 @@ public interface ImprimerieRepository extends JpaRepository<Imprimerie, Long> {
 
     boolean existsByNumeroTva(String numeroTva);
 
+    boolean existsByPaymentIntentId(String paymentIntentId);
+
     // Imprimeries dont l'adresse lisible reste à calculer (créées avant sa mise en place)
     List<Imprimerie> findBySlugIsNull();
 
