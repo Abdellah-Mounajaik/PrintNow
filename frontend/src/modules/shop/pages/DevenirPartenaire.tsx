@@ -55,7 +55,7 @@ const StripePaymentForm = ({ payload, onPaymentSuccess, onBack, amount }: any) =
 
     try {
       // 1. Créer le PaymentIntent — aucune donnée n'est encore écrite en base à ce stade
-      const clientSecret = await paiementService.creerIntention(amount);
+      const clientSecret = await paiementService.creerIntention(amount, null, "inscription");
 
       // 2. Confirmer le paiement par carte
       const result = await stripe.confirmCardPayment(clientSecret, {

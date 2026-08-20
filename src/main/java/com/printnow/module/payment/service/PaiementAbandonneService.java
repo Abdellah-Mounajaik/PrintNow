@@ -6,6 +6,7 @@ import com.stripe.model.PaymentIntent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -65,5 +66,30 @@ public class PaiementAbandonneService {
         log.error("Paiement {} encaissé sans commande (client {}) — remboursement automatique",
                 paymentIntentId, emailDemandeur);
         remboursementService.rembourser(paymentIntentId, "Commande non enregistrée après le paiement");
+    }
+
+    /**
+     * Même vérification que {@link #recuperer}, mais déclenchée par le webhook
+     * Stripe plutôt que par le navigateur — donc jamais dépendante de lui.
+     *
+     * Un délai précède la vérification : le webhook peut arriver avant même que
+     * la confirmation du navigateur n'ait atteint notre serveur, et vérifier
+     * trop tôt rembourserait à tort des commandes parfaitement valides, tout
+     * juste en train de se créer.
+     */
+    @Async
+    public void recupererApresDelai(String paymentIntentId) {
+        try {
+            Thread.sleep(90_000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+        try {
+            recuperer(paymentIntentId, "webhook-stripe");
+        } catch (ResponseStatusException e) {
+            // 409 : une commande existe bien — c'est le cas normal, rien à faire.
+            // 400 : déjà journalisé par recuperer() elle-même.
+        }
     }
 }

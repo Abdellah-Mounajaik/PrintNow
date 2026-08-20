@@ -35,11 +35,15 @@ public class PaymentController {
     public Map<String, String> createPaymentIntent(@RequestBody Map<String, Object> requestData) throws Exception {
         // Montant en centimes envoyé par le frontend (ex: 2.28€ → 228)
         Long amount = ((Number) requestData.get("amount")).longValue();
+        // "commande" ou "inscription" : le webhook Stripe s'en sert pour savoir
+        // quel filet de sécurité appliquer (voir StripeWebhookController).
+        String type = (String) requestData.getOrDefault("type", "");
 
         PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
             .setAmount(amount)
             .setCurrency("eur")
             .addPaymentMethodType("card")
+            .putMetadata("type", type)
             .build();
 
         PaymentIntent intent = PaymentIntent.create(params);

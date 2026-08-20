@@ -10,15 +10,18 @@ export const paiementService = {
    * @param montantEuros montant à débiter, en euros (converti en centimes ici)
    * @param token facultatif : l'inscription d'un partenaire est réglée avant
    *              même que son compte n'existe
+   * @param type "commande" ou "inscription" : lu par le webhook Stripe pour
+   *             savoir quel filet de sécurité appliquer si le paiement aboutit
+   *             sans que le navigateur ne confirme la suite.
    */
-  creerIntention: async (montantEuros: number, token?: string | null): Promise<string> => {
+  creerIntention: async (montantEuros: number, token?: string | null, type: "commande" | "inscription" = "commande"): Promise<string> => {
     const response = await fetch(`${API_URL}/payments/create-payment-intent`, {
       method: "POST",
       headers: {
         ...(token ? authHeaders(token) : {}),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ amount: Math.round(montantEuros * 100) }),
+      body: JSON.stringify({ amount: Math.round(montantEuros * 100), type }),
     });
     if (!response.ok) throw new Error("Erreur lors de la création du paiement.");
 
