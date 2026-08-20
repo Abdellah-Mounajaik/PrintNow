@@ -96,7 +96,7 @@
       "logo": "logo de l'imprimerie"
     },
     "invalidFormTitle": "Formulaire invalide",
-    "invalidFormDescription": "Merci de corriger : {{error}}"
+    "invalidFormDescription": "Merci de corriger les champs indiqués en rouge."
   },
   "step2": {
     "services": {

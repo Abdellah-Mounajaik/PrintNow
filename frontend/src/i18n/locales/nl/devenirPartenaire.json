@@ -96,7 +96,7 @@
       "logo": "logo van de drukkerij"
     },
     "invalidFormTitle": "Ongeldig formulier",
-    "invalidFormDescription": "Gelieve te corrigeren: {{error}}"
+    "invalidFormDescription": "Corrigeer de rood gemarkeerde velden."
   },
   "step2": {
     "services": {

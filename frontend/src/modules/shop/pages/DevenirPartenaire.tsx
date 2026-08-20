@@ -153,6 +153,10 @@ const DevenirPartenaire = () => {
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState("");
   const [checkingAvailability, setCheckingAvailability] = useState(false);
+  // Ne montre l'erreur de l'étape 1 qu'après une tentative de "Continuer" : sinon
+  // un champ manquant s'affichait en rouge dès l'arrivée sur la page, avant même
+  // que l'utilisateur ait pu commencer à remplir le formulaire.
+  const [step1SubmitAttempted, setStep1SubmitAttempted] = useState(false);
 
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fichier = e.target.files?.[0];
@@ -286,7 +290,17 @@ const DevenirPartenaire = () => {
     if (!logoUrl) missing.push(t("step1.errors.logo"));
     return missing;
   };
-  
+
+  // Bordure/message rouge sous chaque champ concerné, seulement après une
+  // première tentative de "Continuer" — plutôt qu'un unique message générique
+  // en bas de page qui ne signale qu'une seule erreur à la fois.
+  const err = (invalid: boolean) => step1SubmitAttempted && invalid;
+  const emailInvalid = !email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const emailErrorMsg = !email.trim() ? t("step1.errors.email") : t("step1.errors.emailInvalid");
+  const phoneInvalid = !phone.trim() || !/^\+?[0-9 ()./-]{8,20}$/.test(phone);
+  const phoneErrorMsg = !phone.trim() ? t("step1.errors.phone") : t("step1.errors.phoneInvalid");
+  const passwordInvalid = !/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password);
+
   const canGoStep3 = enabledServicesCount >= 1;
 
   const toggleService = (id: string) => {
@@ -508,21 +522,24 @@ const DevenirPartenaire = () => {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="shopName">{t("step1.shopName.label")}</Label>
-                  <Input id="shopName" placeholder={t("step1.shopName.placeholder")} value={shopName} onChange={(e) => setShopName(e.target.value)} />
+                  <Input id="shopName" placeholder={t("step1.shopName.placeholder")} value={shopName} onChange={(e) => setShopName(e.target.value)} className={err(!shopName.trim()) ? "border-destructive" : ""} />
+                  {err(!shopName.trim()) && <p className="text-xs text-destructive">{t("step1.errors.shopName")}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">{t("step1.email.label")}</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="email" type="email" className="pl-10" placeholder={t("step1.email.placeholder")} value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <Input id="email" type="email" className={`pl-10 ${err(emailInvalid) ? "border-destructive" : ""}`} placeholder={t("step1.email.placeholder")} value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
+                  {err(emailInvalid) && <p className="text-xs text-destructive">{emailErrorMsg}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">{t("step1.phone.label")}</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="phone" className="pl-10" placeholder={t("step1.phone.placeholder")} value={phone} onChange={(e) => setPhone(e.target.value)} />
+                    <Input id="phone" className={`pl-10 ${err(phoneInvalid) ? "border-destructive" : ""}`} placeholder={t("step1.phone.placeholder")} value={phone} onChange={(e) => setPhone(e.target.value)} />
                   </div>
+                  {err(phoneInvalid) && <p className="text-xs text-destructive">{phoneErrorMsg}</p>}
                 </div>
                 <div className="space-y-2 md:col-span-2 relative" ref={suggestionsRef}>
                   <Label htmlFor="address">{t("step1.address.label")}</Label>
@@ -530,7 +547,7 @@ const DevenirPartenaire = () => {
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="address"
-                      className="pl-10 pr-10"
+                      className={`pl-10 pr-10 ${err(!address.trim()) ? "border-destructive" : ""}`}
                       placeholder={t("step1.address.placeholder")}
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
@@ -541,6 +558,7 @@ const DevenirPartenaire = () => {
                       <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
                     )}
                   </div>
+                  {err(!address.trim()) && <p className="text-xs text-destructive">{t("step1.errors.address")}</p>}
                   {showSuggestions && addressSuggestions.length > 0 && (
                     <div className="absolute z-20 mt-1 w-full bg-card border border-border rounded-lg shadow-lg overflow-hidden">
                       {addressSuggestions.map((s, i) => (
@@ -559,7 +577,8 @@ const DevenirPartenaire = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ville">{t("step1.city.label")}</Label>
-                  <Input id="ville" placeholder={t("step1.city.placeholder")} value={ville} onChange={(e) => setVille(e.target.value)} />
+                  <Input id="ville" placeholder={t("step1.city.placeholder")} value={ville} onChange={(e) => setVille(e.target.value)} className={err(!ville.trim()) ? "border-destructive" : ""} />
+                  {err(!ville.trim()) && <p className="text-xs text-destructive">{t("step1.errors.city")}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pays">{t("step1.country.label")}</Label>
@@ -567,39 +586,45 @@ const DevenirPartenaire = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="siret">{t("step1.vat.label")}</Label>
-                  <Input id="siret" placeholder={t("step1.vat.placeholder")} value={siret} onChange={(e) => setSiret(e.target.value)} />
+                  <Input id="siret" autoComplete="off" placeholder={t("step1.vat.placeholder")} value={siret} onChange={(e) => setSiret(e.target.value)} className={err(!siret.trim()) ? "border-destructive" : ""} />
+                  {err(!siret.trim()) && <p className="text-xs text-destructive">{t("step1.errors.vat")}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="password">{t("step1.password.label")}</Label>
                   <div className="relative">
-                    <Input id="password" type={showPassword ? "text" : "password"} placeholder={t("step1.password.placeholder")} value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
+                    <Input id="password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder={t("step1.password.placeholder")} value={password} onChange={(e) => setPassword(e.target.value)} className={`pr-10 ${err(passwordInvalid) ? "border-destructive" : ""}`} />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  {err(passwordInvalid) && <p className="text-xs text-destructive">{t("step1.errors.password")}</p>}
                 </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="confirmPassword">{t("step1.confirmPassword.label")}</Label>
                     <div className="relative">
-                        <Input id="confirmPassword" type={showPassword ? "text" : "password"} placeholder={t("step1.confirmPassword.placeholder")} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={confirmPassword && password !== confirmPassword ? "border-destructive pr-10" : "pr-10"} />
+                        <Input id="confirmPassword" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder={t("step1.confirmPassword.placeholder")} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={(confirmPassword && password !== confirmPassword) || err(password !== confirmPassword) ? "border-destructive pr-10" : "pr-10"} />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                     </div>
+                    {((confirmPassword && password !== confirmPassword) || err(password !== confirmPassword)) && (
+                      <p className="text-xs text-destructive">{t("step1.errors.passwordMismatch")}</p>
+                    )}
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="description">{t("step1.description.label")}</Label>
-                  <Textarea id="description" placeholder={t("step1.description.placeholder")} rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+                  <Textarea id="description" placeholder={t("step1.description.placeholder")} rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={err(!description.trim()) ? "border-destructive" : ""} />
+                  {err(!description.trim()) && <p className="text-xs text-destructive">{t("step1.errors.description")}</p>}
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
                   <Label>{t("step1.logo.label")}</Label>
                   <label
                     htmlFor="logo-upload"
-                    className="block border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                    className={`block border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer ${err(!logoUrl) ? "border-destructive" : "border-border"}`}
                   >
                     <input
                       id="logo-upload"
@@ -626,18 +651,17 @@ const DevenirPartenaire = () => {
                       </>
                     )}
                   </label>
+                  {err(!logoUrl) && <p className="text-xs text-destructive">{t("step1.errors.logo")}</p>}
                   {logoError && <p className="text-sm text-destructive">{logoError}</p>}
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-8">
-                {getStep1Errors().length > 0 ? (
-                  <p className="text-sm text-destructive">{getStep1Errors()[0]}</p>
-                ) : <span />}
+              <div className="flex justify-end mt-8">
                 <Button variant="default" size="lg" disabled={checkingAvailability} onClick={async () => {
                   const missing = getStep1Errors();
                   if (missing.length > 0) {
-                    toast({ title: t("step1.invalidFormTitle"), description: t("step1.invalidFormDescription", { error: missing[0] }), variant: "destructive" });
+                    setStep1SubmitAttempted(true);
+                    toast({ title: t("step1.invalidFormTitle"), description: t("step1.invalidFormDescription"), variant: "destructive" });
                     return;
                   }
                   setCheckingAvailability(true);

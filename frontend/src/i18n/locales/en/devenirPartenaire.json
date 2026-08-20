@@ -96,7 +96,7 @@
       "logo": "print shop logo"
     },
     "invalidFormTitle": "Invalid form",
-    "invalidFormDescription": "Please fix: {{error}}"
+    "invalidFormDescription": "Please fix the fields highlighted in red."
   },
   "step2": {
     "services": {
