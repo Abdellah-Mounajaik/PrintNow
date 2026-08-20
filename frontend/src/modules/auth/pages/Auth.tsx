@@ -30,10 +30,24 @@ const Auth = () => {
   
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  // Ne montre les erreurs de l'inscription qu'après une première tentative
+  // d'envoi (comme sur devenir-partenaire) : sinon chaque champ vide serait
+  // signalé dès l'arrivée sur la page.
+  const [signupSubmitAttempted, setSignupSubmitAttempted] = useState(false);
 
   // 👇 ÉTATS POUR AFFICHER LES MESSAGES D'ERREUR/SUCCÈS
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  // Validation champ par champ de l'inscription : bordure + message sous
+  // chaque champ concerné, tous visibles à la fois plutôt qu'un seul message
+  // générique en haut de page.
+  const signupErr = (invalid: boolean) => signupSubmitAttempted && invalid;
+  const emailInvalid = !signupData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupData.email);
+  const emailErrorMsg = !signupData.email.trim() ? t("register.errors.email") : t("register.errors.emailInvalid");
+  const passwordInvalid = !/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(signupData.motDePasse);
+  const confirmPasswordInvalid = signupData.motDePasse !== confirmPassword;
   
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -88,27 +102,23 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setSignupSubmitAttempted(true);
     setErrorMsg("");
     setSuccessMsg("");
 
-    // 👇 VALIDATIONS avant d'appeler le backend
-    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(signupData.motDePasse)) {
-      setErrorMsg(t("register.errors.weakPassword"));
-      setIsLoading(false);
-      return;
-    }
-    if (signupData.motDePasse !== confirmPassword) {
-      setErrorMsg(t("register.errors.passwordMismatch"));
-      setIsLoading(false);
-      return; // On arrête la fonction ici, on n'appelle pas le backend
-    }
-    if (signupData.telephone && !/^\+?[0-9 ()./-]{8,20}$/.test(signupData.telephone)) {
-      setErrorMsg(t("register.errors.invalidPhone"));
-      setIsLoading(false);
+    const formInvalide =
+      !signupData.prenom.trim() ||
+      !signupData.nom.trim() ||
+      emailInvalid ||
+      passwordInvalid ||
+      confirmPasswordInvalid ||
+      !termsAccepted;
+    if (formInvalide) {
+      setErrorMsg(t("register.errors.formInvalid"));
       return;
     }
 
+    setIsLoading(true);
     try {
       await authService.register(signupData);
       setSuccessMsg(t("register.successMessage"));
@@ -117,6 +127,8 @@ const Auth = () => {
       // On vide les champs de mot de passe par sécurité
       setSignupData({...signupData, motDePasse: ""});
       setConfirmPassword("");
+      setSignupSubmitAttempted(false);
+      setTermsAccepted(false);
     } catch (err: any) {
       setErrorMsg(err.message || t("register.errors.generic"));
     } finally {
@@ -211,18 +223,22 @@ const Auth = () => {
                         <div className="space-y-2">
                           <Label htmlFor="signup-firstname">{t("register.firstNameLabel")}</Label>
                           <Input
-                            id="signup-firstname" type="text" placeholder={t("register.firstNamePlaceholder")} required
+                            id="signup-firstname" type="text" placeholder={t("register.firstNamePlaceholder")}
                             value={signupData.prenom}
                             onChange={(e) => setSignupData({...signupData, prenom: e.target.value})}
+                            className={signupErr(!signupData.prenom.trim()) ? "border-destructive" : ""}
                           />
+                          {signupErr(!signupData.prenom.trim()) && <p className="text-xs text-destructive">{t("register.errors.firstName")}</p>}
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="signup-lastname">{t("register.lastNameLabel")}</Label>
                           <Input
-                            id="signup-lastname" type="text" placeholder={t("register.lastNamePlaceholder")} required
+                            id="signup-lastname" type="text" placeholder={t("register.lastNamePlaceholder")}
                             value={signupData.nom}
                             onChange={(e) => setSignupData({...signupData, nom: e.target.value})}
+                            className={signupErr(!signupData.nom.trim()) ? "border-destructive" : ""}
                           />
+                          {signupErr(!signupData.nom.trim()) && <p className="text-xs text-destructive">{t("register.errors.lastName")}</p>}
                         </div>
                       </div>
 
@@ -231,11 +247,13 @@ const Auth = () => {
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
-                            id="signup-email" type="email" placeholder={t("register.emailPlaceholder")} className="pl-10" required
+                            id="signup-email" type="email" autoComplete="off" placeholder={t("register.emailPlaceholder")}
+                            className={`pl-10 ${signupErr(emailInvalid) ? "border-destructive" : ""}`}
                             value={signupData.email}
                             onChange={(e) => setSignupData({...signupData, email: e.target.value})}
                           />
                         </div>
+                        {signupErr(emailInvalid) && <p className="text-xs text-destructive">{emailErrorMsg}</p>}
                       </div>
 
                       <div className="space-y-2">
@@ -243,7 +261,8 @@ const Auth = () => {
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
-                            id="signup-password" type={showPassword ? "text" : "password"} placeholder={t("register.passwordPlaceholder")} className="pl-10 pr-10" required
+                            id="signup-password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder={t("register.passwordPlaceholder")}
+                            className={`pl-10 pr-10 ${signupErr(passwordInvalid) ? "border-destructive" : ""}`}
                             value={signupData.motDePasse}
                             onChange={(e) => setSignupData({...signupData, motDePasse: e.target.value})}
                           />
@@ -251,9 +270,13 @@ const Auth = () => {
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {t("register.passwordHint")}
-                        </p>
+                        {signupErr(passwordInvalid) ? (
+                          <p className="text-xs text-destructive">{t("register.errors.weakPassword")}</p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            {t("register.passwordHint")}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -261,7 +284,8 @@ const Auth = () => {
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
-                            id="signup-confirm-password" type={showConfirmPassword ? "text" : "password"} placeholder={t("register.confirmPasswordPlaceholder")} className="pl-10 pr-10" required
+                            id="signup-confirm-password" type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" placeholder={t("register.confirmPasswordPlaceholder")}
+                            className={`pl-10 pr-10 ${(confirmPassword && confirmPasswordInvalid) || signupErr(confirmPasswordInvalid) ? "border-destructive" : ""}`}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                           />
@@ -269,20 +293,31 @@ const Auth = () => {
                             {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
+                        {((confirmPassword && confirmPasswordInvalid) || signupErr(confirmPasswordInvalid)) && (
+                          <p className="text-xs text-destructive">{t("register.errors.passwordMismatch")}</p>
+                        )}
                       </div>
 
-                      <div className="flex items-start gap-2 pt-2">
-                        <Checkbox id="terms" required className="mt-1" />
-                        <Label htmlFor="terms" className="text-sm font-normal leading-relaxed">
-                          {t("register.termsPrefix")}{" "}
-                          <Link to="/conditions" className="text-primary hover:underline">
-                            {t("register.termsLink")}
-                          </Link>{" "}
-                          {t("register.termsAnd")}{" "}
-                          <Link to="/confidentialite" className="text-primary hover:underline">
-                            {t("register.privacyLink")}
-                          </Link>
-                        </Label>
+                      <div className="space-y-1">
+                        <div className="flex items-start gap-2 pt-2">
+                          <Checkbox
+                            id="terms"
+                            checked={termsAccepted}
+                            onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                            className={`mt-1 ${signupErr(!termsAccepted) ? "border-destructive" : ""}`}
+                          />
+                          <Label htmlFor="terms" className="text-sm font-normal leading-relaxed">
+                            {t("register.termsPrefix")}{" "}
+                            <Link to="/conditions" className="text-primary hover:underline">
+                              {t("register.termsLink")}
+                            </Link>{" "}
+                            {t("register.termsAnd")}{" "}
+                            <Link to="/confidentialite" className="text-primary hover:underline">
+                              {t("register.privacyLink")}
+                            </Link>
+                          </Label>
+                        </div>
+                        {signupErr(!termsAccepted) && <p className="text-xs text-destructive">{t("register.errors.terms")}</p>}
                       </div>
 
                       <Button type="submit" className="w-full" disabled={isLoading}>
