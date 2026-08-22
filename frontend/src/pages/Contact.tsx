@@ -16,6 +16,7 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
+import Seo from "@/components/Seo";
 
 const Contact = () => {
   const { t } = useTranslation("contact");
@@ -86,6 +87,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Seo
+        title="Contact"
+        description="Une question, un problème avec une commande ? Contactez l'équipe PrintNow par e-mail ou téléphone, ou via le formulaire ci-dessous."
+        path="/contact"
+      />
       <main className="flex-1 pt-20">
         {/* Hero */}
         <section className="bg-primary py-16">

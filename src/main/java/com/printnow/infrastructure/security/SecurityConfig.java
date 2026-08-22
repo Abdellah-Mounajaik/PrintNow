@@ -68,6 +68,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll() // Redispatch d'erreur : évite que 400/403/409 soient transformés en 401
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll() // Documentation interactive de l'API
+                .requestMatchers("/sitemap.xml").permitAll() // Indexation par les moteurs de recherche
                 .requestMatchers("/api/auth/**").permitAll() // L'authentification est publique
                 // Le catalogue se CONSULTE librement. Les écritures, elles, ne
                 // l'étaient que par ricochet d'une règle écrite pour la lecture :

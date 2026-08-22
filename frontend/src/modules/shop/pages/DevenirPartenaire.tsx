@@ -19,6 +19,7 @@ import type { SuggestionAdresse } from "../../../models/adresse.model";
 import { partnerService } from "../services/partner.service";
 import { type PartnerRegistrationRequest } from "../models/partner.model";
 import { DAYS, SERVICES, type Hours } from "../models/partner.constants";
+import Seo from "../../../components/Seo";
 import { parametresService } from "../../../services/parametres.service";
 import type { ParametresPlateforme } from "../../../models/parametres.model";
 
@@ -497,6 +498,11 @@ const DevenirPartenaire = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
+      <Seo
+        title="Devenir imprimerie partenaire"
+        description="Rejoignez le réseau PrintNow : recevez des commandes en ligne de particuliers et d'étudiants près de chez vous, sans changer votre façon de travailler."
+        path="/devenir-partenaire"
+      />
       <Header />
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-4xl">

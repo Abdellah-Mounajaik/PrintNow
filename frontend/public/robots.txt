@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /dashboard-imprimeur
+Disallow: /dashboard-admin
+Disallow: /commander/
+Disallow: /login
+Disallow: /mot-de-passe-oublie
+Disallow: /reinitialiser-mot-de-passe
+Disallow: /403
+
+Sitemap: https://printnow.be/sitemap.xml

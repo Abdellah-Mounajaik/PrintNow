@@ -17,6 +17,7 @@ import {
   ChevronLeft, FileText, Image as ImageIcon, CreditCard, Printer, Star
 } from "lucide-react";
 import AvisSection from "../components/AvisSection";
+import Seo from "../../../components/Seo";
 
 interface TabItem {
   label: string;
@@ -57,6 +58,10 @@ const PrintShopDetail = () => {
 
   if (isLoading) return <div className="p-20 text-center">{t("loading")}</div>;
   if (error || !shop) return <div className="p-20 text-center text-red-500">{t("error.generic", { message: error })}</div>;
+
+  const seoDescription = shop.description
+    ? (shop.description.length > 155 ? `${shop.description.slice(0, 155)}…` : shop.description)
+    : `Impression en ligne chez ${shop.nom}${shop.ville ? `, à ${shop.ville}` : ""} : documents, flyers, cartes de visite. Retrait en magasin ou livraison.`;
 
   const produitsActifs = shop.produits?.filter(p => p.actif) ?? [];
 
@@ -120,6 +125,7 @@ const PrintShopDetail = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Seo title={shop.nom} description={seoDescription} path={`/imprimerie/${slug}`} />
       <Header />
       <main className="flex-1 pt-20">
         <div className="relative h-64 md:h-80 overflow-hidden bg-slate-200">

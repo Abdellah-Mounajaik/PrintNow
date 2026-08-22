@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Bot, Send, User, Sparkle, RotateCcw, Printer } from "lucide-react";
 import { chatbotService } from "@/services/chatbot.service";
 import type { MessageChat } from "@/models/chatbot.model";
+import Seo from "@/components/Seo";
 
 type Message = { id: string; role: "bot" | "user"; text: string };
 
@@ -90,6 +91,11 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Seo
+        title="Foire aux questions"
+        description="Questions fréquentes sur la commande, le paiement, le retrait et la livraison chez PrintNow, avec un assistant qui répond en direct."
+        path="/faq"
+      />
       <main className="flex-1 pt-20">
         {/* Hero */}
         <section className="bg-primary py-16">
