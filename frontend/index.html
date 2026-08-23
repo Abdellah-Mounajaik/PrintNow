@@ -25,25 +25,26 @@
         window.addEventListener('unhandledrejection', function (e) {
           afficher('Promesse rejetée : ' + (e.reason && (e.reason.stack || e.reason.message || e.reason)));
         });
-        window.__printnowDebug = { moduleScriptLoaded: false, moduleStarted: false };
+        window.__printnowDebug = { moduleStarted: false };
         setTimeout(function () {
           var root = document.getElementById('root');
           if (root && root.children.length === 0) {
+            var ressources = performance.getEntriesByType('resource')
+              .filter(function (r) { return /\.(js|css)(\?|$)/.test(r.name); })
+              .map(function (r) {
+                return r.name.split('/').pop() + ' — taille transferee: ' + r.transferSize + 'o, duree: ' + Math.round(r.duration) + 'ms, encodedBodySize: ' + r.encodedBodySize;
+              })
+              .join('\n');
             afficher(
               'Rien ne s\'est affiche dans #root apres 4s, et aucune erreur n\'a ete capturee.\n' +
-              'Script module charge (evenement load) : ' + window.__printnowDebug.moduleScriptLoaded + '\n' +
               'Code du module execute : ' + window.__printnowDebug.moduleStarted + '\n' +
+              'Ressources JS/CSS observees par le navigateur :\n' + (ressources || '(aucune détectée)') + '\n' +
               'UA : ' + navigator.userAgent
             );
           }
         }, 4000);
       })();
     </script>
-    <script
-      type="module"
-      src="/src/main.tsx"
-      onload="window.__printnowDebug.moduleScriptLoaded = true"
-      onerror="window.__printnowDebug.moduleScriptLoaded = false; document.body.insertAdjacentHTML('afterbegin', '<pre style=&quot;position:fixed;top:0;left:0;right:0;z-index:99999;background:#fee;color:#900;padding:12px;font-size:12px;white-space:pre-wrap;margin:0;border-bottom:2px solid #900;&quot;>Echec du chargement du script module (main.tsx) — erreur reseau ou de parsing.</pre>')"
-    ></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
