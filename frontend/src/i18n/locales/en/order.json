@@ -240,7 +240,7 @@
       "title": "Generate a design",
       "description": "Choose a type, describe what you want: the AI produces 3 versions, and you pick your favorite."
     },
-    "charCountHint": "{{length}}/4000 — the more detail you give, the better.",
+    "charCountHint": "{{length}}/5000 — the more detail you give, the better.",
     "generatingButton": "Generating… {{percent}}%",
     "generateButton": "Generate 3 versions",
     "generatingHint": "The AI is crafting your 3 versions…",

@@ -50,7 +50,7 @@ import java.util.UUID;
 @Slf4j
 public class StudioService {
 
-    private static final int BRIEF_MAX = 4000;
+    private static final int BRIEF_MAX = 5000;
 
     private final GenerationSupportRepository generationRepository;
     private final PropositionSupportRepository propositionRepository;

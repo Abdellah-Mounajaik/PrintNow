@@ -175,7 +175,7 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
             value={brief}
             onChange={(e) => setBrief(e.target.value)}
             placeholder={exemple}
-            maxLength={4000}
+            maxLength={5000}
             rows={5}
             className="w-full rounded-lg border border-border bg-background p-3 text-sm leading-relaxed
                        focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"

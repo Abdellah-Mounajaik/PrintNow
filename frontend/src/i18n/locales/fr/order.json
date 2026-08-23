@@ -240,7 +240,7 @@
       "title": "Générer un support",
       "description": "Choisissez un type, décrivez ce que vous voulez : l'IA en propose 3 versions, vous choisissez la vôtre."
     },
-    "charCountHint": "{{length}}/4000 — plus vous en dites, mieux c'est.",
+    "charCountHint": "{{length}}/5000 — plus vous en dites, mieux c'est.",
     "generatingButton": "Génération… {{percent}}%",
     "generateButton": "Générer 3 propositions",
     "generatingHint": "L'IA fabrique vos 3 versions…",

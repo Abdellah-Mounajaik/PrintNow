@@ -240,7 +240,7 @@
       "title": "Een design genereren",
       "description": "Kies een type, beschrijf wat u wilt: de AI stelt 3 versies voor, u kiest de uwe."
     },
-    "charCountHint": "{{length}}/4000 — hoe meer u vermeldt, hoe beter.",
+    "charCountHint": "{{length}}/5000 — hoe meer u vermeldt, hoe beter.",
     "generatingButton": "Genereren… {{percent}}%",
     "generateButton": "3 versies genereren",
     "generatingHint": "De AI maakt uw 3 versies…",
