@@ -40,6 +40,19 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     boolean existsByClient_IdAndImprimerie_IdAndStatut(Long clientId, Long imprimerieId, StatutCommande statut);
 
     /*
+     * Éligibilité à un avis : LIVREE couvre la livraison, mais un retrait en
+     * magasin ne dépasse jamais PRETE (l'imprimeur n'a pas de bouton pour
+     * repointer chaque retrait au comptoir — voir DashboardImprimeur). Sans ce
+     * cas particulier, aucun client en retrait magasin ne pourrait jamais
+     * laisser d'avis.
+     */
+    @Query("SELECT COUNT(c) > 0 FROM Commande c WHERE c.client.id = :clientId AND c.imprimerie.id = :imprimerieId " +
+            "AND (c.statut = com.printnow.module.order.enums.StatutCommande.LIVREE " +
+            "OR (c.statut = com.printnow.module.order.enums.StatutCommande.PRETE " +
+            "AND c.modeRetrait = com.printnow.module.order.enums.ModeRetrait.RETRAIT_MAGASIN))")
+    boolean existsCommandeEligibleAvis(@Param("clientId") Long clientId, @Param("imprimerieId") Long imprimerieId);
+
+    /*
      * Requêtes des tableaux de bord (client, imprimeur, admin).
      *
      * Sans elles, afficher une liste de commandes déclenchait une cinquantaine

@@ -7,7 +7,6 @@ import com.printnow.module.avis.dto.AvisTraductionDTO;
 import com.printnow.module.avis.mapper.AvisMapper;
 import com.printnow.module.avis.model.Avis;
 import com.printnow.module.avis.repository.AvisRepository;
-import com.printnow.module.order.enums.StatutCommande;
 import com.printnow.module.order.repository.CommandeRepository;
 import com.printnow.module.shop.model.Imprimerie;
 import com.printnow.module.shop.repository.ImprimerieRepository;
@@ -36,7 +35,8 @@ public class AvisService {
      * Un client laisse un avis. Conditions :
      *  - l'imprimerie existe
      *  - la note est entre 1 et 5
-     *  - le client a au moins une commande LIVREE chez cette imprimerie
+     *  - le client a au moins une commande livrée (ou prête à retirer, pour un
+     *    retrait en magasin) chez cette imprimerie
      *  - le client n'a pas déjà laissé un avis (contrainte unique)
      */
     @Transactional
@@ -48,9 +48,8 @@ public class AvisService {
         Imprimerie imprimerie = imprimerieRepository.findById(request.getImprimerieId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Imprimerie introuvable."));
 
-        boolean aCommandeLivree = commandeRepository.existsByClient_IdAndImprimerie_IdAndStatut(
-                client.getId(), imprimerie.getId(), StatutCommande.LIVREE);
-        if (!aCommandeLivree) {
+        boolean eligible = commandeRepository.existsCommandeEligibleAvis(client.getId(), imprimerie.getId());
+        if (!eligible) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Vous ne pouvez laisser un avis qu'après une commande livrée chez cette imprimerie.");
         }
@@ -96,10 +95,9 @@ public class AvisService {
 
         if (clientId != null) {
             boolean dejaNote = avisRepository.existsByUser_IdAndImprimerie_Id(clientId, imprimerieId);
-            boolean aCommandeLivree = commandeRepository.existsByClient_IdAndImprimerie_IdAndStatut(
-                    clientId, imprimerieId, StatutCommande.LIVREE);
+            boolean eligible = commandeRepository.existsCommandeEligibleAvis(clientId, imprimerieId);
             dto.setDejaNote(dejaNote);
-            dto.setPeutNoter(aCommandeLivree && !dejaNote);
+            dto.setPeutNoter(eligible && !dejaNote);
         }
 
         return dto;
