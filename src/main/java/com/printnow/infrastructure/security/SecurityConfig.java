@@ -66,6 +66,13 @@ public class SecurityConfig {
             
             // 5. Configuration des accès aux routes
             .authorizeHttpRequests(auth -> auth
+                // Requêtes preflight CORS (OPTIONS) : le navigateur les envoie avant
+                // toute vraie requête cross-origin (POST, etc.) sans jamais joindre de
+                // token. Sans cette règle, Spring Security les rejette en 403 avant
+                // même qu'elles atteignent la config CORS — la vraie requête semble
+                // alors bloquée par CORS côté navigateur, alors que le vrai coupable
+                // est ce refus du preflight.
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/error").permitAll() // Redispatch d'erreur : évite que 400/403/409 soient transformés en 401
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll() // Documentation interactive de l'API
                 .requestMatchers("/sitemap.xml").permitAll() // Indexation par les moteurs de recherche
