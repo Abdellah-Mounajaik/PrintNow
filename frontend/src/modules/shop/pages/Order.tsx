@@ -292,6 +292,7 @@ const Order = () => {
 
   if (!token) return <Navigate to="/login" replace />;
   if (user?.role === "ROLE_IMPRIMERIE") return <Navigate to="/dashboard-imprimeur" replace />;
+  if (user?.role === "ROLE_ADMIN") return <Navigate to="/dashboard-admin" replace />;
 
   const [shop, setShop] = useState<ImprimerieDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);

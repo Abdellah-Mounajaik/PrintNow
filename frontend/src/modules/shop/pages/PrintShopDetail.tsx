@@ -236,7 +236,7 @@ const PrintShopDetail = () => {
             </div>
 
             <div className="space-y-6">
-              {user?.role === "ROLE_IMPRIMERIE" ? (
+              {user?.role === "ROLE_IMPRIMERIE" || user?.role === "ROLE_ADMIN" ? (
                 <Button size="lg" className="w-full text-lg h-14" disabled>
                   {t("actions.reservedForClients")}
                 </Button>
