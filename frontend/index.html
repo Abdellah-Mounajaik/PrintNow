@@ -5,6 +5,20 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PrintNow</title>
+    <script>
+      // pdfjs-dist verifie `typeof Iterator.prototype.join` pour savoir s'il
+      // doit ajouter son polyfill, sans jamais verifier que `Iterator`
+      // lui-meme existe. Sur les navigateurs qui ne l'ont pas du tout
+      // (Safari/iOS jusqu'a fin 2024 environ), cette simple lecture fait
+      // planter tout le script avec un ReferenceError, avant meme que React
+      // ne demarre — page blanche, sans la moindre erreur visible cote appli.
+      // On fournit un objet minimal pour que leur verification passe sans
+      // crasher ; leur propre code se charge ensuite d'ajouter .join dessus.
+      if (typeof Iterator === 'undefined') {
+        window.Iterator = function () {}
+        window.Iterator.prototype = {}
+      }
+    </script>
     <!-- Diagnostic temporaire : console de dev visible sur mobile, sans Mac. A retirer une fois le bug identifie. -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>if (window.eruda) { eruda.init(); }</script>
