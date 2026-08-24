@@ -19,49 +19,9 @@
         window.Iterator.prototype = {}
       }
     </script>
-    <!-- Diagnostic temporaire : console de dev visible sur mobile, sans Mac. A retirer une fois le bug identifie. -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>if (window.eruda) { eruda.init(); }</script>
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      // Diagnostic temporaire : affiche toute erreur JS directement sur la
-      // page (utile sur mobile, sans accès à la console développeur).
-      // A retirer une fois le bug Safari/iOS identifié.
-      (function () {
-        function afficher(message) {
-          var d = document.createElement('pre');
-          d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#fee;color:#900;padding:12px;font-size:12px;white-space:pre-wrap;word-break:break-word;margin:0;border-bottom:2px solid #900;';
-          d.textContent = message;
-          document.body.appendChild(d);
-        }
-        window.addEventListener('error', function (e) {
-          afficher('Erreur JS : ' + e.message + '\n' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || '') + '\n' + (e.error && e.error.stack || ''));
-        });
-        window.addEventListener('unhandledrejection', function (e) {
-          afficher('Promesse rejetée : ' + (e.reason && (e.reason.stack || e.reason.message || e.reason)));
-        });
-        window.__printnowDebug = { moduleStarted: false };
-        setTimeout(function () {
-          var root = document.getElementById('root');
-          if (root && root.children.length === 0) {
-            var ressources = performance.getEntriesByType('resource')
-              .filter(function (r) { return /\.(js|css)(\?|$)/.test(r.name); })
-              .map(function (r) {
-                return r.name.split('/').pop() + ' — taille transferee: ' + r.transferSize + 'o, duree: ' + Math.round(r.duration) + 'ms, encodedBodySize: ' + r.encodedBodySize;
-              })
-              .join('\n');
-            afficher(
-              'Rien ne s\'est affiche dans #root apres 4s, et aucune erreur n\'a ete capturee.\n' +
-              'Code du module execute : ' + window.__printnowDebug.moduleStarted + '\n' +
-              'Ressources JS/CSS observees par le navigateur :\n' + (ressources || '(aucune détectée)') + '\n' +
-              'UA : ' + navigator.userAgent
-            );
-          }
-        }, 4000);
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

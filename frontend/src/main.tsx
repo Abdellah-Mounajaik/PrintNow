@@ -1,8 +1,3 @@
-const debugFlag = (window as unknown as { __printnowDebug?: { moduleStarted: boolean } }).__printnowDebug
-if (debugFlag) {
-  debugFlag.moduleStarted = true
-}
-
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
