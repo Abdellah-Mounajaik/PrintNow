@@ -704,6 +704,12 @@ const DashboardClient = () => {
                         className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
                       />
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("student.form.privacyNotice")}{" "}
+                      <Link to="/confidentialite" className="underline hover:text-foreground">
+                        {t("student.form.privacyLinkText")}
+                      </Link>
+                    </p>
                     <Button onClick={handleSoumettre} disabled={uploading}>
                       {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
                       {uploading ? t("student.form.submitting") : t("student.form.submit")}

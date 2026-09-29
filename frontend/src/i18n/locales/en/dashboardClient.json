@@ -96,6 +96,8 @@
     "form": {
       "studentCardLabel": "Student card",
       "idCardLabel": "ID card",
+      "privacyNotice": "Sent to our AI partner for the duration of the verification, then deleted from our servers.",
+      "privacyLinkText": "See our privacy policy",
       "submit": "Send my documents",
       "submitting": "Sending…"
     }

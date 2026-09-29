@@ -96,6 +96,8 @@
     "form": {
       "studentCardLabel": "Studentenkaart",
       "idCardLabel": "Identiteitskaart",
+      "privacyNotice": "Doorgestuurd naar onze AI-partner voor de duur van de verificatie, daarna verwijderd van onze servers.",
+      "privacyLinkText": "Bekijk ons privacybeleid",
       "submit": "Documenten versturen",
       "submitting": "Bezig met versturen…"
     }

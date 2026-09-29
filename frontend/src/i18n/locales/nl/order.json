@@ -182,6 +182,8 @@
     },
     "title": "Spelling controleren voor het afdrukken",
     "freeHint": "Analyse en voorbeeld van de correcties zijn gratis.",
+    "privacyNotice": "De inhoud van het document wordt tijdens de analyse naar onze AI-partner gestuurd en daarna van onze servers verwijderd.",
+    "privacyLinkText": "Bekijk ons privacybeleid",
     "analyzing": "Analyseren…",
     "analyzeButton": "Analyseren",
     "noErrorsInDocument": "Geen fouten gevonden in dit document.",
@@ -241,6 +243,8 @@
       "description": "Kies een type, beschrijf wat u wilt: de AI stelt 3 versies voor, u kiest de uwe."
     },
     "charCountHint": "{{length}}/5000 — hoe meer u vermeldt, hoe beter.",
+    "designPrivacyNotice": "Deze beschrijving wordt tijdens het genereren naar onze AI-partner gestuurd en daarna van onze servers verwijderd.",
+    "designPrivacyLinkText": "Bekijk ons privacybeleid",
     "generatingButton": "Genereren… {{percent}}%",
     "generateButton": "3 versies genereren",
     "generatingHint": "De AI maakt uw 3 versies…",

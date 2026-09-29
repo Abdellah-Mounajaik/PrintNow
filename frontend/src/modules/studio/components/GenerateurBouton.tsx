@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Sparkles, Loader2, Check, ZoomIn } from "lucide-react";
 import { Button } from "../../../components/ui/button";
@@ -183,6 +184,12 @@ const GenerateurBouton = ({ onFichierGenere, typesDisponibles }: Props) => {
           <div className="flex items-center justify-between mt-1">
             <span className="text-xs text-muted-foreground">{t("designGenerator.charCountHint", { length: brief.length })}</span>
           </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t("designGenerator.designPrivacyNotice")}{" "}
+            <Link to="/confidentialite" className="underline hover:text-foreground">
+              {t("designGenerator.designPrivacyLinkText")}
+            </Link>
+          </p>
           <Button className="mt-2 w-full" onClick={generer} disabled={chargement || brief.trim().length === 0}>
             {chargement ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("designGenerator.generatingButton", { percent: Math.round(progres) })}</>

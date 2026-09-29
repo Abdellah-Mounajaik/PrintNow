@@ -182,6 +182,8 @@
     },
     "title": "Vérifier l'orthographe avant impression",
     "freeHint": "Analyse et aperçu des corrections gratuits.",
+    "privacyNotice": "Le contenu du document est transmis à notre partenaire IA le temps de l'analyse, puis supprimé de nos serveurs.",
+    "privacyLinkText": "Voir notre politique de confidentialité",
     "analyzing": "Analyse…",
     "analyzeButton": "Analyser",
     "noErrorsInDocument": "Aucune faute détectée dans ce document.",
@@ -241,6 +243,8 @@
       "description": "Choisissez un type, décrivez ce que vous voulez : l'IA en propose 3 versions, vous choisissez la vôtre."
     },
     "charCountHint": "{{length}}/5000 — plus vous en dites, mieux c'est.",
+    "designPrivacyNotice": "Cette description est transmise à notre partenaire IA le temps de la génération, puis supprimée de nos serveurs.",
+    "designPrivacyLinkText": "Voir notre politique de confidentialité",
     "generatingButton": "Génération… {{percent}}%",
     "generateButton": "Générer 3 propositions",
     "generatingHint": "L'IA fabrique vos 3 versions…",

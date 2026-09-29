@@ -96,6 +96,8 @@
     "form": {
       "studentCardLabel": "Carte étudiant",
       "idCardLabel": "Carte d'identité",
+      "privacyNotice": "Transmis à notre partenaire IA le temps de la vérification, puis supprimé de nos serveurs.",
+      "privacyLinkText": "Voir notre politique de confidentialité",
       "submit": "Envoyer mes documents",
       "submitting": "Envoi en cours…"
     }

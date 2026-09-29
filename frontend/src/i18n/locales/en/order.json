@@ -182,6 +182,8 @@
     },
     "title": "Check spelling before printing",
     "freeHint": "Analysis and correction preview are free.",
+    "privacyNotice": "The document's content is sent to our AI partner for the duration of the analysis, then deleted from our servers.",
+    "privacyLinkText": "See our privacy policy",
     "analyzing": "Analyzing…",
     "analyzeButton": "Analyze",
     "noErrorsInDocument": "No errors found in this document.",
@@ -241,6 +243,8 @@
       "description": "Choose a type, describe what you want: the AI produces 3 versions, and you pick your favorite."
     },
     "charCountHint": "{{length}}/5000 — the more detail you give, the better.",
+    "designPrivacyNotice": "This description is sent to our AI partner for the duration of the generation, then deleted from our servers.",
+    "designPrivacyLinkText": "See our privacy policy",
     "generatingButton": "Generating… {{percent}}%",
     "generateButton": "Generate 3 versions",
     "generatingHint": "The AI is crafting your 3 versions…",
