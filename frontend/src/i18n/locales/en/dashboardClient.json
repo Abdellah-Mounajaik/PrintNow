@@ -38,7 +38,7 @@
     "status": {
       "retrait": {
         "enAttentePaiement": "Awaiting payment",
-        "payee": "Confirmed",
+        "payee": "Awaiting printing",
         "enCoursImpression": "Printing in progress",
         "prete": "Ready for pickup",
         "livree": "Picked up",
@@ -46,7 +46,7 @@
       },
       "livraison": {
         "enAttentePaiement": "Awaiting payment",
-        "payee": "Confirmed",
+        "payee": "Awaiting printing",
         "enCoursImpression": "Printing in progress",
         "prete": "Shipped",
         "livree": "Delivered",

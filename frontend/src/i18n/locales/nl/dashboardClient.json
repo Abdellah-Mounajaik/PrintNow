@@ -38,7 +38,7 @@
     "status": {
       "retrait": {
         "enAttentePaiement": "In afwachting van betaling",
-        "payee": "Bevestigd",
+        "payee": "In afwachting van afdruk",
         "enCoursImpression": "Wordt afgedrukt",
         "prete": "Klaar om af te halen",
         "livree": "Afgehaald",
@@ -46,7 +46,7 @@
       },
       "livraison": {
         "enAttentePaiement": "In afwachting van betaling",
-        "payee": "Bevestigd",
+        "payee": "In afwachting van afdruk",
         "enCoursImpression": "Wordt afgedrukt",
         "prete": "Verzonden",
         "livree": "Geleverd",

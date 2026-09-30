@@ -38,7 +38,7 @@
     "status": {
       "retrait": {
         "enAttentePaiement": "En attente de paiement",
-        "payee": "Confirmée",
+        "payee": "En attente d'impression",
         "enCoursImpression": "En cours d'impression",
         "prete": "Prêt à être retiré",
         "livree": "Récupérée",
@@ -46,7 +46,7 @@
       },
       "livraison": {
         "enAttentePaiement": "En attente de paiement",
-        "payee": "Confirmée",
+        "payee": "En attente d'impression",
         "enCoursImpression": "En cours d'impression",
         "prete": "Expédiée",
         "livree": "Livrée",
