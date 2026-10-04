@@ -49,6 +49,15 @@ public class SuppressionCompteService {
             StatutCommande.PAYEE,
             StatutCommande.EN_COURS_IMPRESSION);
 
+    /**
+     * Délai entre la fermeture du compte et l'effacement de ses données.
+     *
+     * Trente jours : c'est le délai que le RGPD (art. 12.3) laisse pour donner
+     * suite à une demande d'effacement, ce qui rend cette attente défendable
+     * sans la rendre excessive.
+     */
+    public static final int JOURS_AVANT_ANONYMISATION = 30;
+
     /** Domaine réservé par la RFC 2606 : aucun message ne pourra jamais y partir. */
     private static final String DOMAINE_NEUTRE = "@printnow.invalid";
 
@@ -64,8 +73,14 @@ public class SuppressionCompteService {
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * Supprime le compte : ses données personnelles sont remplacées par des
-     * valeurs neutres et il ne peut plus se connecter.
+     * Ferme le compte : il ne peut plus servir à se connecter, mais ses données
+     * ne sont pas encore effacées.
+     *
+     * L'effacement attend {@link #JOURS_AVANT_ANONYMISATION} jours (voir
+     * PurgeComptesSupprimesService). Ce délai existe pour la seule raison qui le
+     * justifie : une suppression demandée par erreur, ou par quelqu'un d'autre
+     * ayant pris la main sur le compte, reste réparable. Passé ce délai, plus
+     * rien ne permet de revenir en arrière.
      *
      * @throws ResponseStatusException 409 s'il reste des commandes en cours
      */
@@ -81,20 +96,67 @@ public class SuppressionCompteService {
         refuserSiCommandesEnCours(utilisateur);
         fermerLesImprimeriesGerees(utilisateur);
 
+        // Les liens de réinitialisation encore valables deviendraient sinon un
+        // moyen de reprendre la main sur un compte fermé.
+        jetonRepository.deleteAll(jetonRepository.findByUtilisateurAndUtiliseLeIsNull(utilisateur));
+
+        utilisateur.setActif(false);
+        utilisateur.setDateSuppression(LocalDateTime.now());
+        userRepository.save(utilisateur);
+
+        log.info("Compte {} ferme, anonymisation prevue dans {} jours (demande de {})",
+                userId, JOURS_AVANT_ANONYMISATION, demandePar);
+    }
+
+    /**
+     * Efface définitivement les données personnelles d'un compte fermé.
+     *
+     * Appelé par la purge quotidienne une fois le délai écoulé, jamais
+     * directement par une requête : c'est l'opération sans retour.
+     */
+    @Transactional
+    public void anonymiserDefinitivement(User utilisateur) {
+        if (utilisateur.getDateAnonymisation() != null) return; // déjà fait
+
         // Les factures sont figées avant l'effacement : elles doivent porter le
         // nom du client pendant sept ans, alors qu'elles sont d'ordinaire
         // reconstruites depuis des données qui vont disparaître.
         archiveFactureService.archiverLesFacturesDe(utilisateur);
         anonymiserLesAdressesDeLivraison(utilisateur);
 
-        // Les liens de réinitialisation encore valables deviendraient sinon un
-        // moyen de reprendre la main sur un compte supprimé.
-        jetonRepository.deleteAll(jetonRepository.findByUtilisateurAndUtiliseLeIsNull(utilisateur));
-
         anonymiser(utilisateur);
         userRepository.save(utilisateur);
 
-        log.info("Compte {} supprimé et anonymisé (demande de {})", userId, demandePar);
+        log.info("Compte {} anonymise definitivement", utilisateur.getId());
+    }
+
+    /**
+     * Rétablit un compte fermé dont les données n'ont pas encore été effacées.
+     *
+     * Les imprimeries fermées à la suppression ne sont pas rouvertes
+     * automatiquement : leur gérant décide lui-même quand sa boutique doit
+     * réapparaître au catalogue.
+     *
+     * @throws ResponseStatusException 409 si le délai est écoulé — les données
+     *         n'existent plus, il n'y a plus rien à rétablir
+     */
+    @Transactional
+    public void retablir(Long userId, String demandePar) {
+        User utilisateur = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable."));
+
+        if (!utilisateur.estSupprime()) return; // jamais supprimé : rien à faire
+
+        if (!utilisateur.estRetablissable()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ce compte a été anonymisé : ses données ont été effacées et ne peuvent pas être rétablies.");
+        }
+
+        utilisateur.setDateSuppression(null);
+        utilisateur.setActif(true);
+        userRepository.save(utilisateur);
+
+        log.info("Compte {} retabli (demande de {})", userId, demandePar);
     }
 
     /**
@@ -206,6 +268,6 @@ public class SuppressionCompteService {
         // ce compte, même si son indicateur d'activité était rétabli par erreur.
         utilisateur.setMotDePasse(passwordEncoder.encode(UUID.randomUUID().toString()));
         utilisateur.setActif(false);
-        utilisateur.setDateSuppression(LocalDateTime.now());
+        utilisateur.setDateAnonymisation(LocalDateTime.now());
     }
 }

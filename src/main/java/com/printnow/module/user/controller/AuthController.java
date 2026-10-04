@@ -9,6 +9,7 @@ import com.printnow.module.user.dto.UserResponseDTO;
 import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
 import com.printnow.module.user.service.ReinitialisationMotDePasseService;
+import com.printnow.module.user.service.SuppressionCompteService;
 import com.printnow.module.user.service.UserService;
 
 import java.util.Map;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -68,6 +70,19 @@ public class AuthController {
 
             return ResponseEntity.ok(new JwtResponseDTO(jwt, user.getId(), user.getEmail(), role));
 
+        } catch (DisabledException e) {
+            // Un compte désactivé n'est pas forcément supprimé : un partenaire
+            // attend parfois la validation de son inscription. Seule la
+            // suppression justifie d'en dire plus, pour que la personne sache
+            // qu'elle peut encore faire machine arrière.
+            boolean fermeRecemment = userRepository.findByEmail(loginRequest.getEmail())
+                    .map(User::estRetablissable)
+                    .orElse(false);
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(fermeRecemment
+                    ? "Ce compte a été supprimé. Son rétablissement reste possible auprès de notre support pendant "
+                      + SuppressionCompteService.JOURS_AVANT_ANONYMISATION + " jours ; passé ce délai, les données sont effacées."
+                    : "Email ou mot de passe incorrect");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou mot de passe incorrect");
         }

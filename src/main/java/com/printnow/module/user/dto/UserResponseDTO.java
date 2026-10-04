@@ -20,4 +20,11 @@ public class UserResponseDTO {
      * supprimé », et il faut pouvoir remonter à la ligne correspondante.
      */
     private LocalDateTime dateSuppression;
+
+    /**
+     * Renseignée une fois les données effacées. Tant qu'elle est nulle sur un
+     * compte supprimé, l'administration peut encore le rétablir à la demande de
+     * son titulaire ; ensuite, il n'y a plus rien à rétablir.
+     */
+    private LocalDateTime dateAnonymisation;
 }

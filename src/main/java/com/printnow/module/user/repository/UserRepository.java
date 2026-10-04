@@ -3,6 +3,7 @@ package com.printnow.module.user.repository;
 import com.printnow.module.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
@@ -24,4 +25,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Rechercher les utilisateurs par rôle (ex: trouver tous les ADMINS)
     List<User> findByRoleNom(String roleNom);
+
+    // Comptes fermés dont le délai de rétractation est écoulé : leurs données
+    // doivent maintenant être effacées (voir PurgeComptesSupprimesService).
+    List<User> findByDateSuppressionBeforeAndDateAnonymisationIsNull(LocalDateTime limite);
 }

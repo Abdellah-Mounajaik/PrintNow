@@ -59,14 +59,28 @@ public class UserController {
      * DELETE /api/users/{id}
      * Supprime le compte d'un utilisateur (administration).
      *
-     * La ligne subsiste — commandes et factures y renvoient — mais ses données
-     * personnelles sont effacées et il ne peut plus se connecter.
+     * La ligne subsiste — commandes et factures y renvoient — mais le compte est
+     * fermé, puis ses données personnelles sont effacées une fois le délai de
+     * rétractation écoulé.
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         String admin = SecurityContextHolder.getContext().getAuthentication().getName();
         suppressionCompteService.supprimer(id, userService.idDeLUtilisateur(admin), "l'administrateur " + admin);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * PUT /api/users/{id}/retablir
+     * Rétablit un compte fermé dont les données n'ont pas encore été effacées,
+     * à la demande de son titulaire auprès du support.
+     */
+    @PutMapping("/{id}/retablir")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> retablirUser(@PathVariable Long id) {
+        String admin = SecurityContextHolder.getContext().getAuthentication().getName();
+        suppressionCompteService.retablir(id, "l'administrateur " + admin);
         return ResponseEntity.noContent().build();
     }
 

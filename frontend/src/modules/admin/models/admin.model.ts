@@ -6,8 +6,10 @@ export interface UserDTO {
   telephone: string;
   actif: boolean;
   roleNom: string;
-  /** Renseignée si le compte a été supprimé — ses données ont alors été effacées. */
+  /** Renseignée si le compte a été supprimé ; ses données le sont 30 jours plus tard. */
   dateSuppression: string | null;
+  /** Renseignée une fois les données effacées : le compte n'est alors plus rétablissable. */
+  dateAnonymisation: string | null;
 }
 
 export interface ImprimerieDTO {

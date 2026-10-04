@@ -94,6 +94,7 @@
       "deletedOn": "Deleted on {{date}}"
     },
     "deleteAriaLabel": "Delete the account of {{name}}",
+    "restoreAriaLabel": "Restore the account of {{name}}",
     "deletedPlaceholder": {
       "firstName": "Deleted",
       "lastName": "account"
@@ -198,10 +199,18 @@
     },
     "userDeleted": {
       "title": "Account deleted",
-      "description": "Their personal data has been erased; their orders remain on record."
+      "description": "The account is closed; its data will be erased in 30 days."
     },
     "userDeleteError": {
       "title": "Could not delete account",
+      "defaultDescription": "Please try again in a moment."
+    },
+    "userRestored": {
+      "title": "Account restored",
+      "description": "Its owner can sign in again."
+    },
+    "userRestoreError": {
+      "title": "Could not restore account",
       "defaultDescription": "Please try again in a moment."
     },
     "error": {

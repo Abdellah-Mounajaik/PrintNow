@@ -36,9 +36,11 @@ export const authService = {
         });
 
         if (!response.ok) {
-            throw new Error("Email ou mot de passe incorrect");
+            // Le serveur reste volontairement vague — sauf pour un compte
+            // supprimé, où il indique qu'un rétablissement est encore possible.
+            throw new Error(await messageDErreur(response, "Email ou mot de passe incorrect"));
         }
-        
+
         const data: AuthResponse = await response.json();
         
         if (data.token) {

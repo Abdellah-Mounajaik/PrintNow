@@ -94,6 +94,7 @@
       "deletedOn": "Verwijderd op {{date}}"
     },
     "deleteAriaLabel": "Account van {{name}} verwijderen",
+    "restoreAriaLabel": "Account van {{name}} herstellen",
     "deletedPlaceholder": {
       "firstName": "Verwijderd",
       "lastName": "account"
@@ -198,10 +199,18 @@
     },
     "userDeleted": {
       "title": "Account verwijderd",
-      "description": "De persoonsgegevens zijn gewist; de bestellingen blijven geregistreerd."
+      "description": "Het account is gesloten; de gegevens worden over 30 dagen gewist."
     },
     "userDeleteError": {
       "title": "Verwijderen mislukt",
+      "defaultDescription": "Probeer het straks opnieuw."
+    },
+    "userRestored": {
+      "title": "Account hersteld",
+      "description": "De eigenaar kan weer inloggen."
+    },
+    "userRestoreError": {
+      "title": "Herstellen mislukt",
       "defaultDescription": "Probeer het straks opnieuw."
     },
     "error": {

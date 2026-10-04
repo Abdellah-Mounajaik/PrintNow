@@ -128,15 +128,15 @@
   "deleteDialog": {
     "success": {
       "title": "Your account has been deleted",
-      "description": "Your personal data has been erased. Thank you for using PrintNow.",
+      "description": "Your personal data will be erased in 30 days. Until then, our support team can restore your account if you change your mind. Thank you for using PrintNow.",
       "backHome": "Back to home"
     },
     "confirm": {
       "title": "Delete your account?",
-      "description": "This action is permanent and cannot be undone.",
-      "point1": "Your name, email and phone number will be erased.",
+      "description": "Your account will be closed immediately, then permanently erased in 30 days.",
+      "point1": "Your name, email and phone number will be erased at the end of that period.",
       "point2": "Your invoices are kept for seven years, as required by law, but will no longer bear your name.",
-      "point3": "You will be logged out immediately.",
+      "point3": "You will be logged out immediately. For 30 days, our support team can still restore your account.",
       "cancel": "Cancel",
       "deleting": "Deleting...",
       "confirmButton": "Yes, delete my account"

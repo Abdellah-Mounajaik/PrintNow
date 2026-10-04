@@ -128,15 +128,15 @@
   "deleteDialog": {
     "success": {
       "title": "Votre compte a été supprimé",
-      "description": "Vos données personnelles ont été effacées. Merci d'avoir utilisé PrintNow.",
+      "description": "Vos données personnelles seront effacées dans 30 jours. D'ici là, notre support peut rétablir votre compte si vous changez d'avis. Merci d'avoir utilisé PrintNow.",
       "backHome": "Retour à l'accueil"
     },
     "confirm": {
       "title": "Supprimer votre compte ?",
-      "description": "Cette action est définitive et ne peut pas être annulée.",
-      "point1": "Votre nom, votre email et votre téléphone seront effacés.",
+      "description": "Votre compte sera fermé immédiatement, puis effacé définitivement dans 30 jours.",
+      "point1": "Votre nom, votre email et votre téléphone seront effacés au terme de ce délai.",
       "point2": "Vos factures sont conservées sept ans, comme la loi l'impose, mais ne porteront plus votre nom.",
-      "point3": "Vous serez déconnecté immédiatement.",
+      "point3": "Vous serez déconnecté immédiatement. Pendant 30 jours, notre support peut encore rétablir votre compte.",
       "cancel": "Annuler",
       "deleting": "Suppression...",
       "confirmButton": "Oui, supprimer mon compte"

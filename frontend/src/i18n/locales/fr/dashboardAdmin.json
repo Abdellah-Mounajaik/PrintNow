@@ -94,6 +94,7 @@
       "deletedOn": "Supprimé le {{date}}"
     },
     "deleteAriaLabel": "Supprimer le compte de {{name}}",
+    "restoreAriaLabel": "Rétablir le compte de {{name}}",
     "deletedPlaceholder": {
       "firstName": "Compte",
       "lastName": "supprimé"
@@ -198,10 +199,18 @@
     },
     "userDeleted": {
       "title": "Compte supprimé",
-      "description": "Ses données personnelles ont été effacées ; ses commandes restent enregistrées."
+      "description": "Le compte est fermé ; ses données seront effacées dans 30 jours."
     },
     "userDeleteError": {
       "title": "Suppression impossible",
+      "defaultDescription": "Réessayez dans un instant."
+    },
+    "userRestored": {
+      "title": "Compte rétabli",
+      "description": "Son titulaire peut de nouveau se connecter."
+    },
+    "userRestoreError": {
+      "title": "Rétablissement impossible",
       "defaultDescription": "Réessayez dans un instant."
     },
     "error": {

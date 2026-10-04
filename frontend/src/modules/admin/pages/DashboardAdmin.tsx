@@ -37,6 +37,7 @@ import {
   Download,
   Search,
   Trash2,
+  Undo2,
   AlertTriangle,
   Settings,
   Bot,
@@ -244,10 +245,10 @@ const DashboardAdmin = () => {
     try {
       await adminService.supprimerUtilisateur(userASupprimer.id, token);
       // La ligne reste affichée, marquée comme supprimée : c'est ce qui permet
-      // de comprendre à qui renvoient les commandes « Compte supprimé ».
+      // de comprendre à qui renvoient les commandes « Compte supprimé ». Le nom
+      // et l'email subsistent jusqu'à l'effacement, trente jours plus tard.
       setUsers((prev) => prev.map((u) => (u.id === userASupprimer.id
-        ? { ...u, prenom: t("users.deletedPlaceholder.firstName"), nom: t("users.deletedPlaceholder.lastName"), email: `supprime-${u.id}@printnow.invalid`,
-            telephone: "", actif: false, dateSuppression: new Date().toISOString() }
+        ? { ...u, actif: false, dateSuppression: new Date().toISOString() }
         : u)));
       toast({
         title: t("toasts.userDeleted.title"),
@@ -264,6 +265,26 @@ const DashboardAdmin = () => {
       });
     } finally {
       setSuppressionEnCours(false);
+    }
+  };
+
+  const handleRetablirUtilisateur = async (user: UserDTO) => {
+    if (!token) return;
+    try {
+      await adminService.retablirUtilisateur(user.id, token);
+      setUsers((prev) => prev.map((u) => (u.id === user.id
+        ? { ...u, actif: true, dateSuppression: null }
+        : u)));
+      toast({
+        title: t("toasts.userRestored.title"),
+        description: t("toasts.userRestored.description"),
+      });
+    } catch (err) {
+      toast({
+        title: t("toasts.userRestoreError.title"),
+        description: err instanceof Error ? err.message : t("toasts.userRestoreError.defaultDescription"),
+        variant: "destructive",
+      });
     }
   };
 
@@ -782,6 +803,18 @@ const DashboardAdmin = () => {
                                   onClick={() => setUserASupprimer(user)}
                                 >
                                   <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {/* Le rétablissement disparaît avec l'effacement des
+                                  données : il n'y a plus rien à rétablir. */}
+                              {user.dateSuppression && !user.dateAnonymisation && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  aria-label={t("users.restoreAriaLabel", { name: `${user.prenom} ${user.nom}` })}
+                                  onClick={() => handleRetablirUtilisateur(user)}
+                                >
+                                  <Undo2 className="h-4 w-4" />
                                 </Button>
                               )}
                             </div>

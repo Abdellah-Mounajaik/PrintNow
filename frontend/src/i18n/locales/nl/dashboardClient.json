@@ -128,15 +128,15 @@
   "deleteDialog": {
     "success": {
       "title": "Uw account is verwijderd",
-      "description": "Uw persoonsgegevens zijn gewist. Bedankt voor het gebruik van PrintNow.",
+      "description": "Uw persoonsgegevens worden over 30 dagen gewist. Tot dan kan onze support uw account herstellen als u van gedachten verandert. Bedankt voor het gebruik van PrintNow.",
       "backHome": "Terug naar de startpagina"
     },
     "confirm": {
       "title": "Uw account verwijderen?",
-      "description": "Deze actie is definitief en kan niet ongedaan worden gemaakt.",
-      "point1": "Uw naam, e-mailadres en telefoonnummer worden gewist.",
+      "description": "Uw account wordt onmiddellijk gesloten en na 30 dagen definitief gewist.",
+      "point1": "Uw naam, e-mailadres en telefoonnummer worden na die termijn gewist.",
       "point2": "Uw facturen worden zeven jaar bewaard, zoals de wet vereist, maar zullen uw naam niet meer vermelden.",
-      "point3": "U wordt onmiddellijk uitgelogd.",
+      "point3": "U wordt onmiddellijk uitgelogd. Gedurende 30 dagen kan onze support uw account nog herstellen.",
       "cancel": "Annuleren",
       "deleting": "Bezig met verwijderen...",
       "confirmButton": "Ja, mijn account verwijderen"

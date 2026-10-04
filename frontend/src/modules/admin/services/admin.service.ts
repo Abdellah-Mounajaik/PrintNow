@@ -39,6 +39,27 @@ export const adminService = {
   },
 
   /**
+   * Rétablit un compte supprimé, à la demande de son titulaire.
+   *
+   * Le serveur refuse si les données ont déjà été effacées : il n'y a alors
+   * plus rien à rétablir, et son explication est remontée telle quelle.
+   */
+  retablirUtilisateur: async (id: number, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/users/${id}/retablir`, {
+      method: "PUT",
+      headers: authHeaders(token),
+    });
+    if (!response.ok) {
+      const brut = await response.text();
+      let motif = "Erreur lors du rétablissement du compte";
+      try {
+        motif = JSON.parse(brut).message || motif;
+      } catch { if (brut) motif = brut; }
+      throw new Error(motif);
+    }
+  },
+
+  /**
    * Ferme une imprimerie : elle quitte le catalogue et ne reçoit plus de
    * commandes. Ses données restent en base — ses commandes passées y renvoient.
    */
