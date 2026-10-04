@@ -213,21 +213,13 @@ const PrintShopsSection = () => {
   // ========================================================
   // 2. FONCTION : Formater la liste des services
   // ========================================================
-  const formatServices = (produits: any[]) => {
-    if (!produits || produits.length === 0) return ["Standard"];
+  // Les codes du backend sont conservés tels quels : la liste est calculée une
+  // fois au chargement puis mise en cache, alors que le libellé doit suivre la
+  // langue choisie. La traduction a donc lieu à l'affichage (PrintShopCard).
+  const formatServices = (produits: any[]): string[] => {
+    if (!produits || produits.length === 0) return ["STANDARD"];
 
-    // Extraire les types de produits sans doublons
-    const types = Array.from(new Set(produits.filter((p: any) => p.actif).map((p: any) => p.typeProduit)));
-
-    // Traduire le nom du backend pour l'affichage
-    const traductions: Record<string, string> = {
-      DOCUMENT: "Documents",
-      FLYER: "Flyers",
-      CARTE_VISITE: "Cartes de visite",
-      POSTER: "Affiches"
-    };
-
-    return types.map((t: any) => traductions[t] || t);
+    return Array.from(new Set(produits.filter((p: any) => p.actif).map((p: any) => p.typeProduit)));
   };
 
   // === CHARGEMENT DES DONNÉES ===
@@ -345,13 +337,11 @@ const PrintShopsSection = () => {
     return selectedFilters.every((filterId) => {
       switch (filterId) {
         case "documents":
-          return shop.services.some((s) => s.toLowerCase().includes("document"));
+          return shop.services.includes("DOCUMENT");
         case "flyers":
-          return shop.services.some(
-            (s) => s.toLowerCase().includes("flyer") || s.toLowerCase().includes("affiche")
-          );
+          return shop.services.some((s) => s === "FLYER" || s === "POSTER");
         case "cartes":
-          return shop.services.some((s) => s.toLowerCase().includes("carte"));
+          return shop.services.includes("CARTE_VISITE");
         case "express":
           return shop.hasExpressOption;
         case "student":

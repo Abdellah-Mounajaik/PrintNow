@@ -24,6 +24,13 @@
       { "id": "POSTER", "label": "Posters" }
     ]
   },
+  "serviceTypes": {
+    "DOCUMENT": "Documenten",
+    "FLYER": "Flyers",
+    "CARTE_VISITE": "Visitekaartjes",
+    "POSTER": "Posters",
+    "STANDARD": "Standaard"
+  },
   "geo": {
     "locationRequired": "Schakel locatie in om op afstand te sorteren."
   },

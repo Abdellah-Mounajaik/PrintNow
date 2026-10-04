@@ -24,6 +24,13 @@
       { "id": "POSTER", "label": "Affiches" }
     ]
   },
+  "serviceTypes": {
+    "DOCUMENT": "Documents",
+    "FLYER": "Flyers",
+    "CARTE_VISITE": "Cartes de visite",
+    "POSTER": "Affiches",
+    "STANDARD": "Standard"
+  },
   "geo": {
     "locationRequired": "Activez la localisation pour trier par distance."
   },

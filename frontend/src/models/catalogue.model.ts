@@ -33,6 +33,7 @@ export interface PrintShop {
   isOpen: boolean;
   openingHours: string;
   image: string;
+  /** Types de produits bruts du backend (DOCUMENT, FLYER…), traduits à l'affichage. */
   services: string[];
   produits: PrintShopProduit[];
   hasExpressOption: boolean;

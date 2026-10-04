@@ -24,6 +24,13 @@
       { "id": "POSTER", "label": "Posters" }
     ]
   },
+  "serviceTypes": {
+    "DOCUMENT": "Documents",
+    "FLYER": "Flyers",
+    "CARTE_VISITE": "Business cards",
+    "POSTER": "Posters",
+    "STANDARD": "Standard"
+  },
   "geo": {
     "locationRequired": "Enable location to sort by distance."
   },

@@ -119,7 +119,7 @@ const PrintShopCard = ({ shop, index = 0, walkTime, driveTime, estimatedPrice }:
           <div className="flex flex-wrap gap-1.5 mb-4">
             {shop.services.slice(0, 3).map((service) => (
               <Badge key={service} variant="outline" className="text-xs">
-                {service}
+                {t(`serviceTypes.${service}`, { defaultValue: service })}
               </Badge>
             ))}
             {shop.services.length > 3 && (
