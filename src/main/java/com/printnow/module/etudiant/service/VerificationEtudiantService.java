@@ -45,12 +45,8 @@ public class VerificationEtudiantService {
     private final EmailService emailService;
     private final VerificationEtudiantIaService iaService;
 
-    /**
-     * Au-delà de ce nombre de refus d'affilée, les resoumissions sont bloquées :
-     * sans limite, un compte refusé pouvait retenter indéfiniment (spam de
-     * demandes, et donc d'appels à l'IA qui les analyse).
-     */
-    private static final int MAX_TENTATIVES = 3;
+    /** Voir {@link VerificationEtudiant#MAX_TENTATIVES}, où la règle est portée. */
+    private static final int MAX_TENTATIVES = VerificationEtudiant.MAX_TENTATIVES;
 
     @Transactional
     public VerificationEtudiantResponseDTO soumettre(User user, MultipartFile carteEtudiante, MultipartFile carteIdentite) {
@@ -64,10 +60,10 @@ public class VerificationEtudiantService {
             if (verification.getStatut() == StatutEtudiant.EN_ATTENTE) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Votre demande est déjà en attente de vérification.");
             }
-            if (verification.getStatut() == StatutEtudiant.REFUSE && verification.getNombreRefus() >= MAX_TENTATIVES) {
+            if (!verification.isPeutResoumettre()) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                         "Vous avez atteint le nombre maximum de tentatives (" + MAX_TENTATIVES
-                                + "). Contactez le support via la page Contact pour une vérification manuelle.");
+                                + ") pour cette année. Contactez le support via la page Contact pour une vérification manuelle.");
             }
         }
 
@@ -86,6 +82,11 @@ public class VerificationEtudiantService {
             Files.copy(carteIdentite.getInputStream(), dir.resolve(identiteName), StandardCopyOption.REPLACE_EXISTING);
 
             verification.setUser(user);
+            // Les refus d'une année académique révolue ne pèsent pas sur la
+            // nouvelle : la carte à vérifier n'est de toute façon plus la même.
+            if (verification.refusDUneAnneePassee()) {
+                verification.setNombreRefus(0);
+            }
             verification.setStatut(StatutEtudiant.EN_ATTENTE);
             verification.setCarteEtudiantePath(dir.resolve(etudianteName).toAbsolutePath().toString());
             verification.setCarteIdentitePath(dir.resolve(identiteName).toAbsolutePath().toString());
@@ -270,9 +271,7 @@ public class VerificationEtudiantService {
     }
 
     private LocalDateTime calculerExpiration() {
-        LocalDate today = LocalDate.now();
-        LocalDate june30 = LocalDate.of(today.getYear(), 6, 30);
-        return (today.isAfter(june30) ? june30.plusYears(1) : june30).atTime(23, 59, 59);
+        return VerificationEtudiant.finAnneeAcademique(LocalDate.now()).atTime(23, 59, 59);
     }
 
 }

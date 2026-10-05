@@ -245,7 +245,19 @@ const DashboardClient = () => {
     try {
       const data = await userService.soumettreVerification(carteEt, carteId, token);
       setVerif(data);
-      toast({ title: t("toasts.verificationSent.title"), description: t("toasts.verificationSent.description") });
+      // L'IA tranche souvent sur-le-champ : annoncer un examen par un
+      // administrateur serait faux dans ces cas-là.
+      if (data.statut === "ACCEPTE") {
+        toast({ title: t("toasts.verificationAccepted.title"), description: t("toasts.verificationAccepted.description") });
+      } else if (data.statut === "REFUSE") {
+        toast({
+          title: t("toasts.verificationRefused.title"),
+          description: data.motifRefus ?? t("toasts.verificationRefused.description"),
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: t("toasts.verificationSent.title"), description: t("toasts.verificationSent.description") });
+      }
     } catch (e) {
       toast({ title: t("toasts.error.title"), description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -670,9 +682,16 @@ const DashboardClient = () => {
                       )}
                       {verif.statut === "REFUSE" && (
                         <>
-                          <p className="font-semibold text-destructive">{t("student.status.refused.label")}</p>
+                          <p className="font-semibold text-destructive">
+                            {verif.peutResoumettre
+                              ? t("student.status.refused.label")
+                              : t("student.status.refused.exhaustedLabel")}
+                          </p>
                           {verif.motifRefus && (
                             <p className="text-sm text-muted-foreground mt-1">{t("student.status.refused.reason", { motif: verif.motifRefus })}</p>
+                          )}
+                          {!verif.peutResoumettre && (
+                            <p className="text-sm text-muted-foreground mt-1">{t("student.status.refused.exhaustedHelp")}</p>
                           )}
                         </>
                       )}
@@ -683,8 +702,9 @@ const DashboardClient = () => {
                   </div>
                 )}
 
-                {/* Formulaire d'envoi */}
-                {verifLoaded && (!verif || verif.statut === "REFUSE" || verif.statut === "EXPIRE") && (
+                {/* Formulaire d'envoi — retiré une fois les tentatives épuisées :
+                    le serveur refuserait de toute façon la soumission. */}
+                {verifLoaded && (!verif || ((verif.statut === "REFUSE" || verif.statut === "EXPIRE") && verif.peutResoumettre)) && (
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">{t("student.form.studentCardLabel")}</label>

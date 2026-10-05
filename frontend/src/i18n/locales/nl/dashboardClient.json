@@ -87,6 +87,8 @@
       },
       "refused": {
         "label": "Aanvraag geweigerd — u kunt opnieuw indienen.",
+        "exhaustedLabel": "Aanvraag geweigerd — u hebt het maximum aantal pogingen bereikt.",
+        "exhaustedHelp": "Neem contact op met onze support via de Contactpagina voor een handmatige controle.",
         "reason": "Reden: {{motif}}"
       },
       "expired": {
@@ -166,6 +168,14 @@
     "verificationSent": {
       "title": "Aanvraag verstuurd",
       "description": "De beheerder zal uw documenten controleren."
+    },
+    "verificationAccepted": {
+      "title": "Studentenstatus gevalideerd",
+      "description": "U geniet vanaf nu van het studententarief."
+    },
+    "verificationRefused": {
+      "title": "Aanvraag geweigerd",
+      "description": "Uw documenten konden niet worden gevalideerd."
     }
   }
 }

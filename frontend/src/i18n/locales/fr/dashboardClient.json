@@ -87,6 +87,8 @@
       },
       "refused": {
         "label": "Demande refusée — vous pouvez soumettre à nouveau.",
+        "exhaustedLabel": "Demande refusée — vous avez atteint le nombre maximum de tentatives.",
+        "exhaustedHelp": "Contactez notre support via la page Contact pour une vérification manuelle.",
         "reason": "Motif : {{motif}}"
       },
       "expired": {
@@ -165,7 +167,15 @@
     },
     "verificationSent": {
       "title": "Demande envoyée",
-      "description": "L'admin examinera vos documents."
+      "description": "Un administrateur examinera vos documents."
+    },
+    "verificationAccepted": {
+      "title": "Statut étudiant validé",
+      "description": "Vous bénéficiez dès maintenant du tarif étudiant."
+    },
+    "verificationRefused": {
+      "title": "Demande refusée",
+      "description": "Vos documents n'ont pas pu être validés."
     }
   }
 }

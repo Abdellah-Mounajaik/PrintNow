@@ -87,6 +87,8 @@
       },
       "refused": {
         "label": "Request rejected — you can submit again.",
+        "exhaustedLabel": "Request rejected — you have reached the maximum number of attempts.",
+        "exhaustedHelp": "Contact our support team via the Contact page for a manual review.",
         "reason": "Reason: {{motif}}"
       },
       "expired": {
@@ -166,6 +168,14 @@
     "verificationSent": {
       "title": "Request sent",
       "description": "An admin will review your documents."
+    },
+    "verificationAccepted": {
+      "title": "Student status verified",
+      "description": "You now benefit from the student rate."
+    },
+    "verificationRefused": {
+      "title": "Request rejected",
+      "description": "Your documents could not be verified."
     }
   }
 }

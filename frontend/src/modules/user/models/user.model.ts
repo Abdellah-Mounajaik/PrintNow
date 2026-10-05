@@ -16,6 +16,8 @@ export interface VerifDTO {
   dateSoumission: string;
   valableJusquA: string | null;
   motifRefus: string | null;
+  /** Faux après trois refus : seul le support peut encore trancher. */
+  peutResoumettre: boolean;
 }
 
 /** Commande telle qu'affichée dans l'espace client */
