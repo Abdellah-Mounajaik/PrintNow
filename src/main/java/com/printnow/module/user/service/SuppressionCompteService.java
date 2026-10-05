@@ -1,5 +1,6 @@
 package com.printnow.module.user.service;
 
+import com.printnow.infrastructure.email.EmailService;
 import com.printnow.module.order.enums.StatutCommande;
 import com.printnow.module.order.model.AdresseLivraison;
 import com.printnow.module.order.model.Commande;
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Suppression d'un compte utilisateur.
@@ -70,6 +72,7 @@ public class SuppressionCompteService {
     private final ImprimerieRepository imprimerieRepository;
     private final JetonReinitialisationRepository jetonRepository;
     private final ArchiveFactureService archiveFactureService;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -103,6 +106,13 @@ public class SuppressionCompteService {
         utilisateur.setActif(false);
         utilisateur.setDateSuppression(LocalDateTime.now());
         userRepository.save(utilisateur);
+
+        // Prévenir avant l'effacement, tant que l'adresse est encore la bonne :
+        // c'est ce message qui permet à quelqu'un dont le compte a été supprimé
+        // à son insu de réagir pendant qu'un retour est encore possible.
+        prevenirParEmail(utilisateur,
+                destinataire -> emailService.envoyerCompteSupprime(
+                        destinataire, utilisateur.getPrenom(), JOURS_AVANT_ANONYMISATION));
 
         log.info("Compte {} ferme, anonymisation prevue dans {} jours (demande de {})",
                 userId, JOURS_AVANT_ANONYMISATION, demandePar);
@@ -156,7 +166,22 @@ public class SuppressionCompteService {
         utilisateur.setActif(true);
         userRepository.save(utilisateur);
 
+        prevenirParEmail(utilisateur,
+                destinataire -> emailService.envoyerCompteRetabli(destinataire, utilisateur.getPrenom()));
+
         log.info("Compte {} retabli (demande de {})", userId, demandePar);
+    }
+
+    /**
+     * Envoie un message au titulaire, s'il a encore une adresse réelle.
+     *
+     * Un compte déjà anonymisé porte une adresse volontairement inexistante :
+     * lui écrire ne ferait qu'accumuler des échecs dans les journaux.
+     */
+    private void prevenirParEmail(User utilisateur, Consumer<String> envoi) {
+        String email = utilisateur.getEmail();
+        if (email == null || email.endsWith(DOMAINE_NEUTRE)) return;
+        envoi.accept(email);
     }
 
     /**
