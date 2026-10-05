@@ -154,6 +154,11 @@
     "imageNotFound": "{{alt}} not found",
     "loadingImage": "Loading {{alt}}…",
     "previousRefusalReason": "Previous rejection reason",
+    "manualValidation": {
+      "hint": "The supporting documents were erased when the request was rejected. Only approve if the student status has been confirmed another way, for example through an exchange with support.",
+      "exhaustedHint": "This person has used up their attempts and cannot submit again this year. The supporting documents were erased when the request was rejected: only approve if their student status has been confirmed through an exchange with support.",
+      "button": "Manually approve student status"
+    },
     "refusalPlaceholder": "Rejection reason (optional) — visible to the student",
     "acceptButton": "Accept",
     "refuseButton": "Reject",

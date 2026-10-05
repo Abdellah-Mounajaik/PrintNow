@@ -154,6 +154,11 @@
     "imageNotFound": "{{alt}} introuvable",
     "loadingImage": "Chargement {{alt}}…",
     "previousRefusalReason": "Motif du refus précédent",
+    "manualValidation": {
+      "hint": "Les pièces justificatives ont été effacées lors du refus. Validez uniquement si le statut étudiant a été confirmé autrement, par exemple par échange avec le support.",
+      "exhaustedHint": "Cette personne a épuisé ses tentatives et ne peut plus soumettre de demande cette année. Les pièces justificatives ont été effacées lors du refus : validez uniquement si son statut étudiant a été confirmé par échange avec le support.",
+      "button": "Valider manuellement le statut étudiant"
+    },
     "refusalPlaceholder": "Motif du refus (optionnel) — visible par l'étudiant",
     "acceptButton": "Accepter",
     "refuseButton": "Refuser",

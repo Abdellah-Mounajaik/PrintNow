@@ -59,6 +59,8 @@ export interface VerificationDTO {
   nomExtraitCarteIdentite: string | null;
   /** True si le statut final a été décidé par l'IA, sans intervention d'un admin. */
   decisionAutomatique: boolean;
+  /** Faux quand le client a épuisé ses tentatives : seul un admin peut encore trancher. */
+  peutResoumettre: boolean;
 }
 
 /** Type d'image d'une vérification étudiante */

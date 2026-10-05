@@ -1149,6 +1149,28 @@ const DashboardAdmin = () => {
                         </div>
                       )}
 
+                      {/* Validation manuelle : les pièces ont été effacées à la
+                          décision, l'admin tranche donc sur des éléments reçus
+                          par ailleurs (échange avec le support). */}
+                      {selectedVerif.statut === "REFUSE" && (
+                        <div className="space-y-3 pt-2 border-t border-border">
+                          <p className="text-sm text-muted-foreground">
+                            {selectedVerif.peutResoumettre
+                              ? t("verifications.manualValidation.hint")
+                              : t("verifications.manualValidation.exhaustedHint")}
+                          </p>
+                          <Button
+                            className="w-full"
+                            onClick={async () => {
+                              await handleValider(selectedVerif.id);
+                              setSelectedVerif((prev) => prev ? { ...prev, statut: "ACCEPTE" } : null);
+                            }}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-1" /> {t("verifications.manualValidation.button")}
+                          </Button>
+                        </div>
+                      )}
+
                       {selectedVerif.statut === "EN_ATTENTE" && (
                         <div className="space-y-3 pt-2 border-t border-border">
                           <textarea

@@ -154,6 +154,11 @@
     "imageNotFound": "{{alt}} niet gevonden",
     "loadingImage": "{{alt}} laden…",
     "previousRefusalReason": "Reden van vorige weigering",
+    "manualValidation": {
+      "hint": "De bewijsstukken zijn bij de weigering gewist. Keur alleen goed als de studentenstatus op een andere manier is bevestigd, bijvoorbeeld via contact met de support.",
+      "exhaustedHint": "Deze persoon heeft alle pogingen opgebruikt en kan dit jaar geen aanvraag meer indienen. De bewijsstukken zijn bij de weigering gewist: keur alleen goed als de studentenstatus via de support is bevestigd.",
+      "button": "Studentenstatus handmatig goedkeuren"
+    },
     "refusalPlaceholder": "Reden van weigering (optioneel) — zichtbaar voor de student",
     "acceptButton": "Accepteren",
     "refuseButton": "Weigeren",
