@@ -14,9 +14,16 @@
   "legal": {
     "mentions": "Legal notice",
     "cgv": "Terms of sale",
-    "confidentiality": "Privacy"
+    "confidentiality": "Privacy",
+    "cookies": "Cookies"
   },
   "language": "Language",
+  "cookies": {
+    "ariaLabel": "Information about cookies and browser storage",
+    "message": "No advertising or analytics cookies. This site only stores your session and language in your browser; Stripe sets security cookies during a payment.",
+    "learnMore": "Learn more",
+    "acknowledge": "Got it"
+  },
   "notFound": {
     "title": "404 - Page not found"
   },

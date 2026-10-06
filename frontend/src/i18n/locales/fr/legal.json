@@ -224,9 +224,10 @@
         ]
       },
       {
+        "id": "cookies",
         "title": "Cookies et technologies similaires",
         "content": [
-          "PrintNow n'utilise que les cookies et le stockage local strictement nécessaires au fonctionnement du site — par exemple pour vous garder connecté. Nous n'utilisons pas de cookies publicitaires ni de traceurs tiers à des fins de profilage."
+          "PrintNow ne dépose aucun cookie de son propre fait : votre session, vos droits et votre langue sont conservés dans le stockage local de votre navigateur. Les seuls cookies présents sont déposés par Stripe sur les pages de paiement, pour sécuriser la transaction et détecter la fraude. Nous n'utilisons pas de cookies publicitaires ni de traceurs à des fins de profilage."
         ]
       },
       {

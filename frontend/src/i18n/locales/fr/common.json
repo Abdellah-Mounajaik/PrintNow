@@ -14,9 +14,16 @@
   "legal": {
     "mentions": "Mentions légales",
     "cgv": "CGV",
-    "confidentiality": "Confidentialité"
+    "confidentiality": "Confidentialité",
+    "cookies": "Cookies"
   },
   "language": "Langue",
+  "cookies": {
+    "ariaLabel": "Information sur les cookies et le stockage navigateur",
+    "message": "Aucun cookie publicitaire ni de mesure d'audience. Ce site conserve seulement votre session et votre langue dans votre navigateur ; Stripe dépose des cookies de sécurité lors d'un paiement.",
+    "learnMore": "En savoir plus",
+    "acknowledge": "J'ai compris"
+  },
   "notFound": {
     "title": "404 - Page introuvable"
   },

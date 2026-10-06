@@ -8,6 +8,7 @@ import MotDePasseOublie from './modules/auth/pages/MotDePasseOublie';
 import ReinitialiserMotDePasse from './modules/auth/pages/ReinitialiserMotDePasse';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import BandeauCookies from './components/layout/BandeauCookies';
 import ScrollToTop from './components/layout/ScrollToTop';
 import Home from './pages/Home';
 import Imprimeries from './pages/Imprimeries';
@@ -103,6 +104,7 @@ function App() {
         </Routes>
       </div>
       <Footer />
+      <BandeauCookies />
       {/* Zone d'affichage des messages : sans elle, tous les appels à toast()
           restaient sans effet et les erreurs passaient inaperçues. */}
       <Toaster />

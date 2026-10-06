@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { afficherInfoCookies } from "./BandeauCookies";
 
 const iconProps = {
   viewBox: "0 0 24 24",
@@ -166,6 +167,13 @@ const Footer = () => {
             <Link to="/confidentialite" className="text-background/50 hover:text-background/80 transition-colors">
               {t("common:legal.confidentiality")}
             </Link>
+            <button
+              type="button"
+              onClick={afficherInfoCookies}
+              className="text-background/50 hover:text-background/80 transition-colors"
+            >
+              {t("common:legal.cookies")}
+            </button>
           </div>
         </div>
       </div>

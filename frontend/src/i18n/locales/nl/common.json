@@ -14,9 +14,16 @@
   "legal": {
     "mentions": "Wettelijke vermeldingen",
     "cgv": "Algemene voorwaarden",
-    "confidentiality": "Privacybeleid"
+    "confidentiality": "Privacybeleid",
+    "cookies": "Cookies"
   },
   "language": "Taal",
+  "cookies": {
+    "ariaLabel": "Informatie over cookies en browseropslag",
+    "message": "Geen reclame- of analysecookies. Deze site bewaart alleen uw sessie en taal in uw browser; Stripe plaatst beveiligingscookies bij een betaling.",
+    "learnMore": "Meer weten",
+    "acknowledge": "Begrepen"
+  },
   "notFound": {
     "title": "404 - Pagina niet gevonden"
   },

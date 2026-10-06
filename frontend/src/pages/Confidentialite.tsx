@@ -7,6 +7,8 @@ import { Shield, ArrowRight, Mail, CheckCircle2 } from "lucide-react";
 type LegalSection = {
   title: string;
   content: string[];
+  /** Ancre, pour les sections vers lesquelles on renvoie directement (#cookies). */
+  id?: string;
 };
 
 const Confidentialite = () => {
@@ -37,7 +39,7 @@ const Confidentialite = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                 {privacySections.map((section) => (
-                  <Card key={section.title} className="border-border/50">
+                  <Card key={section.title} id={section.id} className="border-border/50 scroll-mt-24">
                     <CardContent className="p-6 md:p-8">
                       <h2 className="font-display text-xl font-semibold text-foreground mb-4">
                         {section.title}

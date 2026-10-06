@@ -225,8 +225,9 @@
       {
         "title": "Cookies en soortgelijke technologieën",
         "content": [
-          "PrintNow gebruikt enkel de cookies en de lokale opslag die strikt noodzakelijk zijn voor de werking van de website — bijvoorbeeld om u aangemeld te houden. Wij gebruiken geen reclamecookies of trackers van derden voor profileringsdoeleinden."
-        ]
+          "PrintNow plaatst zelf geen enkele cookie: uw sessie, uw rechten en uw taal worden bewaard in de lokale opslag van uw browser. De enige aanwezige cookies worden door Stripe geplaatst op de betaalpagina's, om de transactie te beveiligen en fraude op te sporen. Wij gebruiken geen reclamecookies of trackers voor profileringsdoeleinden."
+        ],
+        "id": "cookies"
       },
       {
         "title": "Uw rechten als gebruiker",

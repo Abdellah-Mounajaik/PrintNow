@@ -225,8 +225,9 @@
       {
         "title": "Cookies and similar technologies",
         "content": [
-          "PrintNow only uses cookies and local storage that are strictly necessary for the site to function — for example, to keep you signed in. We do not use advertising cookies or third-party trackers for profiling purposes."
-        ]
+          "PrintNow sets no cookies of its own: your session, your permissions and your language are kept in your browser's local storage. The only cookies present are set by Stripe on the payment pages, to secure the transaction and detect fraud. We do not use advertising cookies or trackers for profiling purposes."
+        ],
+        "id": "cookies"
       },
       {
         "title": "Your rights as a user",
