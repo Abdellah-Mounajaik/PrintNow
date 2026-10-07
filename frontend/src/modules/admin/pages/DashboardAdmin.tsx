@@ -142,6 +142,24 @@ const DashboardAdmin = () => {
       setFermetureEnCours(false);
     }
   };
+
+  const handleRouvrirImprimerie = async (shop: ImprimerieDTO) => {
+    if (!token) return;
+    try {
+      await adminService.rouvrirImprimerie(shop.id, token);
+      setImprimeries((prev) => prev.map((i) => (i.id === shop.id ? { ...i, actif: true } : i)));
+      toast({
+        title: t("toasts.shopReopened.title"),
+        description: t("toasts.shopReopened.description"),
+      });
+    } catch (err) {
+      toast({
+        title: t("toasts.shopReopenError.title"),
+        description: err instanceof Error ? err.message : t("toasts.shopReopenError.defaultDescription"),
+        variant: "destructive",
+      });
+    }
+  };
   const [commandeSearchQuery, setCommandeSearchQuery] = useState("");
   const [commandesPage, setCommandesPage] = useState(1);
   const [commandes, setCommandes] = useState<CommandeDTO[]>([]);
@@ -648,8 +666,9 @@ const DashboardAdmin = () => {
                                   )}
                                 </Button>
                               )}
-                              {/* Une boutique déjà fermée n'a plus rien à fermer. */}
-                              {shop.actif && (
+                              {/* Fermer ou rouvrir, jamais les deux : l'action
+                                  proposée est celle qui change l'état actuel. */}
+                              {shop.actif ? (
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -658,6 +677,15 @@ const DashboardAdmin = () => {
                                   onClick={() => setImprimerieAFermer(shop)}
                                 >
                                   <Store className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  aria-label={t("shops.reopenAriaLabel", { name: shop.nom })}
+                                  onClick={() => handleRouvrirImprimerie(shop)}
+                                >
+                                  <Undo2 className="h-4 w-4" />
                                 </Button>
                               )}
                             </div>

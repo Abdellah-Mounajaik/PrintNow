@@ -65,7 +65,8 @@
       "inactive": "Inactief"
     },
     "closeAriaLabel": "Drukkerij {{name}} sluiten",
-    "downloadInvoiceAriaLabel": "Inschrijvingsfactuur van {{name}} downloaden"
+    "downloadInvoiceAriaLabel": "Inschrijvingsfactuur van {{name}} downloaden",
+    "reopenAriaLabel": "Drukkerij {{name}} heropenen"
   },
   "users": {
     "title": "Gebruikersbeheer",
@@ -222,6 +223,14 @@
       "title": "Fout",
       "validationFailed": "Kon de verificatie niet accepteren.",
       "refusalFailed": "Kon de verificatie niet weigeren."
+    },
+    "shopReopened": {
+      "title": "Drukkerij heropend",
+      "description": "Ze staat weer in de catalogus en kan bestellingen ontvangen."
+    },
+    "shopReopenError": {
+      "title": "Heropenen mislukt",
+      "defaultDescription": "Probeer het straks opnieuw."
     }
   },
   "parametres": {

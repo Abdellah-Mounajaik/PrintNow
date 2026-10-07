@@ -9,8 +9,10 @@ import com.printnow.module.user.model.User;
 import com.printnow.module.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Objects;
@@ -140,5 +142,14 @@ public class ImprimerieService {
         Imprimerie imprimerie = imprimerieRepository.findById(id).get();
         imprimerie.setActif(false);
         imprimerieRepository.save(imprimerie);
+    }
+
+    /** Remet au catalogue une boutique fermée (voir {@link #deleteImprimerie}). */
+    public ImprimerieResponseDTO rouvrirImprimerie(Long id) {
+        Imprimerie imprimerie = imprimerieRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Imprimerie non trouvée"));
+
+        imprimerie.setActif(true);
+        return shopMapper.toResponse(imprimerieRepository.save(imprimerie));
     }
 }

@@ -93,6 +93,20 @@ public class ImprimerieController {
     }
 
     /**
+     * PATCH /api/imprimeries/{id}/rouvrir
+     * Remet une boutique fermée au catalogue.
+     *
+     * Sans cette route, une fermeture était sans retour : ni l'administration ni
+     * le gérant ne pouvaient refaire apparaître la boutique, y compris après une
+     * fermeture par erreur.
+     */
+    @PatchMapping("/{id}/rouvrir")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ImprimerieResponseDTO> rouvrirImprimerie(@PathVariable Long id) {
+        return ResponseEntity.ok(imprimerieService.rouvrirImprimerie(id));
+    }
+
+    /**
      * GET /api/imprimeries/{id}/facture-inscription
      * Télécharge la facture PDF des frais d'inscription de cette imprimerie.
      * Accessible à l'admin (n'importe quelle imprimerie) ou au gérant propriétaire.

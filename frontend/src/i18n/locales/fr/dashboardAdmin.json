@@ -65,7 +65,8 @@
       "inactive": "Inactive"
     },
     "closeAriaLabel": "Fermer l'imprimerie {{name}}",
-    "downloadInvoiceAriaLabel": "Télécharger la facture d'inscription de {{name}}"
+    "downloadInvoiceAriaLabel": "Télécharger la facture d'inscription de {{name}}",
+    "reopenAriaLabel": "Rouvrir l'imprimerie {{name}}"
   },
   "users": {
     "title": "Gestion des utilisateurs",
@@ -222,6 +223,14 @@
       "title": "Erreur",
       "validationFailed": "Impossible de valider.",
       "refusalFailed": "Impossible de refuser."
+    },
+    "shopReopened": {
+      "title": "Imprimerie rouverte",
+      "description": "Elle figure de nouveau au catalogue et peut recevoir des commandes."
+    },
+    "shopReopenError": {
+      "title": "Réouverture impossible",
+      "defaultDescription": "Réessayez dans un instant."
     }
   },
   "parametres": {

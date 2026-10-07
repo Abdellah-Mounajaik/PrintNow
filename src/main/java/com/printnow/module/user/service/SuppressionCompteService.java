@@ -144,8 +144,9 @@ public class SuppressionCompteService {
      * Rétablit un compte fermé dont les données n'ont pas encore été effacées.
      *
      * Les imprimeries fermées à la suppression ne sont pas rouvertes
-     * automatiquement : leur gérant décide lui-même quand sa boutique doit
-     * réapparaître au catalogue.
+     * automatiquement : remettre une boutique au catalogue, c'est la remettre à
+     * recevoir des commandes, ce qui mérite un geste délibéré. L'administration
+     * le fait au cas par cas (voir ImprimerieService#rouvrirImprimerie).
      *
      * @throws ResponseStatusException 409 si le délai est écoulé — les données
      *         n'existent plus, il n'y a plus rien à rétablir

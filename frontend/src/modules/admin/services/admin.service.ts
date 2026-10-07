@@ -78,6 +78,22 @@ export const adminService = {
     }
   },
 
+  /** Remet une boutique fermée au catalogue. */
+  rouvrirImprimerie: async (id: number, token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/imprimeries/${id}/rouvrir`, {
+      method: "PATCH",
+      headers: authHeaders(token),
+    });
+    if (!response.ok) {
+      const brut = await response.text();
+      let motif = "Erreur lors de la réouverture de l'imprimerie";
+      try {
+        motif = JSON.parse(brut).message || motif;
+      } catch { if (brut) motif = brut; }
+      throw new Error(motif);
+    }
+  },
+
   // Toutes les imprimeries, y compris fermées : pour que les totaux (ex. frais
   // d'inscription perçus) ne chutent pas dès qu'une imprimerie ferme.
   getImprimeries: async (token: string): Promise<ImprimerieDTO[]> => {
