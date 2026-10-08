@@ -19,11 +19,16 @@ import java.util.List;
 /**
  * Efface les documents téléversés par les clients une fois la commande terminée.
  *
- * Un PDF n'est collecté que pour être imprimé. La commande livrée ou annulée, il
- * n'a plus de raison d'être conservé — le RGPD impose alors de l'effacer
- * (article 5.1.e, limitation de la conservation). On laisse néanmoins passer un
- * court délai après la clôture, le temps qu'une réimpression ou une réclamation
- * reste possible ; au-delà, le fichier disparaît du disque et de la base.
+ * Un PDF n'est collecté que pour être imprimé. La commande achevée, il n'a plus
+ * de raison d'être conservé — le RGPD impose alors de l'effacer (article 5.1.e,
+ * limitation de la conservation). On laisse néanmoins passer un court délai, le
+ * temps qu'une réimpression ou une réclamation reste possible ; au-delà, le
+ * fichier disparaît du disque et de la base.
+ *
+ * « Achevée » ne veut pas dire « livrée » : une commande en retrait magasin
+ * s'arrête à « prête », et une commande jamais payée n'ira nulle part. S'en
+ * tenir aux statuts terminaux conservait ces fichiers indéfiniment — voir
+ * {@link FichierPDFRepository#findClientsAPurger} pour les trois cas retenus.
  *
  * La facture, elle, n'est pas concernée : ce n'est pas le document imprimé mais
  * une pièce comptable, conservée sept ans à part (voir
@@ -65,7 +70,7 @@ public class PurgeFichiersClientsService {
         fichierPDFRepository.deleteAllInBatch(aEffacer);
 
         log.info("Purge RGPD : {} fichier(s) client effacé(s) ({} retirés du disque) — "
-                        + "commande terminée depuis plus de {} jour(s)",
+                        + "commande achevée depuis plus de {} jour(s)",
                 aEffacer.size(), effacesDuDisque, retentionJours);
     }
 
